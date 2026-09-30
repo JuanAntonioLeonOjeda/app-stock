@@ -74,7 +74,7 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 ## Adapters
 
-- [ ] T28. Capturar fixtures reales en `app/test/fixtures/alpha_vantage/`: los 7
+- [x] T28. Capturar fixtures reales en `app/test/fixtures/alpha_vantage/`: los 7
       endpoints para `IBM` con la clave `demo` de Alpha Vantage (no gasta cuota), una
       búsqueda sin resultados y respuestas de error (`Note`, `Information` y
       `Error Message`, además del aviso de `outputsize=full` premium). La clave
