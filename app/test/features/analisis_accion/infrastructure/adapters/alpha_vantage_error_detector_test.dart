@@ -35,6 +35,46 @@ void main() {
       );
     });
 
+    test('el aviso real de límite diario es RateLimitException y su detalle '
+        'no contiene la clave', () {
+      // Texto real (2026-09-30) con la clave sustituida por una ficticia:
+      // Alpha Vantage repite la clave en el aviso.
+      expect(
+        () => decodeAlphaVantageBody(
+          readAlphaVantageFixture('information_daily_limit'),
+        ),
+        throwsA(
+          isA<RateLimitException>().having(
+            (e) => e.details,
+            'details',
+            allOf(
+              contains('[clave oculta]'),
+              isNot(contains('CLAVEDEEJEMPLO00')),
+            ),
+          ),
+        ),
+      );
+    });
+
+    test(
+      'ninguna excepción conserva algo con forma de clave en su detalle',
+      () {
+        const body =
+            '{"Information": "Unexpected message for ABCDEFGH12345678 key"}';
+
+        expect(
+          () => decodeAlphaVantageBody(body),
+          throwsA(
+            isA<InvalidResponseException>().having(
+              (e) => e.details,
+              'details',
+              isNot(contains('ABCDEFGH12345678')),
+            ),
+          ),
+        );
+      },
+    );
+
     test('el límite por minuto es RateLimitException', () {
       expect(
         () => decodeAlphaVantageBody(_perMinuteLimitBody),

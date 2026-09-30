@@ -24,7 +24,7 @@ class AlphaVantagePremiumException implements Exception {
 Map<String, Object?> decodeAlphaVantageBody(String body) {
   final json = _decodeObject(body);
   final errorMessage = json['Error Message'];
-  if (errorMessage is String) throw NotFoundException(errorMessage);
+  if (errorMessage is String) throw NotFoundException(_redact(errorMessage));
 
   final notice = json['Note'] ?? json['Information'];
   if (notice is String) throw _noticeException(notice);
@@ -51,11 +51,25 @@ Map<String, Object?> _decodeObject(String body) {
 /// el aviso de límite también menciona los planes "premium".
 Exception _noticeException(String notice) {
   final text = notice.toLowerCase();
-  if (_rateLimitHints.any(text.contains)) return RateLimitException(notice);
-  if (_apiKeyHints.any(text.contains)) return MissingApiKeyException(notice);
-  if (text.contains('premium')) return AlphaVantagePremiumException(notice);
-  return InvalidResponseException(notice);
+  final details = _redact(notice);
+  if (_rateLimitHints.any(text.contains)) return RateLimitException(details);
+  if (_apiKeyHints.any(text.contains)) return MissingApiKeyException(details);
+  if (text.contains('premium')) return AlphaVantagePremiumException(details);
+  return InvalidResponseException(details);
 }
+
+/// Quita la clave de la API de un texto del proveedor. Alpha Vantage la
+/// repite en algunos avisos ("We have detected your API key as XXXX..."), y
+/// ese texto acaba en el detalle de la excepción.
+String _redact(String text) => text
+    .replaceAllMapped(
+      RegExp(r'(api key as )\S+', caseSensitive: false),
+      (match) => '${match[1]}[clave oculta]',
+    )
+    .replaceAll(_apiKeyPattern, '[clave oculta]');
+
+/// Las claves de Alpha Vantage son 16 caracteres en mayúsculas y dígitos.
+final _apiKeyPattern = RegExp(r'\b[A-Z0-9]{16}\b');
 
 const _rateLimitHints = [
   'rate limit',
