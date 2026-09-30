@@ -35,7 +35,7 @@ final class NetworkException extends MarketDataException {
   const NetworkException([super.details]);
 }
 
-/// La app se compiló sin clave de la API.
+/// La app se compiló sin clave de la API, o el proveedor la rechaza.
 final class MissingApiKeyException extends MarketDataException {
   const MissingApiKeyException([super.details]);
 }

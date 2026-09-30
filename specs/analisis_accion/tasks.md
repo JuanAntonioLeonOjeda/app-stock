@@ -79,8 +79,8 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       búsqueda sin resultados y respuestas de error (`Note`, `Information` y
       `Error Message`, además del aviso de `outputsize=full` premium). La clave
       nunca queda en los fixtures.
-- [ ] T29. `infrastructure/adapters/alpha_vantage_error_detector.dart`.
-- [ ] T30. `infrastructure/adapters/alpha_vantage_parser.dart`: números en texto,
+- [x] T29. `infrastructure/adapters/alpha_vantage_error_detector.dart`.
+- [x] T30. `infrastructure/adapters/alpha_vantage_parser.dart`: números en texto,
       ausentes a `null`, signos, orden, deuda y caja con respaldo (las entidades las
       reciben ya resueltas).
 - [ ] T31. Confirmar en la documentación de Alpha Vantage el límite por minuto actual y
