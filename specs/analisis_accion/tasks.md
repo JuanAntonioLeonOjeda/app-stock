@@ -124,10 +124,10 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       y determinismo.
 - [x] T48. `metric_rules`: `id` únicos, escalas ordenadas y coincidencia con los `id` de
       `metricas.md`.
-- [ ] T49. `test/.../application/fake_ports.dart` completos y compartidos por los
+- [x] T49. `test/.../application/fake_ports.dart` completos y compartidos por los
       tests de use cases y controllers.
-- [ ] T50. Repasar los 32 criterios de `spec.md` y anotar qué test cubre cada uno o si
-      se verifica en dispositivo.
+- [x] T50. Repasar los 32 criterios de `spec.md` y anotar qué test cubre cada uno o si
+      se verifica en dispositivo. Resultado en `coverage.md`.
 
 ## Verificación en dispositivo
 

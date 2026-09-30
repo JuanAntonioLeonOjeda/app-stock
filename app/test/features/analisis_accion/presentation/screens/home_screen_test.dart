@@ -73,6 +73,18 @@ void main() {
       expect(find.text('TSCO.LON · United Kingdom · GBX'), findsOneWidget);
     });
 
+    testWidgets('también busca al pulsar intro (criterio 2)', (tester) async {
+      final marketData = FakeMarketData(matches: [_tesco]);
+      await _pumpHome(tester, marketData);
+
+      await tester.enterText(find.byType(TextField), 'tesco');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pumpAndSettle();
+
+      expect(marketData.searchQueries, ['tesco']);
+      expect(find.text('Tesco PLC'), findsOneWidget);
+    });
+
     testWidgets('sin coincidencias lo indica', (tester) async {
       await _pumpHome(tester, FakeMarketData());
 

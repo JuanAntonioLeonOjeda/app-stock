@@ -7,6 +7,7 @@ import 'package:stock_app/features/analisis_accion/domain/entities/history_entry
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
+import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 
@@ -73,6 +74,85 @@ void main() {
       expect(find.text('PER 12 meses'), findsOneWidget);
       // En la empresa sintética, PER y P/FCF valen 14.
       expect(find.text('14,0x'), findsNWidgets(2));
+    });
+
+    testWidgets('la cabecera muestra precio, fecha de cierre y perfil '
+        '(criterio 9)', (tester) async {
+      final entry = _qualityEntry();
+      final result = entry.result;
+      await _pumpScreen(tester, FakeMarketData(), entry: entry);
+
+      expect(find.text('CALI'), findsWidgets);
+      expect(
+        find.text(
+          '${formatPrice(result.price, 'USD')} · cierre del '
+          '${formatDate(result.lastCloseDate!)}',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Perfil: General'), findsOneWidget);
+    });
+
+    testWidgets('cada bloque muestra su cobertura (criterio 10)', (
+      tester,
+    ) async {
+      await _pumpScreen(tester, FakeMarketData(), entry: _qualityEntry());
+
+      expect(find.text('Cobertura 100 %'), findsWidgets);
+    });
+
+    testWidgets('una métrica sin valor muestra "sin dato" y su nota '
+        '(criterio 12)', (tester) async {
+      final fragile = HistoryEntry(
+        result: const StockAnalyzer().analyze(
+          fragileCompany(),
+          referenceDate: referenceDate,
+        ),
+        analyzedAt: referenceDate,
+      );
+      await _pumpScreen(tester, FakeMarketData(), entry: fragile);
+
+      await tester.tap(find.text('Valoración'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('sin dato · No aplica: flujo de caja libre negativo.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('lista los datos que faltan (criterio 13)', (tester) async {
+      final shortHistory = HistoryEntry(
+        result: const StockAnalyzer().analyze(
+          buildCompany(dailyBars: priceHistory(sessions: 150)),
+          referenceDate: referenceDate,
+        ),
+        analyzedAt: referenceDate,
+      );
+      await _pumpScreen(tester, FakeMarketData(), entry: shortHistory);
+
+      await _scrollTo(tester, find.text('Datos que faltan'));
+
+      expect(find.text('Datos que faltan'), findsOneWidget);
+      expect(
+        find.text('• Pendiente de la media de 200 sesiones'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('con datos insuficientes no muestra nota global '
+        '(criterio 28)', (tester) async {
+      final empty = HistoryEntry(
+        result: const StockAnalyzer().analyze(
+          emptyCompany(),
+          referenceDate: referenceDate,
+        ),
+        analyzedAt: referenceDate,
+      );
+      await _pumpScreen(tester, FakeMarketData(), entry: empty);
+
+      expect(find.text('Datos insuficientes'), findsOneWidget);
+      expect(find.textContaining('/ 10'), findsNothing);
     });
 
     testWidgets('desde el historial no pide datos', (tester) async {
