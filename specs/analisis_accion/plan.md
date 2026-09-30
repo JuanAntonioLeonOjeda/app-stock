@@ -47,11 +47,11 @@ Funciones puras, sin I/O ni reloj. Toda la opinión (escalas, pesos y umbrales) 
 | `indicators/technical_indicators.dart` | SMA, EMA, RSI de Wilder, MACD, pendiente de la SMA200, rentabilidades, volatilidad, caída máxima y máximo/mínimo de 52 semanas |
 | `indicators/fundamental_ratios.dart` | TTM, FCF, deuda neta/EBITDA, deuda/patrimonio, liquidez, cobertura, márgenes, CAGR, ROIC, ROE, dilución, dividendo/FCF, P/FCF y sorpresas de BPA |
 | `indicators/metric_values.dart` | Calcula el valor de cada `id` de métrica a partir de `StockData` (orquesta indicadores y ratios, con respaldo del perfil si el histórico es corto) |
-| `rules/metric_rule.dart` | `MetricRule` (`id`, bloque, etiqueta, formato, peso, escala o función propia, perfiles) y `ScorePoint` |
+| `rules/metric_rule.dart` | `MetricRule` (`id`, bloque, etiqueta, formato, peso, escala o función propia, perfiles) |
 | `rules/metric_rules.dart` | La lista declarativa de todas las reglas de `references/metricas.md` |
 | `rules/block_weights.dart` | Pesos por bloque y horizonte |
 | `rules/verdict_thresholds.dart` | Cortes del veredicto, de la confianza y de antigüedad, y umbrales de las alarmas |
-| `scoring/piecewise_scale.dart` | Interpolación lineal por tramos con saturación y redondeo a 1 decimal |
+| `scoring/piecewise_scale.dart` | `ScorePoint`, interpolación lineal por tramos con saturación y redondeo a 1 decimal |
 | `scoring/profile_detector.dart` | Detección del perfil (financiera → crecimiento → dividendo → general) |
 | `scoring/block_scorer.dart` | Nota y cobertura de cada bloque |
 | `scoring/verdict_calculator.dart` | Nota global, veredicto, regla de coherencia por salud y confianza |

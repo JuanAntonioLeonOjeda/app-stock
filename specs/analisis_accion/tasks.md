@@ -39,12 +39,13 @@ Entidades y excepciones:
 
 Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
-- [ ] T12. `domain/motor/motor_version.dart`.
-- [ ] T13. `domain/motor/scoring/piecewise_scale.dart`: interpolación, saturación y
-      redondeo.
-- [ ] T14. `domain/motor/indicators/technical_indicators.dart`: SMA, EMA, RSI, MACD,
-      pendiente de la SMA200, rentabilidades, volatilidad, caída máxima y máximo/mínimo
-      de 52 semanas.
+- [x] T12. `domain/motor/motor_version.dart`.
+- [x] T13. `domain/motor/scoring/piecewise_scale.dart`: `ScorePoint`, interpolación,
+      saturación y redondeo.
+- [x] T14. `domain/motor/indicators/technical_indicators.dart`: SMA, EMA, RSI, MACD,
+      pendiente de la SMA200, caída máxima y máximo de 52 semanas. Rentabilidades,
+      volatilidad y mínimo de 52 semanas no se implementan: ninguna regla ni alarma los
+      usa (se añaden con la métrica que los necesite).
 - [ ] T15. `domain/motor/indicators/fundamental_ratios.dart`: TTM, FCF, ratios de salud, márgenes, CAGR, ROIC (con el tipo impositivo de
       respaldo), ROE, dilución, dividendo/FCF, P/FCF y sorpresas de BPA.
 - [ ] T16. `domain/motor/rules/metric_rule.dart` (`MetricRule`, `ScorePoint`).
