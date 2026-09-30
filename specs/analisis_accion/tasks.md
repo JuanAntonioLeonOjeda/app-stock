@@ -54,16 +54,16 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       `metricas.md`, con perfiles y pesos.
 - [x] T18. `domain/motor/rules/block_weights.dart`, `verdict_thresholds.dart`,
       `profile_criteria.dart` y `flag_rules.dart` (umbrales de avisos junto a su texto).
-- [ ] T19. `domain/motor/indicators/metric_values.dart`: valor de cada `id` a partir de
+- [x] T19. `domain/motor/indicators/metric_values.dart`: valor de cada `id` a partir de
       `StockData`, respaldo del perfil si hay menos de 200 sesiones y notas explicativas
       cuando el valor es `null` por un motivo conocido.
-- [ ] T20. `domain/motor/scoring/profile_detector.dart`.
-- [ ] T21. `domain/motor/scoring/block_scorer.dart`: nota y cobertura.
-- [ ] T22. `domain/motor/scoring/verdict_calculator.dart`: nota global, veredicto,
+- [x] T20. `domain/motor/scoring/profile_detector.dart`.
+- [x] T21. `domain/motor/scoring/block_scorer.dart`: nota y cobertura.
+- [x] T22. `domain/motor/scoring/verdict_calculator.dart`: nota global, veredicto,
       coherencia por salud y confianza.
-- [ ] T23. `domain/motor/scoring/flag_detector.dart`: alarmas de la sección 7, datos
+- [x] T23. `domain/motor/scoring/flag_detector.dart`: alarmas de la sección 7, datos
       antiguos, histórico corto, veredicto limitado y resultados en 14 días o menos.
-- [ ] T24. `domain/motor/stock_analyzer.dart`: ensambla el `AnalysisResult` (con los
+- [x] T24. `domain/motor/stock_analyzer.dart`: ensambla el `AnalysisResult` (con los
       datos que faltan y la versión del motor).
 
 ## Ports
@@ -117,9 +117,9 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 ## Tests
 
-- [ ] T46. `test/.../domain/motor/synthetic_companies.dart`: empresa de calidad →
+- [x] T46. `test/.../domain/motor/synthetic_companies.dart`: empresa de calidad →
       `favorable` y empresa frágil → `desfavorable`.
-- [ ] T47. Casos límite del motor: PER con beneficios negativos, perfil financiero,
+- [x] T47. Casos límite del motor: PER con beneficios negativos, perfil financiero,
       salud < 4, datos vacíos → `datos_insuficientes`, datos antiguos → confianza `baja`
       y determinismo.
 - [x] T48. `metric_rules`: `id` únicos, escalas ordenadas y coincidencia con los `id` de

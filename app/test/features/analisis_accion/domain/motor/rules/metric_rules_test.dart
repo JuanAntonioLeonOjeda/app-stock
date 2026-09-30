@@ -102,10 +102,10 @@ void main() {
     });
   });
 
-  group('blockWeights', () {
+  group('blockWeightsFor', () {
     test('los pesos de cada horizonte suman 1 y cubren los 5 bloques', () {
       for (final horizon in Horizon.values) {
-        final weights = blockWeights[horizon]!;
+        final weights = blockWeightsFor(horizon);
 
         expect(weights.keys.toSet(), Block.values.toSet());
         expect(
