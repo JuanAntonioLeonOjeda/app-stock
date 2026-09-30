@@ -96,9 +96,9 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 ## Use cases
 
-- [ ] T36. `application/use_cases/search_symbol_use_case.dart`.
-- [ ] T37. `application/use_cases/analyze_stock_use_case.dart` (reloj inyectado).
-- [ ] T38. `application/use_cases/load_history_use_case.dart`.
+- [x] T36. `application/use_cases/search_symbol_use_case.dart`.
+- [x] T37. `application/use_cases/analyze_stock_use_case.dart` (reloj inyectado).
+- [x] T38. `application/use_cases/load_history_use_case.dart`.
 
 ## Presentation
 
