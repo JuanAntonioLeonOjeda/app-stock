@@ -106,6 +106,8 @@ Para poder testearlo, el reloj se inyecta en `AnalyzeStockUseCase` como `DateTim
 | `widgets/educational_disclaimer.dart` | Aviso de fin educativo (criterio 14) |
 | `formatters/metric_value_formatter.dart` | **Único** punto donde un valor se formatea (fracción ×100 → %, ratios con "x", importes con divisa) |
 | `formatters/error_messages.dart` | Excepción de `domain/` → texto de la spec (criterios 22-27) |
+| `formatters/labels.dart` | Nombres visibles de veredicto, confianza, perfil, bloque y pasos de progreso |
+| `widgets/verdict_badge.dart`, `widgets/error_notice.dart` | Veredicto con color y aviso de error con "Reintentar" opcional (usados en las dos pantallas) |
 
 ### Composition root (`app/lib/app.dart`) y `app/lib/main.dart`
 

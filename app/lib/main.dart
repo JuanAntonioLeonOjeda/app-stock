@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:stock_app/app.dart';
 
-// Provisional hasta T45 (composition root en app.dart).
-void main() {
-  runApp(
-    const MaterialApp(
-      title: 'stock_app',
-      home: Scaffold(body: Center(child: Text('stock_app'))),
-    ),
-  );
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final storageDirectory = await getApplicationSupportDirectory();
+  runApp(StockApp(storageDirectory: storageDirectory));
 }

@@ -102,17 +102,17 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 ## Presentation
 
-- [ ] T39. `presentation/formatters/metric_value_formatter.dart` y `error_messages.dart`.
-- [ ] T40. `presentation/controllers/home_controller.dart`.
-- [ ] T41. `presentation/controllers/analysis_controller.dart` (la actualización forzada
+- [x] T39. `presentation/formatters/metric_value_formatter.dart` y `error_messages.dart`.
+- [x] T40. `presentation/controllers/home_controller.dart`.
+- [x] T41. `presentation/controllers/analysis_controller.dart` (la actualización forzada
       conserva el resultado anterior si falla).
-- [ ] T42. Widgets de inicio: `search_bar_section.dart`, `symbol_match_tile.dart` e
+- [x] T42. Widgets de inicio: `search_bar_section.dart`, `symbol_match_tile.dart` e
       `history_list.dart`.
-- [ ] T43. Widgets de resultado: `verdict_header.dart`, `flags_section.dart`,
+- [x] T43. Widgets de resultado: `verdict_header.dart`, `flags_section.dart`,
       `block_tile.dart`, `metric_row.dart`, `missing_data_section.dart`,
       `analysis_progress.dart` y `educational_disclaimer.dart`.
-- [ ] T44. `presentation/screens/home_screen.dart` y `analysis_screen.dart`.
-- [ ] T45. `app/lib/core/theme/app_theme.dart`, composition root en `app/lib/app.dart` y
+- [x] T44. `presentation/screens/home_screen.dart` y `analysis_screen.dart`.
+- [x] T45. `app/lib/core/theme/app_theme.dart`, composition root en `app/lib/app.dart` y
       `app/lib/main.dart` (clave con `String.fromEnvironment`).
 
 ## Tests
