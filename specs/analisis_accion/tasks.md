@@ -9,14 +9,15 @@
 
 ## Setup
 
-- [ ] T01. `flutter create --project-name stock_app --org <org> app`; eliminar el
+- [x] T01. `flutter create --project-name stock_app --org com.stock_app app`; eliminar el
       contador de ejemplo y su test.
-- [ ] T02. `app/analysis_options.yaml` con `flutter_lints` y los extras de `code-style.md`.
-- [ ] T03. Dependencias `http`, `path_provider` e `intl` en `app/pubspec.yaml`.
-- [ ] T04. `app/config/secrets.example.json` (versionado, con
+- [x] T02. `app/analysis_options.yaml` con `flutter_lints` y los extras de `code-style.md`.
+- [x] T03. Dependencias `http`, `path_provider` e `intl` en `app/pubspec.yaml`.
+- [x] T04. `app/config/secrets.example.json` (versionado, con
       `ALPHA_VANTAGE_API_KEY` vacía). Comprobar que `app/config/secrets.json` queda
       ignorado por git.
-- [ ] T05. Estructura de carpetas vacía de la feature y de `app/lib/core/theme/`.
+- [x] T05. Estructura de carpetas vacía de la feature y de `app/lib/core/theme/`
+      (creada en local; git no versiona carpetas vacías: entran con su primer archivo).
 
 ## Domain
 
