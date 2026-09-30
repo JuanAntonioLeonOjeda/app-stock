@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Necesario en release para llamar a la API de datos de mercado. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="stock_app"
         android:name="${applicationName}"
