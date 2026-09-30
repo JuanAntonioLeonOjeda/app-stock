@@ -12,6 +12,9 @@ const _dailyLimitBody = '''
 const _perMinuteLimitBody = '''
 {"Note": "Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute and 500 calls per day."}''';
 
+const _burstLimitBody = '''
+{"Information": "Thank you for using Alpha Vantage! Please consider spreading out your free API requests more sparingly (1 request per second). You may subscribe to any of the premium plans at https://www.alphavantage.co/premium/ to lift the free key rate limit (25 requests per day), raise the per-minute rate limit, and instantly unlock all premium endpoints"}''';
+
 const _invalidCallBody = '''
 {"Error Message": "Invalid API call. Please retry or visit the documentation (https://www.alphavantage.co/documentation/) for TIME_SERIES_DAILY."}''';
 
@@ -38,6 +41,16 @@ void main() {
         throwsA(isA<RateLimitException>()),
       );
     });
+
+    test(
+      'el aviso de ráfaga (1 petición por segundo) es RateLimitException',
+      () {
+        expect(
+          () => decodeAlphaVantageBody(_burstLimitBody),
+          throwsA(isA<RateLimitException>()),
+        );
+      },
+    );
 
     test('el histórico completo de pago es AlphaVantagePremiumException', () {
       expect(

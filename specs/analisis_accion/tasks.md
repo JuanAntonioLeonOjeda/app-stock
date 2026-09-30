@@ -83,9 +83,9 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [x] T30. `infrastructure/adapters/alpha_vantage_parser.dart`: números en texto,
       ausentes a `null`, signos, orden, deuda y caja con respaldo (las entidades las
       reciben ya resueltas).
-- [ ] T31. Confirmar en la documentación de Alpha Vantage el límite por minuto actual y
+- [x] T31. Confirmar en la documentación de Alpha Vantage el límite por minuto actual y
       ajustar la pausa por defecto (decisión 6 del plan).
-- [ ] T32. `infrastructure/adapters/alpha_vantage_adapter.dart`: secuencia con pausa,
+- [x] T32. `infrastructure/adapters/alpha_vantage_adapter.dart`: secuencia con pausa,
       caché por endpoint con su caducidad, JSON en crudo en caché, recuerdo de
       `full_history_unavailable`, `forceRefresh`, progreso, `MissingApiKeyException` y
       claves de caché sin la clave de la API.

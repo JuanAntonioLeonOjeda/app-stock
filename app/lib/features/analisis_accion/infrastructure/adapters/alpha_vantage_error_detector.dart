@@ -62,6 +62,9 @@ const _rateLimitHints = [
   'requests per day',
   'call frequency',
   'calls per minute',
+  // Aviso de ráfaga del plan gratuito ("...spreading out your free API
+  // requests more sparingly (1 request per second)").
+  'more sparingly',
 ];
 
 const _apiKeyHints = ['apikey', 'api key is invalid', '**demo** api key'];

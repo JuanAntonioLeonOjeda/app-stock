@@ -144,8 +144,9 @@ Para poder testearlo, el reloj se inyecta en `AnalyzeStockUseCase` como `DateTim
    de los que depende (el histórico diario).
 
 6. **Pausa entre peticiones: 1.200 ms por defecto**, como parámetro del constructor del
-   adapter (0 en los tests). El límite por minuto del plan gratuito se confirma en la
-   documentación de Alpha Vantage al implementar el adapter.
+   adapter (0 en los tests). Confirmado el 2026-09-30: la documentación solo publica 25
+   peticiones al día; el límite de ráfaga del plan gratuito es de 1 petición por segundo
+   (según su aviso), así que 1,2 s basta.
 
 7. **La clave nunca aparece en logs ni en claves de caché.** Las claves de caché usan
    endpoint y símbolo (`av:OVERVIEW:AAPL`), nunca la URL completa.

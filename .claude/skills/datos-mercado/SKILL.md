@@ -32,7 +32,7 @@ Errores tipados como excepciones de `domain/` (ver `.claude/rules/code-style.md`
 
 ## Proveedor inicial: Alpha Vantage
 
-Elegido por ofrecer fundamentales, precios y resultados en una sola API con plan gratuito. Límite diario del plan gratuito muy bajo (unas 25 peticiones; verificar el actual en su web). Límites y precios cambian: confirma siempre en la documentación oficial.
+Elegido por ofrecer fundamentales, precios y resultados en una sola API con plan gratuito. Límite diario del plan gratuito: 25 peticiones (confirmado en su web el 2026-09-30). La documentación no publica límite por minuto, pero hay límite de ráfaga (aviso "...more sparingly (1 request per second)"): el adapter espera 1,2 s entre peticiones. Límites y precios cambian: confirma siempre en la documentación oficial.
 
 Endpoints para un análisis (6 peticiones sin caché):
 
