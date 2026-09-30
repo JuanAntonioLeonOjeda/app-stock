@@ -68,9 +68,9 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 ## Ports
 
-- [ ] T25. `domain/ports/market_data_port.dart` (con `forceRefresh` y `onProgress`).
-- [ ] T26. `domain/ports/cache_port.dart`.
-- [ ] T27. `domain/ports/analysis_history_port.dart`.
+- [x] T25. `domain/ports/market_data_port.dart` (con `forceRefresh` y `onProgress`).
+- [x] T26. `domain/ports/cache_port.dart`.
+- [x] T27. `domain/ports/analysis_history_port.dart`.
 
 ## Adapters
 
