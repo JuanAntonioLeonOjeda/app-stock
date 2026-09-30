@@ -2,8 +2,10 @@
 
 > Derivadas de `plan.md`. Marcar cada una al completarla.
 >
-> **Cada tarea incluye su archivo de test** (`app/test/` refleja `app/lib/`) y no se da
-> por terminada hasta que `flutter analyze` no da avisos y `flutter test` pasa. La sección
+> **Cada tarea con comportamiento incluye su archivo de test** (`app/test/` refleja
+> `app/lib/`); las entidades que solo guardan datos no llevan test, según
+> `testing-conventions.md`. Ninguna tarea se da por terminada hasta que
+> `flutter analyze` no da avisos y `flutter test` pasa. La sección
 > "Tests" recoge solo lo transversal. Rutas relativas a
 > `app/lib/features/analisis_accion/` salvo que se indique otra cosa.
 
@@ -23,7 +25,7 @@
 
 Entidades y excepciones:
 
-- [ ] T06. `domain/entities/daily_bar.dart`, `company_overview.dart`,
+- [x] T06. `domain/entities/daily_bar.dart`, `company_overview.dart`,
       `income_statement.dart`, `balance_sheet.dart`, `cash_flow_statement.dart` y
       `earnings_report.dart`.
 - [ ] T07. `domain/entities/stock_data.dart` (con `fetchedAt`; histórico ascendente e
@@ -43,8 +45,7 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [ ] T14. `domain/motor/indicators/technical_indicators.dart`: SMA, EMA, RSI, MACD,
       pendiente de la SMA200, rentabilidades, volatilidad, caída máxima y máximo/mínimo
       de 52 semanas.
-- [ ] T15. `domain/motor/indicators/fundamental_ratios.dart`: TTM, FCF, deuda y caja con
-      respaldo, ratios de salud, márgenes, CAGR, ROIC (con el tipo impositivo de
+- [ ] T15. `domain/motor/indicators/fundamental_ratios.dart`: TTM, FCF, ratios de salud, márgenes, CAGR, ROIC (con el tipo impositivo de
       respaldo), ROE, dilución, dividendo/FCF, P/FCF y sorpresas de BPA.
 - [ ] T16. `domain/motor/rules/metric_rule.dart` (`MetricRule`, `ScorePoint`).
 - [ ] T17. `domain/motor/rules/metric_rules.dart`: las 30 reglas de las secciones 2-6 de
@@ -77,7 +78,8 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       nunca queda en los fixtures.
 - [ ] T29. `infrastructure/adapters/alpha_vantage_error_detector.dart`.
 - [ ] T30. `infrastructure/adapters/alpha_vantage_parser.dart`: números en texto,
-      ausentes a `null`, signos, orden, deuda y caja con respaldo.
+      ausentes a `null`, signos, orden, deuda y caja con respaldo (las entidades las
+      reciben ya resueltas).
 - [ ] T31. Confirmar en la documentación de Alpha Vantage el límite por minuto actual y
       ajustar la pausa por defecto (decisión 6 del plan).
 - [ ] T32. `infrastructure/adapters/alpha_vantage_adapter.dart`: secuencia con pausa,
