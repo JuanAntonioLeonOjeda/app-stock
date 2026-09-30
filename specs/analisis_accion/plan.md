@@ -50,7 +50,10 @@ Funciones puras, sin I/O ni reloj. Toda la opinión (escalas, pesos y umbrales) 
 | `rules/metric_rule.dart` | `MetricRule` (`id`, bloque, etiqueta, formato, peso, escala o función propia, perfiles) |
 | `rules/metric_rules.dart` | La lista declarativa de todas las reglas de `references/metricas.md` |
 | `rules/block_weights.dart` | Pesos por bloque y horizonte |
-| `rules/verdict_thresholds.dart` | Cortes del veredicto, de la confianza y de antigüedad, y umbrales de las alarmas |
+| `rules/verdict_thresholds.dart` | Cortes del veredicto, de la confianza y de antigüedad |
+| `rules/profile_criteria.dart` | Criterios de detección del perfil (palabras clave, crecimiento, dividendo) |
+| `rules/flag_rules.dart` | Umbrales de los avisos, cada uno junto a su texto |
+| `indicators/metric_value.dart` | `MetricValue`: valor calculado, valor anterior y nota; distingue "sin dato" (resta cobertura) de "no aplica" (no la resta) |
 | `scoring/piecewise_scale.dart` | `ScorePoint`, interpolación lineal por tramos con saturación y redondeo a 1 decimal |
 | `scoring/profile_detector.dart` | Detección del perfil (financiera → crecimiento → dividendo → general) |
 | `scoring/block_scorer.dart` | Nota y cobertura de cada bloque |

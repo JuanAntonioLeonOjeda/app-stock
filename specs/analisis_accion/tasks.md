@@ -48,10 +48,12 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       usa (se añaden con la métrica que los necesite).
 - [x] T15. `domain/motor/indicators/fundamental_ratios.dart`: TTM, FCF, ratios de salud, márgenes, CAGR, ROIC (con el tipo impositivo de
       respaldo), ROE, dilución, dividendo/FCF, P/FCF y sorpresas de BPA.
-- [ ] T16. `domain/motor/rules/metric_rule.dart` (`MetricRule`, `ScorePoint`).
-- [ ] T17. `domain/motor/rules/metric_rules.dart`: las 30 reglas de las secciones 2-6 de
+- [x] T16. `domain/motor/rules/metric_rule.dart` (`MetricRule`, `MetricScoring`) e
+      `indicators/metric_value.dart` (`MetricValue`: distingue "sin dato" de "no aplica").
+- [x] T17. `domain/motor/rules/metric_rules.dart`: las 30 reglas de las secciones 2-6 de
       `metricas.md`, con perfiles y pesos.
-- [ ] T18. `domain/motor/rules/block_weights.dart` y `verdict_thresholds.dart`.
+- [x] T18. `domain/motor/rules/block_weights.dart`, `verdict_thresholds.dart`,
+      `profile_criteria.dart` y `flag_rules.dart` (umbrales de avisos junto a su texto).
 - [ ] T19. `domain/motor/indicators/metric_values.dart`: valor de cada `id` a partir de
       `StockData`, respaldo del perfil si hay menos de 200 sesiones y notas explicativas
       cuando el valor es `null` por un motivo conocido.
@@ -120,7 +122,7 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [ ] T47. Casos límite del motor: PER con beneficios negativos, perfil financiero,
       salud < 4, datos vacíos → `datos_insuficientes`, datos antiguos → confianza `baja`
       y determinismo.
-- [ ] T48. `metric_rules`: `id` únicos, escalas ordenadas y coincidencia con los `id` de
+- [x] T48. `metric_rules`: `id` únicos, escalas ordenadas y coincidencia con los `id` de
       `metricas.md`.
 - [ ] T49. `test/.../application/fake_ports.dart` completos y compartidos por los
       tests de use cases y controllers.
