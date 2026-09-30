@@ -11,8 +11,8 @@ Este proyecto no escribe código directamente a partir de una petición: primero
 
 ## Pasos
 
-0. **Rama.** Crear `feature/<feature>` (ver `.claude/workflows/git-workflow.md`) antes de
-   tocar el spec.
+0. **Rama.** Crear `feature/<feature>` a partir de `develop` (ver
+   `.claude/workflows/git-workflow.md`) antes de tocar el spec.
 
 1. **Spec.** Completar o actualizar `specs/<feature>/spec.md`: qué resuelve, qué queda
    fuera de alcance y criterios de aceptación con el formato dado/cuando/entonces. No
