@@ -79,6 +79,7 @@ Funciones puras, sin I/O ni reloj. Toda la opinión (escalas, pesos y umbrales) 
 | `file_cache_adapter.dart` | `FileCacheAdapter implements CachePort`: un archivo JSON por clave (`{value, expiresAt}`) en la carpeta de soporte de la app |
 | `file_analysis_history_adapter.dart` | `FileAnalysisHistoryAdapter implements AnalysisHistoryPort`: un archivo JSON con como máximo 10 entradas |
 | `analysis_result_json.dart` | Serialización de `AnalysisResult` y `HistoryEntry` (en infrastructure, según `code-style.md`) |
+| `json_file.dart` | Lectura y escritura atómica (temporal + renombrado) de un archivo JSON; un archivo corrupto se lee como ausente |
 
 ### application/use_cases
 

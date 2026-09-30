@@ -89,9 +89,9 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       caché por endpoint con su caducidad, JSON en crudo en caché, recuerdo de
       `full_history_unavailable`, `forceRefresh`, progreso, `MissingApiKeyException` y
       claves de caché sin la clave de la API.
-- [ ] T33. `infrastructure/adapters/file_cache_adapter.dart`.
-- [ ] T34. `infrastructure/adapters/analysis_result_json.dart`.
-- [ ] T35. `infrastructure/adapters/file_analysis_history_adapter.dart`: como máximo 10
+- [x] T33. `infrastructure/adapters/file_cache_adapter.dart`.
+- [x] T34. `infrastructure/adapters/analysis_result_json.dart`.
+- [x] T35. `infrastructure/adapters/file_analysis_history_adapter.dart`: como máximo 10
       entradas, sin duplicados y la más reciente primero.
 
 ## Use cases
