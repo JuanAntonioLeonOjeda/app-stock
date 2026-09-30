@@ -1,4 +1,4 @@
-package com.stock_app.stock_app
+package com.stockapp.stockapp
 
 import io.flutter.embedding.android.FlutterActivity
 
