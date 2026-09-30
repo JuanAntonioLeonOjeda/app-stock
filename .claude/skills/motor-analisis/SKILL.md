@@ -75,7 +75,7 @@ Textos listos para mostrar: señales de alarma de `references/metricas.md`, dato
 
 ## Resultado (`AnalysisResult`)
 
-Símbolo, nombre, fecha del último cierre, último periodo fiscal, precio, perfil, horizonte, veredicto, nota global, confianza, bloques (cada uno con nota, peso, cobertura y sus métricas: `id`, etiqueta, valor, valor formateado, nota, peso, nota explicativa), avisos, datos faltantes y **versión del motor**.
+Símbolo, nombre, fecha del último cierre, último periodo fiscal, precio, perfil, horizonte, veredicto, nota global, confianza, bloques (cada uno con nota, peso, cobertura y sus métricas: `id`, etiqueta, valor, formato (tipo: porcentaje, ratio, múltiplo...; el formateo lo hace la capa de presentación), nota, peso, nota explicativa), avisos, datos faltantes y **versión del motor**.
 
 El `id` de cada métrica es estable (snake_case: `per`, `roic`, `rsi`...) porque la app lo usa para mostrar la explicación educativa.
 
