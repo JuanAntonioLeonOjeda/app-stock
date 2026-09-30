@@ -28,14 +28,14 @@ Entidades y excepciones:
 - [x] T06. `domain/entities/daily_bar.dart`, `company_overview.dart`,
       `income_statement.dart`, `balance_sheet.dart`, `cash_flow_statement.dart` y
       `earnings_report.dart`.
-- [ ] T07. `domain/entities/stock_data.dart` (con `fetchedAt`; histórico ascendente e
+- [x] T07. `domain/entities/stock_data.dart` (con `fetchedAt`; histórico ascendente e
       informes del más reciente al más antiguo, como invariante documentado).
-- [ ] T08. `domain/entities/symbol_match.dart` y `fetch_step.dart`.
-- [ ] T09. `domain/entities/analysis_result.dart` (`AnalysisResult`, `BlockResult`,
+- [x] T08. `domain/entities/symbol_match.dart` y `fetch_step.dart`.
+- [x] T09. `domain/entities/analysis_result.dart` (`AnalysisResult`, `BlockResult`,
       `MetricResult` y los enums `Verdict`, `Confidence`, `CompanyProfile`, `Horizon`,
       `Block` y `MetricFormat`).
-- [ ] T10. `domain/entities/history_entry.dart`.
-- [ ] T11. `domain/exceptions/market_data_exception.dart` con sus 5 subtipos.
+- [x] T10. `domain/entities/history_entry.dart`.
+- [x] T11. `domain/exceptions/market_data_exception.dart` con sus 5 subtipos.
 
 Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
