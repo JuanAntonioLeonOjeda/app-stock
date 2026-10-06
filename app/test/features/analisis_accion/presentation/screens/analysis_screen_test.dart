@@ -11,6 +11,7 @@ import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.d
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/show_info.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 
 import '../../application/fake_ports.dart';
@@ -30,9 +31,11 @@ Future<void> _pumpScreen(
   HistoryEntry? entry,
   DateTime? now,
   FakeLinkOpener? linkOpener,
+  ShowInfo? showInfo,
 }) => tester.pumpWidget(
   MaterialApp(
     home: AnalysisScreen(
+      showInfo: showInfo,
       controller: AnalysisController(
         openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
         analyzeStock: AnalyzeStockUseCase(
@@ -106,6 +109,48 @@ void main() {
       expect(find.text('No se ha podido abrir el navegador'), findsOneWidget);
       // El resultado sigue en pantalla.
       expect(find.text('Ver noticias recientes'), findsOneWidget);
+    });
+
+    testWidgets('con showInfo, el botón de la guía abre su tema', (
+      tester,
+    ) async {
+      final opened = <String>[];
+      await _pumpScreen(
+        tester,
+        FakeMarketData(),
+        entry: _qualityEntry(),
+        showInfo: (_, topicId) => opened.add(topicId),
+      );
+
+      await tester.tap(find.text('¿Cómo leer este diagnóstico?'));
+
+      expect(opened, ['guia_diagnostico']);
+    });
+
+    testWidgets('con showInfo, los bloques y las métricas tienen su icono', (
+      tester,
+    ) async {
+      final opened = <String>[];
+      await _pumpScreen(
+        tester,
+        FakeMarketData(),
+        entry: _qualityEntry(),
+        showInfo: (_, topicId) => opened.add(topicId),
+      );
+
+      await tester.tap(find.byTooltip('Qué mide Valoración'));
+      await tester.tap(find.text('Valoración'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Qué es PER 12 meses'));
+
+      expect(opened, ['bloque_valoracion', 'per']);
+    });
+
+    testWidgets('sin showInfo no hay botón de guía ni iconos', (tester) async {
+      await _pumpScreen(tester, FakeMarketData(), entry: _qualityEntry());
+
+      expect(find.text('¿Cómo leer este diagnóstico?'), findsNothing);
+      expect(find.byIcon(Icons.info_outline), findsNothing);
     });
 
     testWidgets('al desplegar un bloque se ven sus métricas', (tester) async {

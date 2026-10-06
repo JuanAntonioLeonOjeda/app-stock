@@ -1,6 +1,6 @@
 # Spec: contenido_educativo
 
-> Estado: cerrada (2026-10-06). Plan y tasks listos.
+> Estado: cerrada (2026-10-06). Implementada; falta la revisión de contenido por el usuario (T31).
 
 ## Qué resuelve
 

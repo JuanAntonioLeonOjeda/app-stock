@@ -1,0 +1,79 @@
+{
+  "bloques": [
+    {
+      "id": "bloque_valoracion",
+      "titulo": "Valoración",
+      "resumen": "¿Cuánto cuesta la empresa frente a lo que genera?",
+      "responde": "¿El precio que pide el mercado es razonable respecto a los beneficios, la caja y las ventas de la empresa?",
+      "metricas": [
+        "per",
+        "peg",
+        "ev_ebitda",
+        "p_fcf",
+        "p_ventas",
+        "p_vc"
+      ],
+      "comoUsarlo": "Compara el precio con lo que la empresa gana, con varias medidas a la vez: una sola puede engañar. Un precio razonable no convierte en buena a una empresa mala, ni uno alto en mala a una buena: cuenta también lo que esperas que ocurra. Los múltiplos normales cambian según el sector, y el motor usa unas métricas u otras según el perfil de la empresa (crecimiento, dividendo o financiera)."
+    },
+    {
+      "id": "bloque_salud",
+      "titulo": "Salud financiera",
+      "resumen": "¿Puede la empresa aguantar un mal momento?",
+      "responde": "¿Tiene deudas manejables, caja suficiente y capacidad de generar dinero de forma constante?",
+      "metricas": [
+        "deuda_ebitda",
+        "deuda_patrimonio",
+        "liquidez",
+        "cobertura_intereses",
+        "fcf_positivo",
+        "payout_fcf"
+      ],
+      "comoUsarlo": "Es el colchón de la empresa. Mira la deuda, la liquidez y la caja a la vez. Pesa de forma especial: si su nota baja de 4, el motor limita el veredicto a «Neutral» aunque todo lo demás sea muy bueno, porque una empresa con un buen precio pero con problemas para pagar sus deudas puede acabar muy mal."
+    },
+    {
+      "id": "bloque_crecimiento",
+      "titulo": "Crecimiento y rentabilidad",
+      "resumen": "¿El negocio crece y gana bien con el dinero que usa?",
+      "responde": "¿Aumentan las ventas y los beneficios, y rinde el dinero invertido más de lo que cuesta?",
+      "metricas": [
+        "ingresos_cagr3",
+        "ingresos_yoy",
+        "beneficio_cagr3",
+        "margen_operativo",
+        "margen_tendencia",
+        "margen_bruto",
+        "roic",
+        "roe",
+        "dilucion"
+      ],
+      "comoUsarlo": "Combina cuánto crece con cuánto rinde. Crecer sin rentabilidad no crea valor; ser muy rentable sin crecer puede quedarse estancado. Busca constancia: varias métricas que apunten en la misma dirección durante años pesan más que una cifra aislada."
+    },
+    {
+      "id": "bloque_tecnico",
+      "titulo": "Técnico: precio y momento",
+      "resumen": "¿Qué ha hecho el precio en los últimos meses?",
+      "responde": "¿Cómo se ha comportado el precio: en tendencia al alza o a la baja, con mucho impulso o agotado?",
+      "metricas": [
+        "precio_sma200",
+        "pendiente_sma200",
+        "rsi",
+        "macd",
+        "dist_maximo"
+      ],
+      "comoUsarlo": "Habla de la tendencia y el impulso del precio, no de si la empresa merece la pena. No sirve para adivinar el momento exacto de nada: los indicadores técnicos describen lo que ya ha pasado y dan muchas señales falsas. Úsalo como complemento de los otros bloques, nunca como sustituto. Con algunos proveedores no hay histórico diario de precios y varios indicadores salen «sin dato»."
+    },
+    {
+      "id": "bloque_contexto",
+      "titulo": "Contexto",
+      "resumen": "¿Qué rodea a la empresa: expectativas, riesgo y bajones?",
+      "responde": "¿Cumple las previsiones, qué esperan de ella los analistas y cuánto se mueve y cae su precio?",
+      "metricas": [
+        "sorpresas_bpa",
+        "potencial_analistas",
+        "beta",
+        "caida_maxima"
+      ],
+      "comoUsarlo": "Es información de apoyo, con poco peso en la nota. Sirve para poner en contexto los demás bloques: cuánto puede oscilar la acción y si el mercado confía en ella. Las expectativas de los analistas son opiniones, no hechos."
+    }
+  ]
+}

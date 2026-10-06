@@ -85,11 +85,13 @@ contenido, como pide la skill; el parser las convierte a campos en inglés.
 
 | Archivo | Contenido |
 |---|---|
-| `controllers/topic_sheet_controller.dart` | `TopicSheetController` (`ChangeNotifier`): contenido cargado, error, pila de temas visitados, tema actual, opción elegida en la pregunta. Abrir otro tema vacía la respuesta; "atrás" vuelve al anterior (criterios 3 y 5) |
+| `controllers/topic_controller.dart` | `TopicController` (`ChangeNotifier`, lo usan la hoja y la pantalla de la guía): contenido cargado, error, pila de temas visitados, tema actual, opción elegida en la pregunta. Abrir otro tema vacía la respuesta; "atrás" vuelve al anterior (criterios 3 y 5) |
 | `controllers/glossary_controller.dart` | `GlossaryController`: contenido, texto buscado y métricas filtradas por bloque |
 | `screens/glossary_screen.dart` | Guía arriba, buscador y métricas por bloque (criterios 11-14) |
 | `screens/diagnosis_guide_screen.dart` | La guía, con "Qué mirar antes de invertir" y el aviso educativo (criterios 8-10) |
 | `widgets/topic_sheet.dart` | Hoja inferior de un tema: ficha de métrica o de bloque, con `showTopicSheet(...)` |
+| `widgets/topic_section.dart` | Título y texto de una sección de ficha |
+| `open_topic.dart` | `openEducationalTopic(...)`: la guía a pantalla completa y el resto en hoja |
 | `widgets/metric_content_view.dart` | Las secciones de una ficha de métrica |
 | `widgets/block_content_view.dart` | La ficha de un bloque |
 | `widgets/example_box.dart` | El ejemplo, siempre rotulado "Ejemplo inventado" (criterio 4) |

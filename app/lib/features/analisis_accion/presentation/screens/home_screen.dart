@@ -22,10 +22,14 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.controller,
     required this.buildAnalysisScreen,
+    this.onOpenLearn,
   });
 
   final HomeController controller;
   final AnalysisScreenBuilder buildAnalysisScreen;
+
+  /// Abre el glosario educativo; sin ella no hay acceso "Aprender".
+  final void Function(BuildContext context)? onOpenLearn;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -52,7 +56,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Analizar una acción')),
+    appBar: AppBar(
+      title: const Text('Analizar una acción'),
+      actions: [
+        if (widget.onOpenLearn case final onOpenLearn?)
+          TextButton.icon(
+            icon: const Icon(Icons.school_outlined),
+            label: const Text('Aprender'),
+            onPressed: () => onOpenLearn(context),
+          ),
+      ],
+    ),
     body: SafeArea(
       child: ListenableBuilder(
         listenable: _controller,
