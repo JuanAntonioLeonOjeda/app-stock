@@ -94,3 +94,12 @@
 ## Revisión
 
 - [x] T32. `flutter-reviewer` (con atención a que ninguna feature importe de la otra).
+
+## Revisión: explicación desplegable en la propia fila
+
+- [x] T33. `typedef InfoBuilder` y `TopicInlineView` en `contenido_educativo` + tests.
+- [x] T34. `MetricRow` y `BlockTile` desplegables con `buildInfo`, y `AnalysisScreen` + tests
+      (empieza oculto, mostrar/ocultar, cada fila por separado, sin `buildInfo`).
+- [x] T35. Cableado en `app.dart`; `dart format`, `flutter analyze` y `flutter test` limpios.
+- [ ] T36. Probar en el móvil que la explicación se despliega bien en la lista.
+

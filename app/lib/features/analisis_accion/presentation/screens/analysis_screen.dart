@@ -10,6 +10,7 @@ import 'package:stock_app/features/analisis_accion/presentation/widgets/block_ti
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/flags_section.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/missing_data_section.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/show_info.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/verdict_header.dart';
@@ -17,13 +18,22 @@ import 'package:stock_app/features/analisis_accion/presentation/widgets/verdict_
 /// Resultado del análisis de una acción. Es dueña de su [controller] (lo
 /// libera al cerrarse).
 class AnalysisScreen extends StatefulWidget {
-  const AnalysisScreen({super.key, required this.controller, this.showInfo});
+  const AnalysisScreen({
+    super.key,
+    required this.controller,
+    this.showInfo,
+    this.buildInfo,
+  });
 
   final AnalysisController controller;
 
-  /// Abre la explicación educativa de un tema; sin ella no hay iconos de
-  /// información ni botón de la guía.
+  /// Abre una explicación educativa aparte (la guía del diagnóstico); sin ella
+  /// no hay botón de la guía.
   final ShowInfo? showInfo;
+
+  /// Construye la explicación de una métrica o un bloque para mostrarla en el
+  /// sitio; sin ella no hay iconos de información.
+  final InfoBuilder? buildInfo;
 
   @override
   State<AnalysisScreen> createState() => _AnalysisScreenState();
@@ -93,7 +103,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       _guideButton(),
       FlagsSection(flags: entry.result.flags),
       for (final block in entry.result.blocks)
-        BlockTile(block: block, showInfo: widget.showInfo),
+        BlockTile(block: block, buildInfo: widget.buildInfo),
       MissingDataSection(missingData: entry.result.missingData),
       _newsButton(),
       const EducationalDisclaimer(),

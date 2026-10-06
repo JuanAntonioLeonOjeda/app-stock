@@ -11,6 +11,7 @@ import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.d
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/show_info.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 
@@ -32,10 +33,12 @@ Future<void> _pumpScreen(
   DateTime? now,
   FakeLinkOpener? linkOpener,
   ShowInfo? showInfo,
+  InfoBuilder? buildInfo,
 }) => tester.pumpWidget(
   MaterialApp(
     home: AnalysisScreen(
       showInfo: showInfo,
+      buildInfo: buildInfo,
       controller: AnalysisController(
         openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
         analyzeStock: AnalyzeStockUseCase(
@@ -127,26 +130,29 @@ void main() {
       expect(opened, ['guia_diagnostico']);
     });
 
-    testWidgets('con showInfo, los bloques y las métricas tienen su icono', (
+    testWidgets('con buildInfo, bloques y métricas se explican en el sitio', (
       tester,
     ) async {
-      final opened = <String>[];
       await _pumpScreen(
         tester,
         FakeMarketData(),
         entry: _qualityEntry(),
-        showInfo: (_, topicId) => opened.add(topicId),
+        buildInfo: (_, topicId) => Text('Explicación de $topicId'),
       );
 
       await tester.tap(find.byTooltip('Qué mide Valoración'));
-      await tester.tap(find.text('Valoración'));
       await tester.pumpAndSettle();
+      expect(find.text('Explicación de bloque_valoracion'), findsOneWidget);
       await tester.tap(find.byTooltip('Qué es PER 12 meses'));
+      await tester.pumpAndSettle();
 
-      expect(opened, ['bloque_valoracion', 'per']);
+      expect(find.text('Explicación de per'), findsOneWidget);
+      expect(find.text('PER 12 meses'), findsOneWidget);
     });
 
-    testWidgets('sin showInfo no hay botón de guía ni iconos', (tester) async {
+    testWidgets('sin showInfo ni buildInfo no hay botón de guía ni iconos', (
+      tester,
+    ) async {
       await _pumpScreen(tester, FakeMarketData(), entry: _qualityEntry());
 
       expect(find.text('¿Cómo leer este diagnóstico?'), findsNothing);
