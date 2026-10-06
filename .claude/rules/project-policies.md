@@ -13,7 +13,7 @@ Cada métrica va acompañada de contenido educativo que explica qué mide y cóm
 app explica; no recomienda comprar ni vender.
 
 Todo el código vive en `app/` (paquete `stock_app`). **De momento no hay backend**: el
-motor de análisis, el proveedor de datos (Alpha Vantage) y la caché se ejecutan dentro de
+motor de análisis, el proveedor de datos (TradingView) y la caché se ejecutan dentro de
 la app, en Dart. Como el proveedor está detrás de un port, pasar más adelante a un backend
 propio solo requiere cambiar el adapter, sin tocar el motor.
 
@@ -57,7 +57,7 @@ flutter pub get
 dart format --output=none --set-exit-if-changed .
 flutter analyze
 flutter test
-flutter run --dart-define-from-file=config/secrets.json
+flutter run
 ```
 
 ## Despliegue
@@ -70,13 +70,14 @@ flutter build ios --release         # iOS, requiere macOS + Xcode
 
 ## Secretos
 
-- La clave de Alpha Vantage se inyecta al compilar con
-  `--dart-define-from-file=config/secrets.json` y se lee con
-  `String.fromEnvironment`. `app/config/secrets.json` no se versiona.
+- De momento no hay clave de API: TradingView no la necesita. Si un proveedor futuro la
+  necesita, se inyecta al compilar con `--dart-define-from-file` (archivo no versionado) y
+  se lee con `String.fromEnvironment`.
 - Nunca se escribe una clave en el código ni en archivos versionados.
-- **Limitación asumida:** una clave compilada dentro de la app puede extraerse del binario.
-  Solo es aceptable mientras la app sea de uso personal. **Antes de publicarla en una
-  tienda hace falta un backend propio** que guarde la clave (ver skill `datos-mercado`).
+- **Limitación asumida:** TradingView se consulta por sus endpoints no oficiales (sin
+  garantías ni licencia para un producto público). Solo es aceptable mientras la app sea
+  de uso personal. **Antes de publicarla en una tienda hace falta un proveedor con licencia
+  y un backend propio** (ver skill `datos-mercado`).
 
 ## Qué NO hacer
 
@@ -85,7 +86,7 @@ flutter build ios --release         # iOS, requiere macOS + Xcode
 - No violar la regla de dependencia hexagonal: `domain/` nunca importa Flutter, `http` ni
   paquetes externos. Ver `.claude/rules/hexagonal-architecture.md`.
 - No llamar a la API de datos fuera de su adapter en `infrastructure/`.
-- No publicar la app en tiendas con la clave de la API dentro.
+- No publicar la app en tiendas mientras consulte fuentes no oficiales.
 - No generar textos con IA en tiempo de ejecución: el contenido educativo es estático.
 - No afirmar en la app que una acción concreta sea buena compra.
 - No importar código de una feature desde otra: pasar por `app/lib/core/` o plantearse si

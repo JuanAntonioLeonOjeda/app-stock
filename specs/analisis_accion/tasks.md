@@ -141,3 +141,53 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 
 - [ ] T54. `flutter-reviewer`
 - [ ] T55. Actualizar `AGENTS.md` con las rutas nuevas.
+
+---
+
+## Revisión 2: proveedor TradingView
+
+> Derivadas de la Revisión 2 de `plan.md`. Mismas reglas que arriba.
+
+### Domain
+
+- [x] T56. `CompanyOverview` con los ratios opcionales nuevos, `FetchStep.fetching` y
+      sin `MissingApiKeyException`.
+- [x] T57. `metric_values.dart` con el respaldo `calculado ?? ratio del proveedor` y
+      `flag_detector.dart` con el aviso de "Sin histórico de precios"; `motorVersion`
+      `1.1.0`. Tests del motor con una empresa sin barras diarias.
+
+### Infrastructure
+
+- [x] T58. Fixtures reales en `app/test/fixtures/tradingview/` (búsqueda "nintendo",
+      scanner de `TSE:7974`, `TSE:9983`, `BME:IBE`, `NASDAQ:AAPL` y una respuesta sin
+      filas).
+- [x] T59. `tradingview_fields.dart` y `tradingview_parser.dart` con su test sobre las
+      fixtures: nombres de campo reales, fechas de series, porcentajes → fracción,
+      `null` por ausente, orden y monedas.
+- [x] T60. `tradingview_adapter.dart` con su test (`MockClient` + fake de caché):
+      caché 6 h, `forceRefresh`, errores tipados y sin guardar errores.
+- [x] T61. Eliminar el adapter, parser, detector de errores y fixtures de Alpha Vantage.
+
+### Presentation y composición
+
+- [x] T62. Quitar la gestión de clave de `app.dart`, `main.dart`, controllers, pantallas y
+      mensajes; progreso de un paso; ajustar los tests.
+- [x] T63. Eliminar `config/secrets*.json`, la regla de `.gitignore` y las dependencias que
+      sobren.
+
+### Configuración y verificación
+
+- [x] T64. Actualizar skills `datos-mercado` y `motor-analisis`, `metricas.md`,
+      `project-policies.md` y `AGENTS.md`.
+- [x] T65. `dart format`, `flutter analyze` y `flutter test` limpios.
+- [ ] T66. En dispositivo: buscar "Nintendo", analizarla, repetir desde caché y
+      "Actualizar datos"; Iberdrola y Fast Retailing; sin conexión.
+- [x] T67. `flutter-reviewer`.
+
+### Noticias recientes
+
+- [x] T68. `LinkOpenerPort`, `OpenNewsUseCase` (con test de la URL), `UrlLauncherAdapter`,
+      dependencia `url_launcher` y `<queries>` de Android.
+- [x] T69. `AnalysisController.openNews()`, botón en `AnalysisScreen`, cableado en `app.dart`
+      y tests del controller y de la pantalla.
+

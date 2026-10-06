@@ -16,7 +16,7 @@ app/lib/features/analisis_accion/
   application/
     use_cases/       # AnalyzeStockUseCase, SearchSymbolUseCase
   infrastructure/
-    adapters/        # AlphaVantageAdapter, caché en memoria / local
+    adapters/        # TradingViewAdapter, caché en memoria / local
   presentation/
     controllers/     # ChangeNotifier por pantalla (ver code-style.md)
     screens/
@@ -38,7 +38,7 @@ presentation → application → domain ← infrastructure
   también fuera de la app (tests, script de línea de comandos o un futuro backend en Dart).
 - **`domain/ports/`** define interfaces abstractas: qué necesita el dominio, no cómo se
   consigue. Ej.: el motor necesita "una forma de obtener `StockData` para un símbolo". Eso
-  es un port; Alpha Vantage no lo es.
+  es un port; TradingView no lo es.
 - **`infrastructure/adapters/`** implementa esos ports con los paquetes reales (`http`,
   almacenamiento local). Es la única capa que puede importar paquetes con I/O o de
   plataforma.
@@ -52,7 +52,7 @@ presentation → application → domain ← infrastructure
 - Port: sufijo `Port`, siempre `abstract interface class`. Ej.: `MarketDataPort`,
   `CachePort`.
 - Adapter: sufijo `Adapter`, implementa un port. Ej.:
-  `AlphaVantageAdapter implements MarketDataPort`.
+  `TradingViewAdapter implements MarketDataPort`.
 - Use case: sufijo `UseCase` y un verbo de negocio. Ej.: `AnalyzeStockUseCase`, no
   `StockService` (ese nombre genérico es justo lo que esta arquitectura reemplaza).
 - Entity: sin sufijo. Ej.: `StockData`, `AnalysisResult`.
@@ -72,7 +72,7 @@ dependencias crece y esto se vuelve incómodo, se valora añadir `get_it`, pero 
 | Indicadores, ratios, reglas, puntuación y veredicto | `domain/motor/` (puro, sin I/O ni reloj) |
 | Jerarquía de excepciones (`MarketDataException`...) | `domain/` |
 | Interfaces "obtener datos de mercado" y "caché" | `domain/ports/` |
-| Cliente de Alpha Vantage, parser JSON, normalización y caché por endpoint | `infrastructure/adapters/` |
+| Cliente de TradingView, parser JSON, normalización y caché | `infrastructure/adapters/` |
 | Orquestar "proveedor → motor → historial" | `application/use_cases/` |
 | Estado de la pantalla | `presentation/controllers/` |
 | Pantallas y widgets | `presentation/screens/`, `presentation/widgets/` |

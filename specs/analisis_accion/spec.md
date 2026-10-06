@@ -1,6 +1,8 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). Siguiente paso: `plan.md`.
+> Estado: cerrada (2026-09-30). **Revisión 2 (proveedor TradingView) cerrada el
+> 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
+> proveedor y modifica los criterios 5, 22, 27 y 31. Siguiente paso: actualizar `plan.md`.
 
 ## Qué resuelve
 
@@ -141,5 +143,104 @@ los refleje.)
     aparece el aviso de histórico corto.
 
 ## Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 2: proveedor TradingView (2026-10-06)
+
+### Qué cambia y por qué
+
+Alpha Vantage gratuito solo da 25 peticiones al día y no tiene fundamentales de bolsas
+como Tokio o Madrid (comprobado con Nintendo, Fast Retailing e Iberdrola). Otras fuentes
+gratuitas, como Yahoo Finance, ya se probaron y se descartaron. La app pasa a obtener los
+datos de **TradingView**: el buscador de símbolos (`symbol-search.tradingview.com`) y el
+scanner (`scanner.tradingview.com`), ambos sin clave. Se mantienen la búsqueda libre, el
+historial, el motor y las pantallas; cambia el adapter y, por tanto, qué datos llegan.
+
+Es una fuente **no oficial**: puede cambiar o cortarse sin aviso. Queda detrás de
+`MarketDataPort`, así que volver a otro proveedor solo toca el adapter. Vale para uso
+personal; antes de publicar en una tienda hace falta un proveedor con licencia.
+
+### Qué datos llegan (comprobado 2026-10-06 con `TSE:7974`, `TSE:9983`, `BME:IBE`, `NASDAQ:AAPL`)
+
+- **Sí:** precio, divisa, sector, capitalización, PER, P/VC, P/Ventas, EV/EBITDA, ROE,
+  ROIC, beta, deuda total, deuda/patrimonio, EBITDA, márgenes, BPA, activos, series
+  anuales y trimestrales de ingresos, beneficio neto, beneficio bruto, FCF, activos y
+  deuda; RSI, medias móviles (SMA50, SMA200), máximo y mínimo de 52 semanas.
+- **A veces vacío:** FCF y flujo operativo (vacíos en 2 de 4), dividendo por acción.
+- **No llega:** histórico diario de precios, pasivo corriente, gastos por intereses,
+  precio objetivo de analistas, PER a futuro.
+
+Consecuencia para el motor: las métricas que dependen del histórico diario (MACD,
+volatilidad, caída máxima, pendiente de la SMA200) y las del dato ausente (liquidez,
+cobertura de intereses, potencial de analistas) salen como "sin dato" y restan
+cobertura. Los demás indicadores técnicos (RSI, precio frente a SMA200, distancia al
+máximo) usan los valores ya calculados por el proveedor.
+
+### Fuera de alcance (añade a los de arriba)
+
+- Histórico diario de precios y gráficos (no hay fuente gratuita fiable).
+- Completar los huecos con una segunda fuente.
+- Una lista fija de acciones o cola de refresco: sin cupo diario no hacen falta.
+- Migrar o conservar el formato de caché de Alpha Vantage: se descarta.
+
+### Criterios de aceptación
+
+Los criterios 0-31 siguen vigentes salvo los siguientes, que se sustituyen.
+
+32. **Dado** que elijo una acción, **cuando** empieza el análisis, **entonces** veo un
+    indicador de progreso con el paso actual (sustituye al criterio 5; ahora son 1-2
+    peticiones, no 6).
+33. **Dado** que TradingView bloquea o limita las peticiones, **cuando** busco o analizo,
+    **entonces** veo el mensaje del criterio 22 (el error `rate_limit` se mantiene como
+    tipo, aunque su causa sea otra) y puedo consultar el historial.
+34. **Dado** que ya no hay clave de API, **cuando** abro la app, **entonces** no aparece el
+    aviso de clave faltante (el criterio 27 deja de aplicar y se elimina
+    `MissingApiKeyException`).
+35. **Dado** que la fuente no da histórico diario, **cuando** veo el resultado, **entonces**
+    aparece un aviso "Sin histórico de precios: indicadores técnicos limitados" y las
+    métricas que lo necesitan salen como "sin dato" (sustituye al criterio 31).
+36. **Dado** un símbolo de bolsa extranjera (p. ej. Nintendo, `7974` en `TSE`), **cuando**
+    busco "Nintendo", **entonces** veo entre las coincidencias la cotización de su bolsa
+    de origen con su divisa (JPY), no solo el ADR estadounidense.
+37. **Dado** una acción cuya divisa de precio y de estados financieros difiere (p. ej.
+    ADR), **cuando** el motor mezcla ambos, **entonces** usa los ratios ya calculados por
+    el proveedor y no divide precio entre importes de otra divisa; si no es posible,
+    la métrica sale "sin dato" con una nota.
+38. **Dado** que los datos de una acción se obtuvieron hace menos de 6 horas, **cuando** la
+    analizo, **entonces** no se hace ninguna petición (sustituye las caducidades por
+    endpoint: ahora todo viene de una sola petición).
+39. **Dado** una respuesta del scanner sin fila para el símbolo, **cuando** analizo,
+    **entonces** veo "No hay datos para este símbolo" (`not_found`).
+40. **Dado** que los campos de la respuesta cambian de forma o de tipo, **cuando** se
+    procesa, **entonces** veo el aviso del criterio 25 y no se guarda en caché.
+
+#### Noticias recientes
+
+41. **Dado** un resultado en pantalla, **cuando** pulso "Ver noticias recientes",
+    **entonces** se abre en el navegador una búsqueda de Google en la pestaña de noticias,
+    ordenada por fecha, con el nombre de la empresa y su ticker (p. ej. `Nintendo Co.,
+    Ltd. 7974`).
+42. **Dado** que el dispositivo no puede abrir el enlace, **cuando** pulso el botón,
+    **entonces** veo "No se ha podido abrir el navegador" y el resultado sigue en pantalla.
+43. **Dado** que abro las noticias, **cuando** el navegador se abre, **entonces** no se
+    envía nada de la app a Google salvo el texto de la búsqueda (sin clave ni historial).
+
+Es un enlace externo: la app no lee ni resume las noticias (nada de IA en tiempo de
+ejecución). Su fin es que el usuario contraste el análisis con lo que se cuenta de la
+empresa.
+
+### Decisiones y riesgos
+
+- **Sin series diarias el bloque técnico es el más débil.** Se acepta: el análisis es a
+  largo plazo (fuera de alcance, el corto plazo).
+- **Fixtures reales** de buscador y scanner (3 acciones extranjeras y 1 de EE. UU.) para
+  detectar cuándo TradingView cambie el formato.
+- **Cada métrica nueva o con fuente distinta** se refleja en `references/metricas.md`, y el
+  cambio de datos de entrada sube `motorVersion` (semver minor).
+
+### Preguntas abiertas
 
 Ninguna.
