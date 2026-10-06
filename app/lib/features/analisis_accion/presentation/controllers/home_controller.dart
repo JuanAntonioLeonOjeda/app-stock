@@ -7,18 +7,10 @@ import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data
 
 /// Estado de la pantalla de inicio: búsqueda e historial.
 class HomeController extends ChangeNotifier {
-  HomeController({
-    required this._searchSymbol,
-    required this._loadHistory,
-    required this.isApiKeyConfigured,
-  });
+  HomeController({required this._searchSymbol, required this._loadHistory});
 
   final SearchSymbolUseCase _searchSymbol;
   final LoadHistoryUseCase _loadHistory;
-
-  /// Sin clave no se busca ni se analiza (criterio 27); el historial sigue
-  /// accesible.
-  final bool isApiKeyConfigured;
 
   bool _isSearching = false;
   List<SymbolMatch>? _matches;
@@ -41,15 +33,15 @@ class HomeController extends ChangeNotifier {
 
   List<HistoryEntry> get history => _history;
 
-  bool get canSearch => isApiKeyConfigured && !_isSearching;
+  bool get canSearch => !_isSearching;
 
   Future<void> refreshHistory() async {
     _history = List.unmodifiable(await _loadHistory());
     _notify();
   }
 
-  /// Busca [query]. No hace nada con un texto vacío, sin clave o si ya hay
-  /// una búsqueda en curso.
+  /// Busca [query]. No hace nada con un texto vacío o si ya hay una búsqueda
+  /// en curso.
   Future<void> search(String query) async {
     if (!canSearch || query.trim().isEmpty) return;
     _isSearching = true;

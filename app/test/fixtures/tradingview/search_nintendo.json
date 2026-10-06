@@ -1,0 +1,830 @@
+{
+ "symbols_remaining": 0,
+ "symbols": [
+  {
+   "symbol": "7974",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "TSE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "JPY",
+   "currency-logoid": "country/JP",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/TSE",
+   "source2": {
+    "id": "TSE",
+    "name": "Tokyo Stock Exchange",
+    "description": "Tokyo Stock Exchange"
+   },
+   "source_id": "TSE",
+   "country": "JP",
+   "is_primary_listing": true,
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTDOY",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "OTC",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "USD",
+   "currency-logoid": "country/US",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/OTC",
+   "source2": {
+    "id": "OTC",
+    "name": "OTC Markets",
+    "description": "OTC Markets"
+   },
+   "source_id": "OTC",
+   "country": "US"
+  },
+  {
+   "symbol": "0R1E",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "LSE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "JPY",
+   "currency-logoid": "country/JP",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/LSE",
+   "source2": {
+    "id": "LSE",
+    "name": "London Stock Exchange",
+    "description": "London Stock Exchange"
+   },
+   "source_id": "LSE",
+   "country": "GB",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "0K85",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "LSE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "USD",
+   "currency-logoid": "country/US",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/LSE",
+   "source2": {
+    "id": "LSE",
+    "name": "London Stock Exchange",
+    "description": "London Stock Exchange"
+   },
+   "source_id": "LSE",
+   "country": "GB"
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "GETTEX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/GETTEX",
+   "source2": {
+    "id": "GETTEX",
+    "name": "Gettex",
+    "description": "Gettex"
+   },
+   "source_id": "GETTEX",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTOA",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "GETTEX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/GETTEX",
+   "source2": {
+    "id": "GETTEX",
+    "name": "Gettex",
+    "description": "Gettex"
+   },
+   "source_id": "GETTEX",
+   "country": "DE"
+  },
+  {
+   "symbol": "864009",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "LSX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/LSX",
+   "source2": {
+    "id": "LSX",
+    "name": "Lang & Schwarz Exchange",
+    "description": "Lang & Schwarz Exchange"
+   },
+   "source_id": "LSX",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "864009",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "LS",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/LS",
+   "source2": {
+    "id": "LS",
+    "name": "Lang & Schwarz Tradecenter",
+    "description": "Lang & Schwarz Tradecenter"
+   },
+   "source_id": "LS",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "905551",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "LS",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/LS",
+   "source2": {
+    "id": "LS",
+    "name": "Lang & Schwarz Tradecenter",
+    "description": "Lang & Schwarz Tradecenter"
+   },
+   "source_id": "LS",
+   "country": "DE"
+  },
+  {
+   "symbol": "905551",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "LSX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/LSX",
+   "source2": {
+    "id": "LSX",
+    "name": "Lang & Schwarz Exchange",
+    "description": "Lang & Schwarz Exchange"
+   },
+   "source_id": "LSX",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTDOY/N",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "BMV",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "MXN",
+   "currency-logoid": "country/MX",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/BMV",
+   "source2": {
+    "id": "BMV",
+    "name": "Mexican Stock Exchange",
+    "description": "Mexican Stock Exchange"
+   },
+   "source_id": "BMV",
+   "country": "MX",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTDOY/N",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "BIVA",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "MXN",
+   "currency-logoid": "country/MX",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "sixgroup",
+   "source_logoid": "source/BIVA",
+   "source2": {
+    "id": "BIVA",
+    "name": "Institutional Stock Exchange",
+    "description": "Institutional Stock Exchange"
+   },
+   "source_id": "BIVA",
+   "country": "MX",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NINTENDO19",
+   "description": "Nintendo Co Ltd Units Thailand Depository Repr 0.01 SH",
+   "type": "dr",
+   "exchange": "SET",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "TH8483120300",
+   "currency_code": "THB",
+   "currency-logoid": "country/TH",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/SET",
+   "source2": {
+    "id": "SET",
+    "name": "Stock Exchange of Thailand",
+    "description": "Stock Exchange of Thailand"
+   },
+   "source_id": "SET",
+   "country": "TH"
+  },
+  {
+   "symbol": "NINTENDO23",
+   "description": "Nintendo Co., Ltd. Units Thailand Depositery Receipts Repr 0.01 Sh",
+   "type": "dr",
+   "exchange": "SET",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "TH3932121504",
+   "currency_code": "THB",
+   "currency-logoid": "country/TH",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/SET",
+   "source2": {
+    "id": "SET",
+    "name": "Stock Exchange of Thailand",
+    "description": "Stock Exchange of Thailand"
+   },
+   "source_id": "SET",
+   "country": "TH"
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "FWB",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/FWB",
+   "source2": {
+    "id": "FWB",
+    "name": "Frankfurt Stock Exchange",
+    "description": "Frankfurt Stock Exchange"
+   },
+   "source_id": "FWB",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTOA",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "FWB",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/FWB",
+   "source2": {
+    "id": "FWB",
+    "name": "Frankfurt Stock Exchange",
+    "description": "Frankfurt Stock Exchange"
+   },
+   "source_id": "FWB",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTO0",
+   "description": "Nintendo Co., Ltd. Sponsored Canadian Depository Receipt Hedged Reg",
+   "type": "dr",
+   "exchange": "FWB",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "653952101",
+   "isin": "CA6539521014",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/FWB",
+   "source2": {
+    "id": "FWB",
+    "name": "Frankfurt Stock Exchange",
+    "description": "Frankfurt Stock Exchange"
+   },
+   "source_id": "FWB",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "TRADEGATE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/TRADEGATE",
+   "source2": {
+    "id": "TRADEGATE",
+    "name": "Tradegate Exchange",
+    "description": "Tradegate Exchange"
+   },
+   "source_id": "TRADEGATE",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "DUS",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/DUS",
+   "source2": {
+    "id": "DUS",
+    "name": "Dusseldorf Stock Exchange",
+    "description": "Dusseldorf Stock Exchange"
+   },
+   "source_id": "DUS",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "HAN",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/HAN",
+   "source2": {
+    "id": "HAN",
+    "name": "Hannover Stock Exchange",
+    "description": "Hannover Stock Exchange"
+   },
+   "source_id": "HAN",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "MUN",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/MUN",
+   "source2": {
+    "id": "MUN",
+    "name": "Munich Stock Exchange",
+    "description": "Munich Stock Exchange"
+   },
+   "source_id": "MUN",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "HAM",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/HAM",
+   "source2": {
+    "id": "HAM",
+    "name": "Hamburg Stock Exchange",
+    "description": "Hamburg Stock Exchange"
+   },
+   "source_id": "HAM",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTOA",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "MUN",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/MUN",
+   "source2": {
+    "id": "MUN",
+    "name": "Munich Stock Exchange",
+    "description": "Munich Stock Exchange"
+   },
+   "source_id": "MUN",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTOA",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "DUS",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/DUS",
+   "source2": {
+    "id": "DUS",
+    "name": "Dusseldorf Stock Exchange",
+    "description": "Dusseldorf Stock Exchange"
+   },
+   "source_id": "DUS",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTDO",
+   "description": "Nintendo Co., Ltd. Sponsored Canadian Depository Receipt Hedged Reg",
+   "type": "dr",
+   "exchange": "NEO",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "653952101",
+   "isin": "CA6539521014",
+   "currency_code": "CAD",
+   "currency-logoid": "country/CA",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/NEO",
+   "source2": {
+    "id": "NEO",
+    "name": "Cboe Canada",
+    "description": "Cboe Canada"
+   },
+   "source_id": "NEO",
+   "country": "CA"
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "SWB",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/SWB",
+   "source2": {
+    "id": "SWB",
+    "name": "Stuttgart Stock Exchange",
+    "description": "Stuttgart Stock Exchange"
+   },
+   "source_id": "SWB",
+   "country": "DE",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTOA",
+   "description": "Nintendo Co., Ltd. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "SWB",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "654445303",
+   "isin": "US6544453037",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/SWB",
+   "source2": {
+    "id": "SWB",
+    "name": "Stuttgart Stock Exchange",
+    "description": "Stuttgart Stock Exchange"
+   },
+   "source_id": "SWB",
+   "country": "DE"
+  },
+  {
+   "symbol": "NTO",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "VIE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/VIE",
+   "source2": {
+    "id": "VIE",
+    "name": "Vienna Stock Exchange",
+    "description": "Vienna Stock Exchange"
+   },
+   "source_id": "VIE",
+   "country": "AT",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "NTDOF",
+   "description": "Nintendo Co., Ltd.",
+   "type": "stock",
+   "exchange": "OTC",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JP3756600007",
+   "currency_code": "USD",
+   "currency-logoid": "country/US",
+   "logoid": "nintendo",
+   "logo": {
+    "style": "single",
+    "logoid": "nintendo"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/OTC",
+   "source2": {
+    "id": "OTC",
+    "name": "OTC Markets",
+    "description": "OTC Markets"
+   },
+   "source_id": "OTC",
+   "country": "US",
+   "typespecs": [
+    "common"
+   ]
+  },
+  {
+   "symbol": "SNIN1L",
+   "description": "SGE TRAC NINTENDO CO LTD OP END",
+   "type": "structured",
+   "exchange": "MILSEDEX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "DE000SU9VQK5",
+   "currency_code": "EUR",
+   "currency-logoid": "country/EU",
+   "provider_id": "ice",
+   "source_logoid": "source/MILSEDEX",
+   "source2": {
+    "id": "MILSEDEX",
+    "name": "Euronext Milan",
+    "description": "Euronext Milan"
+   },
+   "source_id": "MILSEDEX",
+   "country": "IT"
+  },
+  {
+   "symbol": "AVA_NINTENDO_TRACKER",
+   "description": "Alphabeta Access Products Limited Structured Instrument 2019-open end on Nintendo",
+   "type": "structured",
+   "exchange": "OMXSTO",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JE00BJ7H8575",
+   "currency_code": "SEK",
+   "currency-logoid": "country/SE",
+   "provider_id": "ice",
+   "source_logoid": "source/OMXSTO",
+   "source2": {
+    "id": "OMXSTO",
+    "name": "Nasdaq Stockholm",
+    "description": "Nasdaq Stockholm"
+   },
+   "source_id": "OMXSTO",
+   "country": "SE"
+  }
+ ]
+}

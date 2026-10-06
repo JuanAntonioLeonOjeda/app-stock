@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/domain/motor/motor_version.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
@@ -27,10 +29,12 @@ Future<void> _pumpScreen(
   FakeMarketData marketData, {
   HistoryEntry? entry,
   DateTime? now,
+  FakeLinkOpener? linkOpener,
 }) => tester.pumpWidget(
   MaterialApp(
     home: AnalysisScreen(
       controller: AnalysisController(
+        openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
         analyzeStock: AnalyzeStockUseCase(
           marketData: marketData,
           history: FakeHistory(),
@@ -38,7 +42,6 @@ Future<void> _pumpScreen(
         ),
         symbol: 'CALI',
         initialEntry: entry,
-        isApiKeyConfigured: true,
         now: () => now ?? referenceDate,
       ),
     ),
@@ -58,11 +61,51 @@ void main() {
       expect(find.text('Favorable'), findsOneWidget);
       expect(find.text('8,3 / 10'), findsOneWidget);
       expect(find.text('Confianza: Alta'), findsOneWidget);
-      expect(find.text('Motor v1.0.0'), findsOneWidget);
+      expect(find.text('Motor v$motorVersion'), findsOneWidget);
       expect(find.text('Valoración'), findsOneWidget);
       expect(find.text('PER 12 meses'), findsNothing);
       await _scrollTo(tester, find.text(educationalDisclaimerText));
       expect(find.text(educationalDisclaimerText), findsOneWidget);
+    });
+
+    testWidgets(
+      'el botón de noticias abre la búsqueda de Google (criterio 41)',
+      (tester) async {
+        final linkOpener = FakeLinkOpener();
+        await _pumpScreen(
+          tester,
+          FakeMarketData(),
+          entry: _qualityEntry(),
+          linkOpener: linkOpener,
+        );
+        await _scrollTo(tester, find.text('Ver noticias recientes'));
+
+        await tester.tap(find.text('Ver noticias recientes'));
+        await tester.pump();
+
+        final uri = linkOpener.opened.single;
+        expect(uri.host, 'www.google.com');
+        expect(uri.queryParameters['q'], contains('Calidad S.A.'));
+      },
+    );
+
+    testWidgets('si no se puede abrir el navegador, avisa (criterio 42)', (
+      tester,
+    ) async {
+      await _pumpScreen(
+        tester,
+        FakeMarketData(),
+        entry: _qualityEntry(),
+        linkOpener: FakeLinkOpener(canOpen: false),
+      );
+      await _scrollTo(tester, find.text('Ver noticias recientes'));
+
+      await tester.tap(find.text('Ver noticias recientes'));
+      await tester.pump();
+
+      expect(find.text('No se ha podido abrir el navegador'), findsOneWidget);
+      // El resultado sigue en pantalla.
+      expect(find.text('Ver noticias recientes'), findsOneWidget);
     });
 
     testWidgets('al desplegar un bloque se ven sus métricas', (tester) async {
@@ -182,10 +225,7 @@ void main() {
       await _pumpScreen(tester, marketData);
       await tester.pump();
 
-      expect(
-        find.text('Obteniendo resultados trimestrales, 6 de 6'),
-        findsOneWidget,
-      );
+      expect(find.text('Obteniendo datos de la empresa'), findsOneWidget);
       marketData.gate!.complete();
       await tester.pumpAndSettle();
       expect(find.text('Favorable'), findsOneWidget);

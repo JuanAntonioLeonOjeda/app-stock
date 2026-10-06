@@ -106,7 +106,8 @@ Map<String, MetricValue> _valuationValues(_Inputs inputs) {
     'p_fcf': _isNotPositive(inputs.fcfTtm)
         ? const MetricValue.notApplicable(_negativeFcfNote)
         : MetricValue(
-            ratioOverPositive(overview.marketCapitalization, inputs.fcfTtm),
+            ratioOverPositive(overview.marketCapitalization, inputs.fcfTtm) ??
+                _positiveOrNull(overview.priceToFreeCashFlow),
           ),
     'p_ventas': MetricValue(_positiveOrNull(overview.priceToSales)),
     'p_vc': MetricValue(_positiveOrNull(overview.priceToBook)),
@@ -114,6 +115,7 @@ Map<String, MetricValue> _valuationValues(_Inputs inputs) {
 }
 
 Map<String, MetricValue> _healthValues(_Inputs inputs) {
+  final overview = inputs.data.overview;
   final balance = inputs.balance;
   final interestTtm = inputs.ttm((s) => s.interestExpense);
   final latestCashFlow = inputs.data.annualCashFlow.firstOrNull;
@@ -125,19 +127,24 @@ Map<String, MetricValue> _healthValues(_Inputs inputs) {
         ? const MetricValue.notApplicable(_negativeEbitdaNote)
         : MetricValue(
             netDebtToEbitda(
-              totalDebt: inputs.totalDebt,
-              cash: inputs.cash,
-              ebitda: inputs.ebitdaTtm,
-            ),
+                  totalDebt: inputs.totalDebt,
+                  cash: inputs.cash,
+                  ebitda: inputs.ebitdaTtm,
+                ) ??
+                overview.netDebtToEbitda,
           ),
     'deuda_patrimonio': _isNotPositive(inputs.equity)
         ? const MetricValue.notApplicable(_negativeEquityNote)
-        : MetricValue(ratioOverPositive(inputs.totalDebt, inputs.equity)),
+        : MetricValue(
+            ratioOverPositive(inputs.totalDebt, inputs.equity) ??
+                _positiveOrNull(overview.debtToEquity),
+          ),
     'liquidez': MetricValue(
       ratioOverPositive(
-        balance?.totalCurrentAssets,
-        balance?.totalCurrentLiabilities,
-      ),
+            balance?.totalCurrentAssets,
+            balance?.totalCurrentLiabilities,
+          ) ??
+          _positiveOrNull(overview.currentRatio),
     ),
     'cobertura_intereses': interestTtm == 0
         ? const MetricValue.notApplicable(_noInterestNote)
@@ -154,6 +161,7 @@ Map<String, MetricValue> _healthValues(_Inputs inputs) {
 }
 
 Map<String, MetricValue> _growthValues(_Inputs inputs) {
+  final overview = inputs.data.overview;
   final fourYearsNote = inputs.hasFourAnnualReports ? null : _fourYearsNote;
   final netIncomeNow = inputs.annualIncome(0, (s) => s.netIncome);
   final netIncome3YearsAgo = inputs.annualIncome(3, (s) => s.netIncome);
@@ -183,7 +191,8 @@ Map<String, MetricValue> _growthValues(_Inputs inputs) {
             note: fourYearsNote,
           ),
     'margen_operativo': MetricValue(
-      ratioOverPositive(operatingIncomeTtm, inputs.revenueTtm),
+      ratioOverPositive(operatingIncomeTtm, inputs.revenueTtm) ??
+          overview.operatingMargin,
     ),
     'margen_tendencia': MetricValue(
       marginNow == null || margin3YearsAgo == null
@@ -192,23 +201,28 @@ Map<String, MetricValue> _growthValues(_Inputs inputs) {
       note: fourYearsNote,
     ),
     'margen_bruto': MetricValue(
-      ratioOverPositive(inputs.ttm((s) => s.grossProfit), inputs.revenueTtm),
+      ratioOverPositive(inputs.ttm((s) => s.grossProfit), inputs.revenueTtm) ??
+          overview.grossMargin,
     ),
     'roic': MetricValue(
       returnOnInvestedCapital(
-        ebit: inputs.ebitTtm,
-        taxRate: effectiveTaxRate(
-          incomeTaxExpense: inputs.ttm((s) => s.incomeTaxExpense),
-          incomeBeforeTax: inputs.ttm((s) => s.incomeBeforeTax),
-        ),
-        totalDebt: inputs.totalDebt,
-        equity: inputs.equity,
-        cash: inputs.cash,
-      ),
+            ebit: inputs.ebitTtm,
+            taxRate: effectiveTaxRate(
+              incomeTaxExpense: inputs.ttm((s) => s.incomeTaxExpense),
+              incomeBeforeTax: inputs.ttm((s) => s.incomeBeforeTax),
+            ),
+            totalDebt: inputs.totalDebt,
+            equity: inputs.equity,
+            cash: inputs.cash,
+          ) ??
+          overview.returnOnInvestedCapital,
     ),
     'roe': _isNotPositive(inputs.equity)
         ? const MetricValue.notApplicable(_negativeEquityNote)
-        : MetricValue(ratioOverPositive(inputs.netIncomeTtm, inputs.equity)),
+        : MetricValue(
+            ratioOverPositive(inputs.netIncomeTtm, inputs.equity) ??
+                overview.returnOnEquity,
+          ),
     'dilucion': MetricValue(
       cagr(
         annualBalance.elementAtOrNull(0)?.sharesOutstanding,
@@ -235,7 +249,7 @@ Map<String, MetricValue> _technicalValues(_Inputs inputs) {
       slope,
       note: slope == null && closes.length < 220 ? _slopeHistoryNote : null,
     ),
-    'rsi': MetricValue(rsi(closes)),
+    'rsi': MetricValue(rsi(closes) ?? overview.rsi14),
     'macd': MetricValue(
       macdValues?.histogram,
       previous: macdValues?.previousHistogram,

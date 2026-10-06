@@ -29,7 +29,7 @@ Sobre cierres diarios en orden ascendente. Devuelven null si no hay suficientes 
 - **Caída máxima (1 año)**: mínimo de `cierre / máximo acumulado − 1`.
 - **Máximo y mínimo de 52 semanas**: sobre las últimas 252 sesiones.
 
-Si el histórico tiene < 200 sesiones (planes gratuitos), usar como respaldo SMA50, SMA200 y máximo/mínimo de 52 semanas que ofrezca el perfil de la API, y añadir aviso.
+Si el histórico tiene < 200 sesiones (planes gratuitos o proveedores sin histórico diario), usar como respaldo SMA50, SMA200 y máximo/mínimo de 52 semanas que ofrezca el perfil de la API, y añadir aviso.
 
 ## 2. Valoración
 
@@ -96,3 +96,26 @@ Balance: usar el trimestral más reciente. Deuda total = deuda total reportada o
 - Deuda neta/EBITDA > 4.
 - Patrimonio neto negativo (ROE y deuda/patrimonio no interpretables).
 - Rentabilidad por dividendo > 7 % (el mercado duda de su sostenibilidad).
+
+## Respaldo con ratios del proveedor (motor 1.1.0)
+
+Cuando las cuentas no permiten calcular una métrica, el motor usa el ratio que da el
+proveedor (`CompanyOverview`), siempre como **segunda opción**: lo calculado con las
+cuentas prevalece. Con TradingView las cuentas por periodo son parciales y, además, sus
+escalares están en USD y las series en la moneda de reporte, así que estos ratios (sin
+unidad) evitan mezclar monedas.
+
+| id | Calculado con cuentas | Respaldo (`CompanyOverview`) |
+|---|---|---|
+| `p_fcf` | capitalización / FCF TTM | `priceToFreeCashFlow` |
+| `deuda_ebitda` | (deuda − caja) / EBITDA TTM | `netDebtToEbitda` |
+| `deuda_patrimonio` | deuda / patrimonio | `debtToEquity` (solo si > 0) |
+| `liquidez` | activo corriente / pasivo corriente | `currentRatio` (solo si > 0) |
+| `margen_operativo` | resultado operativo / ingresos TTM | `operatingMargin` |
+| `margen_bruto` | beneficio bruto / ingresos TTM | `grossMargin` |
+| `roic` | NOPAT / capital invertido | `returnOnInvestedCapital` |
+| `roe` | beneficio neto TTM / patrimonio | `returnOnEquity` |
+| `rsi` | RSI de 14 sesiones del histórico | `rsi14` |
+
+Si no hay histórico diario (una sola barra), el aviso es "Sin histórico de precios", y
+MACD, pendiente de la SMA200 y caída máxima quedan "sin dato".

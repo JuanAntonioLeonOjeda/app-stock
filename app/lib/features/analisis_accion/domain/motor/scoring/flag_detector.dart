@@ -16,7 +16,7 @@ List<String> detectFlags({
   return [
     if (isVerdictCappedByHealth) verdictCappedByHealthText,
     if (_isPriceStale(data, referenceDate)) stalePriceText,
-    if (data.dailyBars.length < minSessionsForOwnAverages) shortHistoryText,
+    ?_historyText(data),
     if (_isLatestQuarterStale(data, referenceDate)) staleQuarterText,
     if (_isMarketCapInconsistent(data)) marketCapMismatchText,
     ?currencyMismatch,
@@ -37,6 +37,13 @@ bool _exceeds(MetricValue? metric, double threshold) =>
 
 bool _isAbove(double? value, double threshold) =>
     value != null && value > threshold;
+
+/// Una sola barra = el proveedor no da histórico diario, solo el último cierre.
+String? _historyText(StockData data) {
+  final sessions = data.dailyBars.length;
+  if (sessions <= 1) return noPriceHistoryText;
+  return sessions < minSessionsForOwnAverages ? shortHistoryText : null;
+}
 
 bool _isPriceStale(StockData data, DateTime referenceDate) {
   final lastClose = data.dailyBars.lastOrNull;

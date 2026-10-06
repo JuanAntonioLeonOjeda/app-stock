@@ -186,3 +186,98 @@ tras reiniciar la app y el mensaje de límite de peticiones.
 - Skill `motor-analisis`: `valor formateado` → `formato` (decisión 4).
 - La entrada del contenido educativo por cada `id`, y su test, quedan para la feature
   educativa. El test de cobertura se añadirá entonces.
+
+---
+
+## Revisión 2: proveedor TradingView (2026-10-06)
+
+> Implementada (T56-T65). Basada en la Revisión 2 de `spec.md`. Sustituye al adapter de Alpha Vantage. El motor
+> sigue siendo el mismo; solo cambian sus datos de entrada. Rutas relativas a
+> `app/lib/features/analisis_accion/`.
+
+### Qué hay en TradingView (comprobado 2026-10-06)
+
+- **Búsqueda**: `GET https://symbol-search.tradingview.com/symbol_search/v3/?text=…&search_type=stock`
+  (cabecera `Origin: https://www.tradingview.com`). Cada resultado trae `symbol`,
+  `exchange`, `description` (con `<em>` de resaltado), `currency_code`, `country`, `type`
+  (`stock`/`dr`) e `is_primary_listing`. El símbolo completo es `EXCHANGE:SYMBOL`
+  (`TSE:7974`).
+- **Datos**: `POST https://scanner.tradingview.com/global/scan` con
+  `{"symbols":{"tickers":["TSE:7974"]},"columns":[…]}`. Una sola petición devuelve todo.
+  Un campo desconocido se devuelve como `null` sin error, así que **los nombres de campo
+  se validan con un test contra una fixture real**, no con la propia API.
+- **Escalares en USD, series en moneda de reporte.** Capitalización, deuda, patrimonio y
+  similares (`*_ttm`, `*_fq`) vienen **convertidos a USD** (`fundamental_currency_code`);
+  las series `*_fy_h` (20 años) y `*_fq_h` (32 trimestres), más reciente primero, vienen en
+  la moneda de reporte (JPY para Nintendo). Los ratios (PER, ROE, P/FCF...) no tienen
+  unidad.
+- **Fechas de las series**: no vienen con la serie; se derivan de `fiscal_period_end_fy`
+  (cierre del último ejercicio) y `fiscal_period_end_current` (cierre del último
+  trimestre publicado) restando 12 o 3 meses por posición.
+- **Fecha del último cierre**: campo `time` (epoch en segundos).
+
+### Decisiones técnicas
+
+1. **Reglas de moneda.** El motor nunca mezcla un escalar en USD con una serie en la
+   moneda de reporte. Donde el cálculo propio exigiría mezclarlos (P/FCF con la
+   capitalización, ROE con el patrimonio, ROIC, deuda neta/EBITDA con la caja), el motor
+   usa el **ratio ya calculado del proveedor** (campos nuevos de `CompanyOverview`),
+   como respaldo cuando el cálculo propio da `null`. Con las series (todas en la misma
+   moneda) sí calcula: CAGR, tendencias de margen, FCF positivo, margen operativo y bruto.
+2. **Una barra sintética.** Sin histórico diario, el adapter entrega una única `DailyBar`
+   con el cierre actual (`close`, `open`, `high`, `low`, `volume`) y la fecha de `time`.
+   Así el precio y la fecha del último cierre siguen funcionando (criterio 9 y 30).
+   RSI, SMA200 y máximo de 52 semanas salen de los campos ya calculados
+   (`CompanyOverview.rsi14`, `movingAverage200`, `week52High`), que el motor ya usa como
+   respaldo con histórico corto.
+3. **`FetchStep` se reduce a `fetching`** (una sola petición). `onProgress` se mantiene
+   en el port (otros proveedores sí tienen varios pasos).
+4. **Caché de la respuesta cruda validada**, como hasta ahora, con 6 h de caducidad
+   para búsqueda y datos (criterio 38). El parser se ejecuta siempre al leer.
+5. **Errores**: HTTP 429 o 403 → `RateLimitException`; 5xx y fallos de conexión →
+   `NetworkException`; fila ausente en `data` → `NotFoundException`; JSON que no es el
+   esperado → `InvalidResponseException`. Se elimina `MissingApiKeyException` y toda la
+   gestión de la clave (`secrets.json`, `String.fromEnvironment`, `isApiKeyConfigured`).
+6. **La búsqueda prioriza listados primarios** (`is_primary_listing`), luego `stock` antes
+   que `dr`. Se pide `search_type=stock` y se filtran los que no son acciones.
+7. **Motor**: `motorVersion` pasa a `1.1.0` (cambia de qué datos se calcula cada métrica;
+   los resultados guardados llevan su versión, criterio 17).
+
+### Cambios por capa
+
+| Capa | Cambio |
+|---|---|
+| `domain/entities/company_overview.dart` | Campos opcionales nuevos: `priceToFreeCashFlow`, `returnOnEquity`, `returnOnInvestedCapital`, `netDebtToEbitda`, `debtToEquity`, `currentRatio`, `operatingMargin`, `grossMargin`, `rsi14` (fracciones, no %) |
+| `domain/entities/fetch_step.dart` | Un solo paso: `fetching` |
+| `domain/exceptions/market_data_exception.dart` | Elimina `MissingApiKeyException` |
+| `domain/motor/indicators/metric_values.dart` | `calculado ?? overview.<ratio>` en `per`, `p_fcf`, `deuda_ebitda`, `deuda_patrimonio`, `liquidez`, `margen_operativo`, `margen_bruto`, `roic`, `roe`, `rsi` |
+| `domain/motor/scoring/flag_detector.dart` | Aviso "Sin histórico de precios" (criterio 35) en lugar del de histórico corto cuando solo hay una barra |
+| `infrastructure/adapters/tradingview_fields.dart` | Lista de campos pedidos al scanner |
+| `infrastructure/adapters/tradingview_parser.dart` | Búsqueda y scanner → `SymbolMatch` y `StockData`: fechas de series, % → fracción, USD vs moneda de reporte, `null` para lo ausente |
+| `infrastructure/adapters/tradingview_adapter.dart` | `TradingViewAdapter implements MarketDataPort`: caché, errores y cabeceras |
+| `infrastructure/adapters/alpha_vantage_*.dart` | Se eliminan (Alpha Vantage queda en el historial de git) |
+| `presentation/` | Sin aviso de clave; progreso de un paso; el resto igual |
+| `app.dart`, `main.dart` | Construye `TradingViewAdapter`; sin clave |
+
+### Cambios en la configuración asociados
+
+- Skill `datos-mercado`: proveedor TradingView (endpoints, campos, reglas de moneda,
+  riesgos), eliminada la parte de Alpha Vantage y de clave.
+- `project-policies.md`: secretos (ya no hay clave) y la regla "No llamar a la API fuera
+  de su adapter" sigue igual.
+- Skill `motor-analisis` y `references/metricas.md`: respaldo con ratios del proveedor.
+- `app/config/secrets.example.json` y `--dart-define-from-file` dejan de hacer falta.
+
+### Noticias recientes (criterios 41-43)
+
+| Capa | Cambio |
+|---|---|
+| `domain/ports/link_opener_port.dart` | `LinkOpenerPort`: `open(Uri)` → `bool` (si se pudo abrir) |
+| `application/use_cases/open_news_use_case.dart` | `OpenNewsUseCase`: construye `https://www.google.com/search?q=<nombre> <ticker>&tbm=nws&tbs=sbd:1` a partir del `AnalysisResult` y llama al port |
+| `infrastructure/adapters/url_launcher_adapter.dart` | `UrlLauncherAdapter implements LinkOpenerPort` con el paquete `url_launcher` (nueva dependencia, solo en infrastructure); un `PlatformException` se traduce a `false` |
+| `presentation/` | `AnalysisController.openNews()`; botón "Ver noticias recientes" al final del resultado; `SnackBar` si falla |
+| `AndroidManifest.xml` | `<queries>` con la intención `VIEW` de `https`, necesaria en Android 11+ para que `canLaunchUrl` funcione |
+
+El ticker sin bolsa (`7974`, no `TSE:7974`) y el nombre van en la búsqueda; el texto se
+codifica con `Uri` (sin concatenar a mano).
+

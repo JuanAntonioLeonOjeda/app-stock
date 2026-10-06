@@ -6,8 +6,7 @@
 sealed class MarketDataException implements Exception {
   const MarketDataException([this.details]);
 
-  /// Detalle técnico para depurar; nunca se muestra al usuario ni contiene
-  /// la clave de la API.
+  /// Detalle técnico para depurar; nunca se muestra al usuario.
   final String? details;
 
   @override
@@ -15,7 +14,8 @@ sealed class MarketDataException implements Exception {
       details == null ? runtimeType.toString() : '$runtimeType: $details';
 }
 
-/// La API ha rechazado la petición por límite de peticiones.
+/// El proveedor ha rechazado la petición por límite de peticiones o porque
+/// bloquea al cliente (HTTP 429 o 403).
 final class RateLimitException extends MarketDataException {
   const RateLimitException([super.details]);
 }
@@ -33,9 +33,4 @@ final class InvalidResponseException extends MarketDataException {
 /// Sin conexión o fallo de red.
 final class NetworkException extends MarketDataException {
   const NetworkException([super.details]);
-}
-
-/// La app se compiló sin clave de la API, o el proveedor la rechaza.
-final class MissingApiKeyException extends MarketDataException {
-  const MissingApiKeyException([super.details]);
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
@@ -22,9 +23,10 @@ HistoryEntry _savedEntry({DateTime? analyzedAt}) => HistoryEntry(
 AnalysisController _controller(
   FakeMarketData marketData, {
   HistoryEntry? initialEntry,
-  bool isApiKeyConfigured = true,
   DateTime? now,
+  FakeLinkOpener? linkOpener,
 }) => AnalysisController(
+  openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
   analyzeStock: AnalyzeStockUseCase(
     marketData: marketData,
     history: FakeHistory(),
@@ -32,11 +34,45 @@ AnalysisController _controller(
   ),
   symbol: 'CALI',
   initialEntry: initialEntry,
-  isApiKeyConfigured: isApiKeyConfigured,
   now: () => now ?? referenceDate,
 );
 
 void main() {
+  group('AnalysisController.openNews', () {
+    test('abre las noticias de la empresa analizada', () async {
+      final linkOpener = FakeLinkOpener();
+      final controller = _controller(
+        FakeMarketData(),
+        initialEntry: _savedEntry(),
+        linkOpener: linkOpener,
+      );
+
+      final wasOpened = await controller.openNews();
+
+      expect(wasOpened, isTrue);
+      expect(linkOpener.opened, hasLength(1));
+      expect(linkOpener.opened.single.queryParameters['tbm'], 'nws');
+    });
+
+    test('devuelve false si el dispositivo no puede abrir el enlace', () async {
+      final controller = _controller(
+        FakeMarketData(),
+        initialEntry: _savedEntry(),
+        linkOpener: FakeLinkOpener(canOpen: false),
+      );
+
+      expect(await controller.openNews(), isFalse);
+    });
+
+    test('sin resultado todavía no abre nada', () async {
+      final linkOpener = FakeLinkOpener();
+      final controller = _controller(FakeMarketData(), linkOpener: linkOpener);
+
+      expect(await controller.openNews(), isFalse);
+      expect(linkOpener.opened, isEmpty);
+    });
+  });
+
   group('AnalysisController.analyze', () {
     test('muestra el resultado al terminar', () async {
       final controller = _controller(
@@ -58,7 +94,7 @@ void main() {
       final analysis = controller.analyze();
 
       expect(controller.isLoading, isTrue);
-      expect(controller.currentStep, FetchStep.earnings);
+      expect(controller.currentStep, FetchStep.fetching);
       expect(controller.canRefresh, isFalse);
       marketData.gate!.complete();
       await analysis;
@@ -86,16 +122,6 @@ void main() {
 
       expect(controller.entry, isNull);
       expect(controller.error, isA<NotFoundException>());
-    });
-
-    test('sin clave no pide datos y muestra el error de clave', () async {
-      final marketData = FakeMarketData(stockData: qualityCompany());
-      final controller = _controller(marketData, isApiKeyConfigured: false);
-
-      await controller.analyze();
-
-      expect(marketData.fetchCalls, isEmpty);
-      expect(controller.error, isA<MissingApiKeyException>());
     });
   });
 

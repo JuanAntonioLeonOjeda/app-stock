@@ -78,6 +78,22 @@ void main() {
       expect(_flags(data), contains(shortHistoryText));
     });
 
+    test('con una sola barra avisa de que no hay histórico de precios', () {
+      final data = buildCompany(dailyBars: priceHistory(sessions: 1));
+
+      final flags = _flags(data);
+
+      expect(flags, contains(noPriceHistoryText));
+      expect(flags, isNot(contains(shortHistoryText)));
+    });
+
+    test('con histórico suficiente no avisa de histórico', () {
+      final flags = _flags(buildCompany());
+
+      expect(flags, isNot(contains(noPriceHistoryText)));
+      expect(flags, isNot(contains(shortHistoryText)));
+    });
+
     test('avisa si el último trimestre tiene más de 6 meses', () {
       final flags = _flags(
         qualityCompany(),

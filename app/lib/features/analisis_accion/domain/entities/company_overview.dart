@@ -25,6 +25,15 @@ class CompanyOverview {
     required this.movingAverage200,
     required this.week52High,
     required this.week52Low,
+    this.priceToFreeCashFlow,
+    this.returnOnEquity,
+    this.returnOnInvestedCapital,
+    this.netDebtToEbitda,
+    this.debtToEquity,
+    this.currentRatio,
+    this.operatingMargin,
+    this.grossMargin,
+    this.rsi14,
   });
 
   final String symbol;
@@ -53,4 +62,27 @@ class CompanyOverview {
   final double? movingAverage200;
   final double? week52High;
   final double? week52Low;
+
+  // Ratios que el proveedor da ya calculados. El motor los usa solo cuando no
+  // puede calcularlos con las cuentas: sin unidad, así que no mezclan
+  // divisas (precio y capitalización en una moneda, cuentas en otra).
+  final double? priceToFreeCashFlow;
+
+  /// Fracción: 0,17 = 17 %.
+  final double? returnOnEquity;
+
+  /// Fracción: 0,17 = 17 %.
+  final double? returnOnInvestedCapital;
+  final double? netDebtToEbitda;
+  final double? debtToEquity;
+  final double? currentRatio;
+
+  /// Fracción: 0,2 = 20 %.
+  final double? operatingMargin;
+
+  /// Fracción: 0,4 = 40 %.
+  final double? grossMargin;
+
+  /// RSI de 14 sesiones (0-100), cuando no hay histórico para calcularlo.
+  final double? rsi14;
 }

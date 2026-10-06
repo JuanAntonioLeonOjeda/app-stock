@@ -18,10 +18,6 @@ void main() {
         errorMessage(const InvalidResponseException()),
         'Respuesta inesperada del proveedor de datos.',
       );
-      expect(
-        errorMessage(const MissingApiKeyException()),
-        contains('Falta configurar la clave de Alpha Vantage'),
-      );
     });
 
     test('nunca muestra el detalle técnico', () {
@@ -38,7 +34,6 @@ void main() {
       expect(isRetryable(const InvalidResponseException()), isTrue);
       expect(isRetryable(const RateLimitException()), isFalse);
       expect(isRetryable(const NotFoundException()), isFalse);
-      expect(isRetryable(const MissingApiKeyException()), isFalse);
     });
   });
 }

@@ -9,7 +9,23 @@ import 'package:stock_app/features/analisis_accion/domain/entities/stock_data.da
 import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/analysis_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart';
+import 'package:stock_app/features/analisis_accion/domain/ports/link_opener_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/market_data_port.dart';
+
+/// Abridor de enlaces que registra qué se abrió. [canOpen] simula un
+/// dispositivo sin navegador.
+class FakeLinkOpener implements LinkOpenerPort {
+  FakeLinkOpener({this.canOpen = true});
+
+  final bool canOpen;
+  final List<Uri> opened = [];
+
+  @override
+  Future<bool> open(Uri uri) async {
+    opened.add(uri);
+    return canOpen;
+  }
+}
 
 /// Caché en memoria que registra con qué caducidad se guardó cada clave.
 /// No caduca sola: los tests simulan la caducidad con [expire].
