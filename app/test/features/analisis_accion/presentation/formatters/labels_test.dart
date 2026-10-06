@@ -13,6 +13,25 @@ void main() {
     });
   });
 
+  group('blockTopicId', () {
+    test('cada bloque tiene un id de tema distinto y estable', () {
+      expect(
+        [for (final block in Block.values) blockTopicId(block)],
+        [
+          'bloque_valoracion',
+          'bloque_salud',
+          'bloque_crecimiento',
+          'bloque_tecnico',
+          'bloque_contexto',
+        ],
+      );
+    });
+
+    test('la guía tiene su propio id de tema', () {
+      expect(diagnosisGuideTopicId, 'guia_diagnostico');
+    });
+  });
+
   group('etiquetas de enums', () {
     test('los veredictos usan los textos de la spec', () {
       expect(verdictLabel(Verdict.favorable), 'Favorable');

@@ -31,6 +31,20 @@ String blockLabel(Block block) => switch (block) {
   Block.context => 'Contexto',
 };
 
+/// Id del tema educativo de un bloque. Es un contrato de strings con el
+/// contenido de `contenido_educativo` (ninguna feature importa de la otra):
+/// un test en `app/test/` comprueba que cada bloque tiene su explicación.
+String blockTopicId(Block block) => switch (block) {
+  Block.valuation => 'bloque_valoracion',
+  Block.health => 'bloque_salud',
+  Block.growth => 'bloque_crecimiento',
+  Block.technical => 'bloque_tecnico',
+  Block.context => 'bloque_contexto',
+};
+
+/// Id del tema educativo de la guía del diagnóstico.
+const diagnosisGuideTopicId = 'guia_diagnostico';
+
 /// "Obteniendo datos de la empresa".
 String fetchProgressLabel(FetchStep step) => switch (step) {
   FetchStep.fetching => 'Obteniendo datos de la empresa',

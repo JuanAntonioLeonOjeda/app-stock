@@ -3,6 +3,7 @@ import 'package:stock_app/features/analisis_accion/domain/entities/history_entry
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
+import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/analysis_progress.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/block_tile.dart';
@@ -10,14 +11,19 @@ import 'package:stock_app/features/analisis_accion/presentation/widgets/educatio
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/flags_section.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/missing_data_section.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/show_info.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/verdict_header.dart';
 
 /// Resultado del análisis de una acción. Es dueña de su [controller] (lo
 /// libera al cerrarse).
 class AnalysisScreen extends StatefulWidget {
-  const AnalysisScreen({super.key, required this.controller});
+  const AnalysisScreen({super.key, required this.controller, this.showInfo});
 
   final AnalysisController controller;
+
+  /// Abre la explicación educativa de un tema; sin ella no hay iconos de
+  /// información ni botón de la guía.
+  final ShowInfo? showInfo;
 
   @override
   State<AnalysisScreen> createState() => _AnalysisScreenState();
@@ -84,13 +90,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       if (_controller.error case final error?) _errorNotice(error),
       if (_controller.isStale) _staleNotice(entry),
       VerdictHeader(result: entry.result),
+      _guideButton(),
       FlagsSection(flags: entry.result.flags),
-      for (final block in entry.result.blocks) BlockTile(block: block),
+      for (final block in entry.result.blocks)
+        BlockTile(block: block, showInfo: widget.showInfo),
       MissingDataSection(missingData: entry.result.missingData),
       _newsButton(),
       const EducationalDisclaimer(),
     ],
   );
+
+  /// "¿Cómo leer este diagnóstico?" (criterio 8 de `contenido_educativo`).
+  Widget _guideButton() {
+    final showInfo = widget.showInfo;
+    if (showInfo == null) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        icon: const Icon(Icons.menu_book_outlined),
+        label: const Text('¿Cómo leer este diagnóstico?'),
+        onPressed: () => showInfo(context, diagnosisGuideTopicId),
+      ),
+    );
+  }
 
   /// "Ver noticias recientes" (criterios 41-42).
   Widget _newsButton() => Padding(

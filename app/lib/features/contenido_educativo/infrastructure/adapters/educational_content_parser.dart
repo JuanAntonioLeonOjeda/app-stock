@@ -1,0 +1,233 @@
+// JSON de contenido → entidades del dominio. Las claves del JSON van en
+// español (`titulo`, `comoLeerla`...) porque son datos de contenido, como
+// pide la skill contenido-educativo; aquí se convierten a campos en inglés.
+// Cualquier incumplimiento del formato es un `InvalidContentException` con
+// el archivo y el campo, para que un error de contenido salte en los tests y
+// nunca llegue a la pantalla a medias.
+
+import 'dart:convert';
+
+import 'package:stock_app/features/contenido_educativo/domain/entities/block_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/check_question.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/diagnosis_guide.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/educational_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/metric_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/exceptions/educational_content_exception.dart';
+
+typedef _Json = Map<String, Object?>;
+
+/// Mínimo de opciones de una pregunta de comprobación.
+const minQuestionOptions = 3;
+
+const _metricsFile = 'metricas.es.json';
+const _blocksFile = 'bloques.es.json';
+const _guideFile = 'guia.es.json';
+
+/// Todo el contenido a partir del texto de los tres archivos.
+EducationalContent parseEducationalContent({
+  required String metrics,
+  required String blocks,
+  required String guide,
+}) {
+  final parsedMetrics = _metrics(_Reader.root(_metricsFile, metrics));
+  final parsedBlocks = _blocks(_Reader.root(_blocksFile, blocks));
+  final parsedGuide = _guide(_Reader.root(_guideFile, guide));
+  _checkReferences(parsedMetrics, parsedBlocks);
+  return EducationalContent(
+    metrics: parsedMetrics,
+    blocks: parsedBlocks,
+    guide: parsedGuide,
+  );
+}
+
+List<MetricContent> _metrics(_Reader root) {
+  final items = root.list('metricas');
+  final seen = <String>{};
+  return [for (final item in items) _metric(root, item, seen)];
+}
+
+MetricContent _metric(_Reader root, _Reader item, Set<String> seen) {
+  final id = item.text('id');
+  if (!seen.add(id)) throw root.fail('metricas', 'id repetido: $id');
+  final reader = item.under(id);
+  return MetricContent(
+    id: id,
+    title: reader.text('titulo'),
+    summary: reader.text('resumen'),
+    intuition: reader.text('intuicion'),
+    formula: reader.text('formula'),
+    example: reader.text('ejemplo'),
+    howToRead: reader.text('comoLeerla'),
+    whenItMisleads: reader.text('cuandoEngana'),
+    combinesWith: reader.textList('combinaCon'),
+    question: _question(reader.object('pregunta')),
+  );
+}
+
+CheckQuestion _question(_Reader reader) {
+  final options = reader.textList('opciones');
+  if (options.length < minQuestionOptions) {
+    throw reader.fail(
+      'opciones',
+      'se esperaban al menos $minQuestionOptions, hay ${options.length}',
+    );
+  }
+  final correct = reader.integer('correcta');
+  if (correct < 0 || correct >= options.length) {
+    throw reader.fail('correcta', 'fuera de rango: $correct');
+  }
+  return CheckQuestion(
+    text: reader.text('texto'),
+    options: options,
+    correctIndex: correct,
+    explanation: reader.text('explicacion'),
+  );
+}
+
+List<BlockContent> _blocks(_Reader root) {
+  final items = root.list('bloques');
+  final seen = <String>{};
+  return [for (final item in items) _block(root, item, seen)];
+}
+
+BlockContent _block(_Reader root, _Reader item, Set<String> seen) {
+  final id = item.text('id');
+  if (!seen.add(id)) throw root.fail('bloques', 'id repetido: $id');
+  final reader = item.under(id);
+  return BlockContent(
+    id: id,
+    title: reader.text('titulo'),
+    summary: reader.text('resumen'),
+    answers: reader.text('responde'),
+    metricIds: reader.textList('metricas'),
+    howToUse: reader.text('comoUsarlo'),
+  );
+}
+
+DiagnosisGuide _guide(_Reader root) {
+  final checklist = root.object('queMirar');
+  return DiagnosisGuide(
+    sections: [
+      for (final section in root.list('secciones'))
+        GuideSection(
+          title: section.text('titulo'),
+          body: section.text('texto'),
+        ),
+    ],
+    checklistTitle: checklist.text('titulo'),
+    checklistIntro: checklist.text('introduccion'),
+    checklist: checklist.textList('preguntas'),
+  );
+}
+
+/// Referencias entre archivos: `combinaCon` y las métricas de cada bloque deben
+/// existir, y toda métrica debe estar en un bloque (si no, el glosario la
+/// ocultaría).
+void _checkReferences(List<MetricContent> metrics, List<BlockContent> blocks) {
+  final ids = {for (final metric in metrics) metric.id};
+  for (final metric in metrics) {
+    for (final related in metric.combinesWith) {
+      if (related == metric.id || !ids.contains(related)) {
+        throw InvalidContentException(
+          '$_metricsFile › ${metric.id} › combinaCon: "$related" no es otra '
+          'métrica existente',
+        );
+      }
+    }
+  }
+  final inBlocks = <String>{};
+  for (final block in blocks) {
+    for (final id in block.metricIds) {
+      if (!ids.contains(id)) {
+        throw InvalidContentException(
+          '$_blocksFile › ${block.id} › metricas: "$id" no existe',
+        );
+      }
+      if (!inBlocks.add(id)) {
+        throw InvalidContentException(
+          '$_blocksFile › ${block.id} › metricas: "$id" está en dos bloques',
+        );
+      }
+    }
+  }
+  final orphans = ids.difference(inBlocks);
+  if (orphans.isNotEmpty) {
+    throw InvalidContentException(
+      '$_blocksFile: métricas sin bloque: ${orphans.join(', ')}',
+    );
+  }
+}
+
+/// Lee campos de un objeto JSON con tipos comprobados. [_path] es el rastro
+/// para los mensajes de error.
+class _Reader {
+  const _Reader._(this._file, this._path, this._json);
+
+  factory _Reader.root(String file, String body) {
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException catch (error) {
+      throw InvalidContentException('$file: no es JSON (${error.message})');
+    }
+    if (decoded is! _Json) {
+      throw InvalidContentException('$file: se esperaba un objeto');
+    }
+    return _Reader._(file, const [], decoded);
+  }
+
+  final String _file;
+  final List<String> _path;
+  final _Json _json;
+
+  _Reader under(String name) => _Reader._(_file, [..._path, name], _json);
+
+  InvalidContentException fail(String field, String problem) {
+    final where = [_file, ..._path, field].join(' › ');
+    return InvalidContentException('$where: $problem');
+  }
+
+  String text(String field) {
+    final value = _json[field];
+    if (value is! String || value.trim().isEmpty) {
+      throw fail(field, 'se esperaba un texto no vacío');
+    }
+    return value.trim();
+  }
+
+  int integer(String field) {
+    final value = _json[field];
+    if (value is! int) throw fail(field, 'se esperaba un número entero');
+    return value;
+  }
+
+  List<String> textList(String field) {
+    final value = _json[field];
+    if (value is! List<Object?>) throw fail(field, 'se esperaba una lista');
+    return [
+      for (final item in value)
+        if (item is String && item.trim().isNotEmpty)
+          item.trim()
+        else
+          throw fail(field, 'todos los elementos deben ser textos no vacíos'),
+    ];
+  }
+
+  _Reader object(String field) {
+    final value = _json[field];
+    if (value is! _Json) throw fail(field, 'se esperaba un objeto');
+    return _Reader._(_file, [..._path, field], value);
+  }
+
+  List<_Reader> list(String field) {
+    final value = _json[field];
+    if (value is! List<Object?>) throw fail(field, 'se esperaba una lista');
+    return [
+      for (var i = 0; i < value.length; i++)
+        if (value[i] case final _Json item)
+          _Reader._(_file, [..._path, '$field[$i]'], item)
+        else
+          throw fail('$field[$i]', 'se esperaba un objeto'),
+    ];
+  }
+}

@@ -27,4 +27,7 @@ Contexto del proyecto, arquitectura por features, comandos y despliegue viven en
 | `specs/analisis_accion/spec.md` | Spec de la feature `analisis_accion` |
 | `specs/analisis_accion/plan.md` | Plan de la feature `analisis_accion` |
 | `specs/analisis_accion/tasks.md` | Tasks de la feature `analisis_accion` |
+| `specs/contenido_educativo/spec.md` | Spec de la feature `contenido_educativo` |
+| `specs/contenido_educativo/plan.md` | Plan de la feature `contenido_educativo` |
+| `specs/contenido_educativo/tasks.md` | Tasks de la feature `contenido_educativo` |
 | `.gitignore` | Archivos excluidos del repositorio |

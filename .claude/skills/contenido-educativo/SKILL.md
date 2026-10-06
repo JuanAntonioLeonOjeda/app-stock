@@ -9,7 +9,7 @@ La app no genera textos con IA en tiempo de ejecución. Las explicaciones se esc
 
 ## Enlace con el motor
 
-Cada métrica tiene un `id` estable (ver `motor-analisis`: `per`, `roic`, `rsi`...). Guarda el contenido en un archivo de datos por idioma (p. ej. `app/assets/contenido/metricas.es.json`) con una entrada por `id` y estos campos:
+Cada métrica tiene un `id` estable (ver `motor-analisis`: `per`, `roic`, `rsi`...). El contenido vive en `app/assets/contenido/` (feature `contenido_educativo`), en tres archivos por idioma: `metricas.es.json` (una entrada por `id`), `bloques.es.json` (los 5 bloques, ids `bloque_valoracion`, `bloque_salud`, `bloque_crecimiento`, `bloque_tecnico`, `bloque_contexto`) y `guia.es.json` (la guía del diagnóstico, id de tema `guia_diagnostico`). Cada métrica tiene una entrada con estos campos:
 
 - `titulo`: nombre completo.
 - `resumen`: una frase para la vista compacta.
@@ -18,7 +18,9 @@ Cada métrica tiene un `id` estable (ver `motor-analisis`: `per`, `roic`, `rsi`.
 - `comoLeerla`: qué valores se consideran altos o bajos, coherente con las escalas del motor.
 - `cuandoEngana`: trampas típicas (la parte más valiosa).
 - `combinaCon`: lista de `id` de métricas relacionadas.
-- `pregunta`: texto, opciones, índice correcto y explicación.
+- `pregunta`: `texto`, `opciones` (al menos 3), `correcta` (índice) y `explicacion`.
+
+El `ejemplo` va sin prefijo: la app lo rotula siempre como «Ejemplo inventado». El parser (`educational_content_parser.dart`) rechaza una ficha incompleta indicando el archivo y el campo.
 
 Debe existir una entrada por cada `id` del módulo de reglas. Pide que haya un test que lo compruebe, para que ninguna métrica llegue a la app sin explicación. Si cambia un umbral en el motor, revisa `comoLeerla`.
 

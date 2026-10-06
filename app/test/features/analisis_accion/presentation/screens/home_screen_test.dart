@@ -28,6 +28,7 @@ Future<void> _pumpHome(
   WidgetTester tester,
   FakeMarketData marketData, {
   FakeHistory? history,
+  void Function(BuildContext context)? onOpenLearn,
 }) async {
   final controller = HomeController(
     searchSymbol: SearchSymbolUseCase(marketData),
@@ -39,6 +40,7 @@ Future<void> _pumpHome(
       home: HomeScreen(
         controller: controller,
         buildAnalysisScreen: _fakeAnalysisScreen,
+        onOpenLearn: onOpenLearn,
       ),
     ),
   );
@@ -52,6 +54,23 @@ Future<void> _search(WidgetTester tester, String text) async {
 }
 
 void main() {
+  group('HomeScreen aprender', () {
+    testWidgets('con onOpenLearn muestra "Aprender" y lo abre', (tester) async {
+      var opened = 0;
+      await _pumpHome(tester, FakeMarketData(), onOpenLearn: (_) => opened++);
+
+      await tester.tap(find.text('Aprender'));
+
+      expect(opened, 1);
+    });
+
+    testWidgets('sin onOpenLearn no hay acceso "Aprender"', (tester) async {
+      await _pumpHome(tester, FakeMarketData());
+
+      expect(find.text('Aprender'), findsNothing);
+    });
+  });
+
   group('HomeScreen', () {
     testWidgets('busca al confirmar y muestra las coincidencias', (
       tester,

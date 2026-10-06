@@ -4,6 +4,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:stock_app/core/theme/app_theme.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
@@ -19,6 +20,12 @@ import 'package:stock_app/features/analisis_accion/presentation/controllers/anal
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/home_screen.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/search_glossary_use_case.dart';
+import 'package:stock_app/features/contenido_educativo/infrastructure/adapters/asset_educational_content_adapter.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/controllers/glossary_controller.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/open_topic.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/screens/glossary_screen.dart';
 
 class StockApp extends StatefulWidget {
   const StockApp({super.key, required this.storageDirectory});
@@ -34,6 +41,7 @@ class _StockAppState extends State<StockApp> {
   final _httpClient = http.Client();
   late final AnalyzeStockUseCase _analyzeStock;
   late final HomeController _homeController;
+  late final LoadEducationalContentUseCase _loadEducationalContent;
 
   @override
   void initState() {
@@ -50,6 +58,9 @@ class _StockAppState extends State<StockApp> {
       marketData: marketData,
       history: history,
     );
+    _loadEducationalContent = LoadEducationalContentUseCase(
+      AssetEducationalContentAdapter(bundle: rootBundle),
+    );
     _homeController = HomeController(
       searchSymbol: SearchSymbolUseCase(marketData),
       loadHistory: LoadHistoryUseCase(history),
@@ -63,6 +74,28 @@ class _StockAppState extends State<StockApp> {
     super.dispose();
   }
 
+  /// Une las dos features: `analisis_accion` pide abrir un tema y
+  /// `contenido_educativo` lo muestra, sin que se conozcan entre sí.
+  void _openTopic(BuildContext context, String topicId) => openEducationalTopic(
+    context,
+    loadContent: _loadEducationalContent,
+    topicId: topicId,
+  );
+
+  void _openGlossary(BuildContext context) {
+    // El controller se crea fuera del builder: la ruta puede reconstruirlo.
+    final controller = GlossaryController(
+      loadContent: _loadEducationalContent,
+      searchGlossary: const SearchGlossaryUseCase(),
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            GlossaryScreen(controller: controller, openTopic: _openTopic),
+      ),
+    );
+  }
+
   Widget _buildAnalysisScreen(String symbol, {HistoryEntry? entry}) =>
       AnalysisScreen(
         controller: AnalysisController(
@@ -71,6 +104,7 @@ class _StockAppState extends State<StockApp> {
           symbol: symbol,
           initialEntry: entry,
         ),
+        showInfo: _openTopic,
       );
 
   @override
@@ -81,6 +115,7 @@ class _StockAppState extends State<StockApp> {
     home: HomeScreen(
       controller: _homeController,
       buildAnalysisScreen: _buildAnalysisScreen,
+      onOpenLearn: _openGlossary,
     ),
   );
 }
