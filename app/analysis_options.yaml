@@ -1,0 +1,19 @@
+# Estilo y lints del proyecto: ver .claude/rules/code-style.md
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+
+linter:
+  rules:
+    - always_use_package_imports
+    - prefer_final_locals
+    - require_trailing_commas
+    - avoid_dynamic_calls

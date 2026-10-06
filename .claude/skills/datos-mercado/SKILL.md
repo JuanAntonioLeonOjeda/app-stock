@@ -32,7 +32,7 @@ Errores tipados como excepciones de `domain/` (ver `.claude/rules/code-style.md`
 
 ## Proveedor inicial: Alpha Vantage
 
-Elegido por ofrecer fundamentales, precios y resultados en una sola API con plan gratuito. Límite diario del plan gratuito muy bajo (unas 25 peticiones; verificar el actual en su web). Límites y precios cambian: confirma siempre en la documentación oficial.
+Elegido por ofrecer fundamentales, precios y resultados en una sola API con plan gratuito. Límite diario del plan gratuito: 25 peticiones (confirmado en su web el 2026-09-30). La documentación no publica límite por minuto, pero hay límite de ráfaga (aviso "...more sparingly (1 request per second)"): el adapter espera 1,2 s entre peticiones. Límites y precios cambian: confirma siempre en la documentación oficial.
 
 Endpoints para un análisis (6 peticiones sin caché):
 
@@ -59,6 +59,14 @@ No pidas cotización aparte: el último cierre del histórico basta. Haz las pet
 - **Histórico completo** (`outputsize=full`) puede ser función de pago. Si la respuesta indica que es premium, reintenta con `compact` (~100 sesiones) y **recuerda en caché** que el plan no lo permite, para no gastar una petición en cada análisis. El motor usará las medias precalculadas del `OVERVIEW` como respaldo.
 - **Orden:** el histórico viene como objeto por fechas → ordenar ascendente. Los informes financieros → ordenar del más reciente al más antiguo.
 - **Tickers no estadounidenses** llevan sufijo de bolsa; resolverlos con `SYMBOL_SEARCH`. La cobertura de fundamentales fuera de EE. UU. es limitada: marcar datos faltantes, no inventarlos.
+- **Comprobado con respuestas reales (2026-09-30, fixtures en `app/test/fixtures/alpha_vantage/`):**
+  - `outputsize=full` es de pago en el plan gratuito: responde con `Information` ("...is a premium feature...").
+  - `OVERVIEW` de un símbolo inexistente responde `{}` (objeto vacío, HTTP 200) → `NotFoundException`.
+  - `SYMBOL_SEARCH` sin coincidencias responde `{"bestMatches": []}`.
+  - **La bolsa de Madrid no está cubierta**: "inditex" e "ITX" no encuentran Inditex. Londres (`.LON`) y Frankfurt (`.FRK`) sí aparecen.
+  - Londres cotiza en **GBX (peniques)**, no en GBP: precio y estados financieros pueden venir en unidades distintas.
+  - Una empresa puede declarar impuestos negativos (IBM 2025): el ROIC usa entonces el tipo de respaldo.
+  - La clave `demo` deja de responder tras un par de peticiones (devuelve `Information`): no sirve para capturar fixtures.
 
 ## Validación tras normalizar
 

@@ -72,8 +72,8 @@ dependencias crece y esto se vuelve incómodo, se valora añadir `get_it`, pero 
 | Indicadores, ratios, reglas, puntuación y veredicto | `domain/motor/` (puro, sin I/O ni reloj) |
 | Jerarquía de excepciones (`MarketDataException`...) | `domain/` |
 | Interfaces "obtener datos de mercado" y "caché" | `domain/ports/` |
-| Cliente de Alpha Vantage, parser JSON y normalización | `infrastructure/adapters/` |
-| Orquestar "caché → proveedor → motor → resultado" | `application/use_cases/` |
+| Cliente de Alpha Vantage, parser JSON, normalización y caché por endpoint | `infrastructure/adapters/` |
+| Orquestar "proveedor → motor → historial" | `application/use_cases/` |
 | Estado de la pantalla | `presentation/controllers/` |
 | Pantallas y widgets | `presentation/screens/`, `presentation/widgets/` |
 
