@@ -34,6 +34,10 @@ const negativeEquityText =
     'Patrimonio neto negativo: el ROE y la deuda/patrimonio no son '
     'interpretables.';
 
+const noPriceHistoryText =
+    'Sin histórico de precios: indicadores técnicos limitados. El RSI, las '
+    'medias y el máximo de 52 semanas los calcula el proveedor.';
+
 const shortHistoryText =
     'Histórico de precios inferior a 200 sesiones: las medias y el máximo de '
     '52 semanas se toman del perfil del proveedor.';

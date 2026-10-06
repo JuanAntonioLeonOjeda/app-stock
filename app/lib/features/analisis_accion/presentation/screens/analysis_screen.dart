@@ -87,9 +87,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       FlagsSection(flags: entry.result.flags),
       for (final block in entry.result.blocks) BlockTile(block: block),
       MissingDataSection(missingData: entry.result.missingData),
+      _newsButton(),
       const EducationalDisclaimer(),
     ],
   );
+
+  /// "Ver noticias recientes" (criterios 41-42).
+  Widget _newsButton() => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: OutlinedButton.icon(
+      icon: const Icon(Icons.newspaper),
+      label: const Text('Ver noticias recientes'),
+      onPressed: _openNews,
+    ),
+  );
+
+  Future<void> _openNews() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final wasOpened = await _controller.openNews();
+    if (wasOpened) return;
+    messenger.showSnackBar(
+      const SnackBar(content: Text('No se ha podido abrir el navegador')),
+    );
+  }
 
   Widget _errorNotice(MarketDataException error) => ErrorNotice(
     message: errorMessage(error),

@@ -20,15 +20,11 @@ const _tesco = SymbolMatch(
   matchScore: 0.73,
 );
 
-HomeController _controller(
-  FakeMarketData marketData, {
-  FakeHistory? history,
-  bool isApiKeyConfigured = true,
-}) => HomeController(
-  searchSymbol: SearchSymbolUseCase(marketData),
-  loadHistory: LoadHistoryUseCase(history ?? FakeHistory()),
-  isApiKeyConfigured: isApiKeyConfigured,
-);
+HomeController _controller(FakeMarketData marketData, {FakeHistory? history}) =>
+    HomeController(
+      searchSymbol: SearchSymbolUseCase(marketData),
+      loadHistory: LoadHistoryUseCase(history ?? FakeHistory()),
+    );
 
 void main() {
   group('HomeController.search', () {
@@ -82,16 +78,6 @@ void main() {
       expect(controller.isSearching, isFalse);
     });
 
-    test('sin clave no busca (criterio 27)', () async {
-      final marketData = FakeMarketData(matches: [_tesco]);
-      final controller = _controller(marketData, isApiKeyConfigured: false);
-
-      await controller.search('tesco');
-
-      expect(controller.canSearch, isFalse);
-      expect(marketData.searchQueries, isEmpty);
-    });
-
     test('un texto vacío no busca ni cambia el estado', () async {
       final marketData = FakeMarketData();
       final controller = _controller(marketData);
@@ -104,7 +90,7 @@ void main() {
   });
 
   group('HomeController.refreshHistory', () {
-    test('carga el historial, también sin clave', () async {
+    test('carga el historial', () async {
       final entry = HistoryEntry(
         result: const StockAnalyzer().analyze(
           qualityCompany(),
@@ -115,7 +101,6 @@ void main() {
       final controller = _controller(
         FakeMarketData(),
         history: FakeHistory([entry]),
-        isApiKeyConfigured: false,
       );
       var notifications = 0;
       controller.addListener(() => notifications++);

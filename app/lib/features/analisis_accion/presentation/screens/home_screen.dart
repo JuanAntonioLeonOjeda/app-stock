@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
-import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
@@ -60,11 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, _) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            if (!_controller.isApiKeyConfigured)
-              ErrorNotice(
-                message: errorMessage(const MissingApiKeyException()),
-              ),
-            const SizedBox(height: 8),
             SearchBarSection(
               enabled: _controller.canSearch,
               onSearch: _controller.search,

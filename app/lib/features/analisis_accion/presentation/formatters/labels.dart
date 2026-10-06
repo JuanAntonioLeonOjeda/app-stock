@@ -31,15 +31,7 @@ String blockLabel(Block block) => switch (block) {
   Block.context => 'Contexto',
 };
 
-/// "Obteniendo balance, 3 de 6".
-String fetchProgressLabel(FetchStep step) {
-  final action = switch (step) {
-    FetchStep.overview => 'Obteniendo perfil',
-    FetchStep.dailyHistory => 'Obteniendo histórico de precios',
-    FetchStep.incomeStatement => 'Obteniendo cuenta de resultados',
-    FetchStep.balanceSheet => 'Obteniendo balance',
-    FetchStep.cashFlow => 'Obteniendo flujos de caja',
-    FetchStep.earnings => 'Obteniendo resultados trimestrales',
-  };
-  return '$action, ${step.index + 1} de ${FetchStep.values.length}';
-}
+/// "Obteniendo datos de la empresa".
+String fetchProgressLabel(FetchStep step) => switch (step) {
+  FetchStep.fetching => 'Obteniendo datos de la empresa',
+};

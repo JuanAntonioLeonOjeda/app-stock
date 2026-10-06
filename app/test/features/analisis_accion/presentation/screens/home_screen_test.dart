@@ -28,12 +28,10 @@ Future<void> _pumpHome(
   WidgetTester tester,
   FakeMarketData marketData, {
   FakeHistory? history,
-  bool isApiKeyConfigured = true,
 }) async {
   final controller = HomeController(
     searchSymbol: SearchSymbolUseCase(marketData),
     loadHistory: LoadHistoryUseCase(history ?? FakeHistory()),
-    isApiKeyConfigured: isApiKeyConfigured,
   );
   addTearDown(controller.dispose);
   await tester.pumpWidget(
@@ -128,19 +126,6 @@ void main() {
       await _pumpHome(tester, FakeMarketData());
 
       expect(find.text('Aún no has analizado ninguna acción.'), findsOneWidget);
-    });
-
-    testWidgets('sin clave avisa y desactiva la búsqueda (criterio 27)', (
-      tester,
-    ) async {
-      await _pumpHome(tester, FakeMarketData(), isApiKeyConfigured: false);
-
-      expect(
-        find.textContaining('Falta configurar la clave de Alpha Vantage'),
-        findsOneWidget,
-      );
-      final field = tester.widget<TextField>(find.byType(TextField));
-      expect(field.enabled, isFalse);
     });
   });
 }

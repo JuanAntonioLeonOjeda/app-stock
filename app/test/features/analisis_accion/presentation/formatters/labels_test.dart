@@ -5,14 +5,10 @@ import 'package:stock_app/features/analisis_accion/presentation/formatters/label
 
 void main() {
   group('fetchProgressLabel', () {
-    test('indica el paso y su posición de 6', () {
+    test('indica el paso en curso', () {
       expect(
-        fetchProgressLabel(FetchStep.balanceSheet),
-        'Obteniendo balance, 4 de 6',
-      );
-      expect(
-        fetchProgressLabel(FetchStep.overview),
-        'Obteniendo perfil, 1 de 6',
+        fetchProgressLabel(FetchStep.fetching),
+        'Obteniendo datos de la empresa',
       );
     });
   });
