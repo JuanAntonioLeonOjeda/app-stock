@@ -50,12 +50,16 @@ pregunta de comprobación con su explicación.
 ### Ficha de métrica
 
 1. **Dado** un resultado de análisis, **cuando** veo una métrica y pulso su icono de
-   información, **entonces** se abre una hoja con su título, el resumen, la intuición, la
-   fórmula, el ejemplo, cómo leerla, cuándo engaña y con qué se combina.
+   información, **entonces** se despliega justo debajo de esa fila su explicación (título,
+   resumen, intuición, fórmula, ejemplo, cómo leerla, cuándo engaña, con qué se combina y
+   la pregunta), sin salir de la pantalla.
 2. **Dado** una métrica "sin dato" o "no aplica", **cuando** pulso su icono, **entonces**
-   puedo leer igualmente su ficha (explica qué hace falta para calcularla).
+   puedo leer igualmente su explicación (dice qué hace falta para calcularla).
+2b. **Dado** una explicación desplegada, **cuando** vuelvo a pulsar el icono, **entonces** se
+    oculta; cada métrica se despliega y se oculta por separado y empiezan ocultas.
 3. **Dado** la sección "con qué se combina", **cuando** pulso una métrica relacionada,
-   **entonces** la hoja pasa a la ficha de esa métrica y puedo volver a la anterior.
+   **entonces** se abre su ficha en una hoja inferior (con botón para volver a la
+   anterior), porque esa métrica puede estar en otro bloque o no tener fila en pantalla.
 4. **Dado** el ejemplo de la ficha, **cuando** lo leo, **entonces** pone "Ejemplo
    inventado" y no usa cifras ni nombres de empresas reales.
 5. **Dado** la pregunta de comprobación, **cuando** elijo una opción, **entonces** veo si
@@ -67,9 +71,10 @@ pregunta de comprobación con su explicación.
 ### Bloques y guía del diagnóstico
 
 7. **Dado** un resultado, **cuando** pulso el icono de información de un bloque (valoración,
-   salud, crecimiento, técnico o contexto), **entonces** veo qué pregunta responde ese
-   bloque, qué métricas lo forman y cómo usarlo, incluyendo que el bloque técnico habla
-   de la tendencia del precio y no sirve para adivinar el momento.
+   salud, crecimiento, técnico o contexto), **entonces** el bloque se despliega y muestra
+   arriba qué pregunta responde, qué métricas lo forman y cómo usarlo, incluyendo que el
+   bloque técnico habla de la tendencia del precio y no sirve para adivinar el momento.
+   Al pulsarlo otra vez, esa explicación se oculta.
 8. **Dado** un resultado, **cuando** pulso "¿Cómo leer este diagnóstico?", **entonces** abro
    una guía que explica el veredicto y sus cuatro valores, la nota global, la confianza,
    los avisos y la sección "Datos que faltan".
@@ -113,6 +118,11 @@ pregunta de comprobación con su explicación.
 ## Preguntas abiertas
 
 Ninguna. Decisiones tomadas al cerrar el spec:
+
+- **Explicación en la propia fila (2026-10-06)**: se pidió tenerla desplegable en cada
+  parámetro en vez de en una vista aparte. Las métricas y los bloques se explican en el
+  sitio; la guía del diagnóstico y el glosario siguen siendo pantallas porque sirven para
+  cosas distintas (leer el diagnóstico entero y consultar sin analizar una acción).
 
 - **Primera entrega pequeña**: fichas, bloques, guía y glosario. Las lecciones quedan para
   otra spec porque son contenido nuevo (unas 8 lecciones), no una explicación de lo que

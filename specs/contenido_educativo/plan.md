@@ -179,3 +179,50 @@ Siguiendo `.claude/rules/testing-conventions.md`, en `app/test/features/contenid
 - `AGENTS.md`: filas de `plan.md` y `tasks.md` de esta feature.
 - Skill `contenido-educativo`: ruta real de los archivos (`app/assets/contenido/`, tres
   archivos) y los ids de bloque y guía.
+
+## Revisión: explicación desplegable en la propia fila (2026-10-06)
+
+> Cambia los criterios 1, 2b, 3 y 7. Sustituye a la hoja inferior como forma principal de
+> ver una métrica o un bloque en el resultado; la hoja se queda para el glosario y para los
+> enlaces "Se combina con".
+
+### Conexión entre features
+
+`analisis_accion` define un segundo hueco, junto a `ShowInfo` (que sigue abriendo la guía):
+
+```dart
+/// Construye la explicación del tema [topicId] para mostrarla en el sitio.
+typedef InfoBuilder = Widget Function(BuildContext context, String topicId);
+```
+
+`app.dart` lo implementa con el widget de `contenido_educativo`, que sale de `analisis_accion`
+sin que esta lo importe.
+
+### Cambios
+
+| Dónde | Cambio |
+|---|---|
+| `analisis_accion/.../widgets/info_builder.dart` | `typedef InfoBuilder` |
+| `analisis_accion/.../widgets/metric_row.dart` | Pasa a `StatefulWidget`: el icono muestra u oculta, bajo la fila, lo que devuelve `buildInfo(context, metric.id)` (`AnimatedSize`, empieza oculto) |
+| `analisis_accion/.../widgets/block_tile.dart` | Pasa a `StatefulWidget`: el icono despliega el bloque y muestra arriba `buildInfo(context, blockTopicId)`; al volver a pulsarlo se oculta |
+| `analisis_accion/.../screens/analysis_screen.dart` | Recibe `buildInfo` y se lo pasa a bloques y métricas; `showInfo` queda solo para la guía |
+| `contenido_educativo/.../widgets/topic_inline_view.dart` | `TopicInlineView`: crea su `TopicController` al montarse, carga el contenido la primera vez que se despliega y muestra la ficha de métrica o de bloque (sin cabecera, volver ni aviso grande). Libera el controller al ocultarse |
+| `contenido_educativo/.../widgets/metric_content_view.dart` y `block_content_view.dart` | Sin cambios: las reutiliza |
+| `app.dart` | `buildInfo: (context, id) => TopicInlineView(...)` con `onOpenTopic` que abre la hoja |
+
+### Decisiones
+
+1. **La pregunta funciona dentro de la fila**: su estado vive en el `TopicController` del
+   `TopicInlineView`; al ocultar la explicación se descarta (no se guarda nada).
+2. **Se carga al desplegar, no antes**: el contenido se lee una vez (el adapter lo guarda en
+   memoria) y las filas que nadie despliega no cuestan nada.
+3. **Los chips "Se combina con" abren la hoja**: esa métrica puede estar en otro bloque
+   plegado; navegar al sitio exigiría desplegar y desplazar otra parte de la lista.
+4. **Sin cambios en la guía ni en el glosario**: no son la explicación de un dato concreto.
+
+### Tests
+
+`topic_inline_view_test` (carga al mostrarse, ficha de métrica y de bloque, error con
+reintento, pregunta, chips); `metric_row_test`, `block_tile_test` y `analysis_screen_test`
+(con y sin `buildInfo`; mostrar y ocultar; empieza oculto; cada fila por separado).
+

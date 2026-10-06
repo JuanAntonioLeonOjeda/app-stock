@@ -26,6 +26,7 @@ import 'package:stock_app/features/contenido_educativo/infrastructure/adapters/a
 import 'package:stock_app/features/contenido_educativo/presentation/controllers/glossary_controller.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/open_topic.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/screens/glossary_screen.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/widgets/topic_inline_view.dart';
 
 class StockApp extends StatefulWidget {
   const StockApp({super.key, required this.storageDirectory});
@@ -82,6 +83,14 @@ class _StockAppState extends State<StockApp> {
     topicId: topicId,
   );
 
+  /// La explicación de una métrica o un bloque, en el sitio. Las métricas
+  /// relacionadas se abren aparte, en una hoja.
+  Widget _buildInfo(BuildContext context, String topicId) => TopicInlineView(
+    loadContent: _loadEducationalContent,
+    topicId: topicId,
+    onOpenTopic: (relatedId) => _openTopic(context, relatedId),
+  );
+
   void _openGlossary(BuildContext context) {
     // El controller se crea fuera del builder: la ruta puede reconstruirlo.
     final controller = GlossaryController(
@@ -105,6 +114,7 @@ class _StockAppState extends State<StockApp> {
           initialEntry: entry,
         ),
         showInfo: _openTopic,
+        buildInfo: _buildInfo,
       );
 
   @override
