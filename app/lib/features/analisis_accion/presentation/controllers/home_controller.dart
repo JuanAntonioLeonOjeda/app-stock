@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
-import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/company_listings.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 
 /// Estado de la pantalla de inicio: búsqueda e historial.

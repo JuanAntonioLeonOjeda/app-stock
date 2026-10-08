@@ -58,10 +58,10 @@ void main() {
       expect(company.others.map((m) => m.symbol), ['GETTEX:NTO']);
     });
 
-    test('sin cotización marcada como principal se abre la mejor coincidencia sin etiquetarla', () {
+    test('sin cotización marcada como principal se abre la primera coincidencia sin etiquetarla', () {
       final company = groupListings([
-        _match('OTC:IDEXF', isin: 'ES1', currency: 'USD', score: 0.7),
         _match('GETTEX:IXD1', isin: 'ES1', score: 0.9),
+        _match('OTC:IDEXF', isin: 'ES1', currency: 'USD', score: 0.7),
       ]).single;
 
       expect(company.defaultListing.symbol, 'GETTEX:IXD1');
@@ -122,24 +122,72 @@ void main() {
       expect(companies, hasLength(2));
     });
 
-    test('las empresas van por la relevancia de su mejor coincidencia (criterio 79)', () {
+    test('las empresas van en el orden en que aparece su primera coincidencia (criterio 79)', () {
       final companies = groupListings([
-        _match('A:1', isin: 'AAA', score: 0.3, primary: true),
-        _match('B:1', isin: 'BBB', score: 0.9, primary: true),
-        _match('A:2', isin: 'AAA', score: 0.95),
-        _match('C:1', isin: 'CCC', score: 0.6, primary: true),
+        _match('B:1', isin: 'BBB', primary: true),
+        _match('A:1', isin: 'AAA', primary: true),
+        _match('B:2', isin: 'BBB'),
+        _match('C:1', isin: 'CCC', primary: true),
       ]);
 
-      expect(companies.map((c) => c.isin), ['AAA', 'BBB', 'CCC']);
+      expect(companies.map((c) => c.isin), ['BBB', 'AAA', 'CCC']);
+      expect(companies.map((c) => c.rank), [0, 1, 3]);
     });
 
-    test('con la misma relevancia se conserva el orden del proveedor', () {
+    test('la puntuación de cada coincidencia no influye en el orden', () {
       final companies = groupListings([
-        _match('A:1', isin: 'AAA', score: 0.5, primary: true),
-        _match('B:1', isin: 'BBB', score: 0.5, primary: true),
+        _match('A:1', isin: 'AAA', score: 0.1, primary: true),
+        _match('B:1', isin: 'BBB', score: 0.99, primary: true),
       ]);
 
       expect(companies.map((c) => c.isin), ['AAA', 'BBB']);
+    });
+
+    test(
+      'una cotización completada después no adelanta a las empresas anteriores',
+      () {
+        // Lo que devuelve la búsqueda por nombre, seguido de lo que añade la
+        // búsqueda por ISIN de la empresa sin principal (cada una con su propia
+        // puntuación, no comparable).
+        final merged = [
+          _match('B:1', isin: 'BBB', primary: true, score: 1),
+          _match('OTC:IDEXF', isin: 'AAA', currency: 'USD', score: 0.99),
+          _match('BME:ITX', isin: 'AAA', primary: true, score: 1),
+          _match('XETR:IXD1', isin: 'AAA', score: 0.99),
+        ];
+
+        final companies = groupListings(merged);
+
+        expect(companies.map((c) => c.isin), ['BBB', 'AAA']);
+        expect(companies.last.defaultListing.symbol, 'BME:ITX');
+        expect(companies.last.hasConfirmedPrimary, isTrue);
+      },
+    );
+
+    test('el orden es total: ninguna empresa comparte puesto', () {
+      final companies = groupListings([
+        for (var i = 0; i < 20; i++) _match('X:$i', isin: 'I$i', primary: true),
+      ]);
+
+      expect(companies.map((c) => c.rank).toSet(), hasLength(20));
+      expect(companies.map((c) => c.isin), [
+        for (var i = 0; i < 20; i++) 'I$i',
+      ]);
+    });
+
+    test('un certificado ADR nunca se etiqueta como principal', () {
+      final company = groupListings([
+        _match(
+          'NYSE:TM',
+          isin: 'US1',
+          currency: 'USD',
+          receipt: true,
+          primary: true,
+        ),
+      ]).single;
+
+      expect(company.isDepositaryReceipt, isTrue);
+      expect(company.hasConfirmedPrimary, isFalse);
     });
 
     test('los certificados ADR van al final y marcados (criterio 75)', () {

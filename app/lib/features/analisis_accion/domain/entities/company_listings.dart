@@ -8,7 +8,7 @@ class CompanyListings {
     required this.hasConfirmedPrimary,
     required List<SymbolMatch> others,
     required this.isDepositaryReceipt,
-    required this.relevance,
+    required this.rank,
   }) : others = List.unmodifiable(others);
 
   final String isin;
@@ -28,8 +28,9 @@ class CompanyListings {
   /// Son certificados (ADR/DR) y no la acción ordinaria.
   final bool isDepositaryReceipt;
 
-  /// La relevancia de su mejor coincidencia (1 = exacta).
-  final double relevance;
+  /// Puesto de su primera coincidencia en los resultados (0 = la más
+  /// relevante). No se repite entre empresas.
+  final int rank;
 
   String get name => defaultListing.name;
 

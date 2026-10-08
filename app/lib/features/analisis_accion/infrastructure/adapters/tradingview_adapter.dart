@@ -45,8 +45,8 @@ const _headers = {
   'User-Agent': 'Mozilla/5.0',
 };
 
-/// [MarketDataPort], [PriceHistoryPort] e [IntradayHistoryPort] con el buscador, el scanner y el canal
-/// de gráficos de TradingView.
+/// [MarketDataPort], [PriceHistoryPort] e [IntradayHistoryPort] con el
+/// buscador, el scanner y el canal de gráficos de TradingView.
 ///
 /// Fuente **no oficial**: puede cambiar o cortarse sin aviso. No necesita
 /// clave. Guarda en caché el JSON en crudo de cada respuesta ya validada

@@ -67,9 +67,7 @@ AnalysisResult analysisResultFromJson(Object? json) {
     // Ausentes en los análisis guardados antes de la Revisión 5.
     isin: _string(map['isin']),
     exchange: _string(map['exchange']),
-    isPrimaryListing: map['isPrimaryListing'] is bool
-        ? map['isPrimaryListing']! as bool
-        : null,
+    isPrimaryListing: _bool(map['isPrimaryListing']),
   );
 }
 
@@ -128,6 +126,9 @@ List<Object?> _list(Object? json) => json is List<Object?>
     : throw FormatException('Se esperaba una lista: $json');
 
 String? _string(Object? json) => json is String ? json : null;
+
+/// Un booleano, o `null` si falta o no lo es.
+bool? _bool(Object? json) => json is bool ? json : null;
 
 String _requiredString(Object? json) =>
     _string(json) ?? (throw FormatException('Se esperaba texto: $json'));

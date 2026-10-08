@@ -518,6 +518,12 @@ y panel (selector, medias ocultas, pie).
    reales ya guardadas sin recapturarlas (los tests dependen de sus precios y fechas).
 3. **El motor no sube de versión:** solo se copian tres datos de identificación.
 4. **`hasConfirmedPrimary`:** la etiqueta "Principal" solo sale si el proveedor la marcó.
+5. **La relevancia es el orden de entrada, no una puntuación.** Las puntuaciones de la búsqueda
+   por nombre y las de las búsquedas por ISIN que la completan no son comparables (cada una
+   empieza en 1,0). `groupListings` ordena las empresas por la posición de su primera
+   coincidencia en la lista ya unida, así que una principal recuperada por ISIN no adelanta a
+   empresas que el proveedor puso antes, y no hay empates (el orden de `List.sort` no está
+   garantizado). Un certificado ADR nunca se etiqueta como principal.
 
 ### Tests
 
