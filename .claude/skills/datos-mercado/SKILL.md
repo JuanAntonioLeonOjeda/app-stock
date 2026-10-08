@@ -17,7 +17,8 @@ Origen de cada dato con el proveedor actual (TradingView):
 |---|---|
 | Vienen ya calculadas por el proveedor | PER, PEG, P/VC, P/Ventas, EV/EBITDA, P/FCF, beta, rentabilidad por dividendo, ROE, ROIC, márgenes, deuda/patrimonio, liquidez, RSI, SMA50/200 y máx./mín. 52 semanas |
 | Las calcula el código a partir de las series anuales y trimestrales | Crecimiento (CAGR), FCF positivo, margen operativo y bruto (si hay serie), TTM |
-| No llegan (sin dato) | MACD, volatilidad, caída máxima, pendiente de la SMA200, cobertura de intereses, sorpresas de BPA, potencial hasta el precio objetivo, dilución, tendencia del margen |
+| Las calcula el código a partir del histórico diario (canal de gráficos) | SMA, RSI, MACD, pendiente de la SMA200, distancia al máximo y caída máxima |
+| No llegan (sin dato) | Cobertura de intereses, sorpresas de BPA, dilución, tendencia del margen |
 
 Regla práctica: si el proveedor da el ratio ya calculado y su definición es fiable, úsalo; si no, calcúlalo tú para controlar la fórmula y poder testearla. Con TradingView es obligatorio usar su ratio donde el cálculo propio mezclaría monedas (ver "Particularidades").
 
@@ -42,16 +43,36 @@ La lista de campos pedidos está en `infrastructure/adapters/tradingview_fields.
 
 ## Particularidades (causa habitual de bugs)
 
+- **La búsqueda devuelve una fila por cotización, no por empresa.** Cada resultado de `symbol_search/v3` trae `isin`, `is_primary_listing` (la bolsa de origen: Nintendo = `TSE:7974`, Iberdrola = `BME:IBE`; no depende del país del usuario), `type` (`stock`, `dr` para ADR, y otros que se descartan), `exchange`, `source2.name` y `currency_code`. Todas las acciones ordinarias de una empresa comparten ISIN; los ADR tienen otro. La app agrupa por ISIN (`groupListings`, en `domain/search/`), marca la principal, pone las cotizaciones en euros primero entre "otras", descarta lo que no tiene ISIN (p. ej. `Pyth:AAPL`) y deja los ADR al final y ocultos.
+- **Buscar por nombre puede dejar fuera la cotización principal.** "inditex" solo trae versiones OTC: TradingView la llama "Industria de Diseno Textil" (sale por `ITX`, por el nombre legal o por el ISIN). El adapter completa buscando por el ISIN de las empresas sin principal (máximo 3 por búsqueda; si falla, no pasa nada). Buscar un ISIN completo funciona y trae todas sus cotizaciones (`found_by_isin`).
+- **Trade Republic no tiene API pública:** no se puede saber qué cotización muestra. Su identificador es el ISIN, que la app enseña en el resultado para cotejarlo. Las cotizaciones en euros de Alemania (`GETTEX`, `XETR`, `LS`) tienen los mismos fundamentales, pero poco volumen, y `LS:*` no funciona en el canal de gráficos.
+- **El scanner da `isin`, `exchange` e `is_primary`** de cualquier símbolo, así que el resultado los muestra también al abrir un análisis desde el historial.
 - **Un campo desconocido llega como `null` sin error.** Un nombre mal escrito no falla: sale "sin dato" para siempre. Los nombres se validan contra una respuesta real guardada (`tradingview_parser_test.dart`), no contra la API.
 - **Escalares en USD, series en la moneda de reporte.** Capitalización, deuda neta, EBITDA TTM, patrimonio... (`*_ttm`, `*_fq`, `market_cap_basic`) vienen **convertidos a USD** (`fundamental_currency_code`), aunque el precio esté en JPY o EUR. Las series `*_fy_h` (20 años) y `*_fq_h` (32 trimestres) vienen en la moneda de reporte de la empresa. Nunca dividas un escalar entre una serie ni precio entre un importe: usa los ratios del proveedor, que no tienen unidad. Por eso la capitalización no se pasa al motor.
 - **Porcentajes en %**, no en fracción: `return_on_equity = 16,9`. El parser divide entre 100 (`dividends_yield`, `operating_margin_ttm`...). `debt_to_equity_fq`, `current_ratio_fq` y el resto de ratios ya son cocientes.
 - **Las series no traen fechas.** Se fechan restando 12 (anual) o 3 (trimestral) meses a `fiscal_period_end_fy` y `fiscal_period_end_current`, que son epoch en segundos. Las series vienen del más reciente al más antiguo y pueden contener `null` sueltos.
-- **No hay histórico diario de precios.** Solo el último cierre (`close`, `open`, `high`, `low`, `volume`, fecha en `time`): el adapter entrega una única `DailyBar`. RSI, SMA50/200 y máx./mín. 52 semanas llegan ya calculados y el motor los usa como respaldo.
+- **El histórico diario NO viene del scanner, sino del canal de gráficos** (WebSocket no oficial `wss://data.tradingview.com/socket.io/websocket`, cabecera `Origin: https://www.tradingview.com`, sin clave). Comprobado el 2026-10-08: Nintendo 5.878 velas desde 2001 en 4 s; Iberdrola 6.000 desde 2003 en 1 s. Los precios vienen ajustados por splits (no por dividendos).
+  - **Marcos:** cada mensaje es `~m~<longitud>~m~<json>` y un paquete puede traer varios. El servidor manda latidos `~h~<n>` que hay que devolver tal cual, enmarcados.
+  - **Secuencia:** `set_auth_token ["unauthorized_user_token"]` → `chart_create_session` → `resolve_symbol` (`={"symbol":"TSE:7974","adjustment":"splits"}`) → `create_series` (`"D"`, 6000 velas). Responde con `series_loading`, `symbol_resolved`, `timescale_update` (velas `[t, o, h, l, c, v]`, `t` en segundos) y `series_completed`. Un símbolo inexistente da `symbol_error` + `series_error`.
+  - **Código:** `tradingview_chart_protocol.dart` (funciones puras), `tradingview_chart_connection.dart` (`ChartConnection`, `IoChartConnection`) y `tradingview_history_client.dart`. Las velas incoherentes (máximo < mínimo, cierre fuera de rango, precio ≤ 0) se descartan; con menos de 2 sesiones es respuesta inválida.
+  - **Intradía (día y semana de la gráfica):** la misma petición con otra resolución: `"5"` (velas de 5 minutos, 400) para 1D y `"30"` (200) para 1S. `symbol_resolved` trae `timezone` (IANA) y, según la bolsa, `delay` en segundos (Tokio 1200, Madrid 900). Solo sesión regular. La sesión se corta por huecos de más de 3 horas (la pausa de la comida de Tokio es de 1 h). Las horas se muestran en la de la bolsa con una tabla de zonas y las reglas de cambio de hora de la UE y EE. UU. (`exchange_clock.dart`); una zona desconocida usa la del dispositivo. Caché de **5 minutos** (`tv:v1:intraday:<minutos>:<símbolo>`).
+  - **Fragilidad:** es más frágil que el scanner. Un fallo del histórico **nunca impide analizar**: `fetchStockData` cae a una única `DailyBar` (cierre del scanner) y el motor usa los ratios ya calculados como respaldo. La gráfica, en cambio, muestra el error.
+  - **Fixtures:** `app/tool/capture_tradingview_chart.mjs` (Node 22+) guarda la transcripción real en `app/test/fixtures/tradingview/chart_*.json`.
 - **FCF vacío en algunas empresas** (comprobado con Nintendo e Iberdrola). El proveedor solo da el FCF ya restado: se guarda como flujo operativo con CAPEX 0.
 - **No llegan** resultado operativo, EBIT, intereses ni impuestos por periodo, patrimonio ni caja por periodo, precio objetivo de analistas, PER a futuro ni BPA estimado.
 - **ADR (`type = dr`):** la moneda de reporte de las series es desconocida, así que el adapter no la declara (`reportedCurrency = null`). Una cotización local (`type = stock`) usa la del precio. La búsqueda pone primero la cotización de origen y los ADR detrás.
 - **Errores:** HTTP 429 o 403 → `RateLimitException`; 5xx y fallos de conexión → `NetworkException`; sin fila en `data` o sin precio → `NotFoundException`; JSON que no es el esperado o un campo con otro tipo → `InvalidResponseException`. Nunca guardes en caché una respuesta de error.
 - **Comprobado con respuestas reales (2026-10-06, fixtures en `app/test/fixtures/tradingview/`):** Nintendo (`TSE:7974`), Fast Retailing (`TSE:9983`), Iberdrola (`BME:IBE`) y Apple devuelven datos completos salvo lo listado arriba. Capturar fixtures nuevas: `app/tool/capture_tradingview_fixtures.sh`.
+
+## Tipos de cambio (conversor a euros)
+
+- Port `ExchangeRatePort`; adapters: BCE (SDMX JSON) como principal y CSV del Banco de España
+  (latin-1) como respaldo; la API REST del BdE solo da 36 meses, por eso se usa el CSV.
+- Los tipos son "unidades de divisa por euro" y se publican en días hábiles: el fin de semana
+  se arrastra el último publicado. Monedas sin tipo (p. ej. SAR) → `NotFoundException`.
+- Subunidades: GBX, ZAC e ILA se dividen entre 100 antes de convertir.
+- Caché 6 h (`fx:v1:<MONEDA>`). La conversión es solo de presentación: el motor y el
+  historial guardado siguen en la divisa original.
 
 ## Validación tras normalizar
 
@@ -59,7 +80,7 @@ Avisar (no fallar) si: último cierre > 5 días hábiles; último trimestre > 6 
 
 ## Caché
 
-Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Se guarda el JSON en crudo ya validado, nunca un error. Con TradingView todo viene en una sola petición, así que hay una sola caducidad: **6 horas** para búsquedas y datos (`tv:v1:search:<texto>`, `tv:v1:scan:<símbolo>`; subir la versión de la clave si cambia el formato guardado). Una entrada que ya no se puede interpretar se ignora y se vuelve a pedir.
+Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Se guarda el JSON en crudo ya validado, nunca un error. Con TradingView todo viene en una sola petición, así que hay una sola caducidad: **6 horas** para búsquedas, datos e histórico (`tv:v1:search:<texto>`, `tv:v1:scan:<símbolo>`, `tv:v1:history:<símbolo>`; el histórico se guarda en formato compacto `[t,o,h,l,c,v]` por vela y las descargas simultáneas del mismo símbolo se unen en una; subir la versión de la clave si cambia el formato guardado). Una entrada que ya no se puede interpretar se ignora y se vuelve a pedir.
 
 ## Arquitectura para la app
 

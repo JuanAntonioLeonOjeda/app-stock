@@ -20,35 +20,51 @@ typedef _Json = Map<String, Object?>;
 const minQuestionOptions = 3;
 
 const _metricsFile = 'metricas.es.json';
+const _conceptsFile = 'conceptos.es.json';
 const _blocksFile = 'bloques.es.json';
 const _guideFile = 'guia.es.json';
 
 /// Todo el contenido a partir del texto de los tres archivos.
 EducationalContent parseEducationalContent({
   required String metrics,
+  required String concepts,
   required String blocks,
   required String guide,
 }) {
   final parsedMetrics = _metrics(_Reader.root(_metricsFile, metrics));
+  final parsedConcepts = _concepts(_Reader.root(_conceptsFile, concepts));
   final parsedBlocks = _blocks(_Reader.root(_blocksFile, blocks));
   final parsedGuide = _guide(_Reader.root(_guideFile, guide));
-  _checkReferences(parsedMetrics, parsedBlocks);
+  _checkReferences(parsedMetrics, parsedConcepts, parsedBlocks);
   return EducationalContent(
     metrics: parsedMetrics,
+    concepts: parsedConcepts,
     blocks: parsedBlocks,
     guide: parsedGuide,
   );
 }
 
+/// Los conceptos de la gráfica: misma estructura que una métrica, otro archivo.
+List<MetricContent> _concepts(_Reader root) {
+  final items = root.list('conceptos');
+  final seen = <String>{};
+  return [for (final item in items) _metric(root, item, seen, 'conceptos')];
+}
+
 List<MetricContent> _metrics(_Reader root) {
   final items = root.list('metricas');
   final seen = <String>{};
-  return [for (final item in items) _metric(root, item, seen)];
+  return [for (final item in items) _metric(root, item, seen, 'metricas')];
 }
 
-MetricContent _metric(_Reader root, _Reader item, Set<String> seen) {
+MetricContent _metric(
+  _Reader root,
+  _Reader item,
+  Set<String> seen,
+  String listName,
+) {
   final id = item.text('id');
-  if (!seen.add(id)) throw root.fail('metricas', 'id repetido: $id');
+  if (!seen.add(id)) throw root.fail(listName, 'id repetido: $id');
   final reader = item.under(id);
   return MetricContent(
     id: id,
@@ -123,14 +139,31 @@ DiagnosisGuide _guide(_Reader root) {
 /// Referencias entre archivos: `combinaCon` y las métricas de cada bloque deben
 /// existir, y toda métrica debe estar en un bloque (si no, el glosario la
 /// ocultaría).
-void _checkReferences(List<MetricContent> metrics, List<BlockContent> blocks) {
+void _checkReferences(
+  List<MetricContent> metrics,
+  List<MetricContent> concepts,
+  List<BlockContent> blocks,
+) {
   final ids = {for (final metric in metrics) metric.id};
-  for (final metric in metrics) {
-    for (final related in metric.combinesWith) {
-      if (related == metric.id || !ids.contains(related)) {
+  final conceptIds = {for (final concept in concepts) concept.id};
+  final clash = ids.intersection(conceptIds);
+  if (clash.isNotEmpty) {
+    throw InvalidContentException(
+      '$_conceptsFile: ids que ya son métricas del motor: ${clash.join(', ')}',
+    );
+  }
+  // `combinaCon` puede apuntar a una métrica o a un concepto.
+  final explainable = {...ids, ...conceptIds};
+  for (final entry in [
+    for (final metric in metrics) (_metricsFile, metric),
+    for (final concept in concepts) (_conceptsFile, concept),
+  ]) {
+    final (file, item) = entry;
+    for (final related in item.combinesWith) {
+      if (related == item.id || !explainable.contains(related)) {
         throw InvalidContentException(
-          '$_metricsFile › ${metric.id} › combinaCon: "$related" no es otra '
-          'métrica existente',
+          '$file › ${item.id} › combinaCon: "$related" no es otra '
+          'explicación existente',
         );
       }
     }

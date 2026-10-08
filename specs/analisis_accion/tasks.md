@@ -191,3 +191,98 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [x] T69. `AnalysisController.openNews()`, botón en `AnalysisScreen`, cableado en `app.dart`
       y tests del controller y de la pantalla.
 
+---
+
+## Revisión 3: histórico real y gráfica de precio
+
+> Derivadas de la Revisión 3 de `plan.md`. Mismas reglas que arriba.
+
+### Domain y application
+
+- [x] T70. `ChartRange` y `price_series.dart` (`sliceRange`, `movingAverageSeries`, `downsample`,
+      `closeExtremes`) + tests.
+- [x] T71. `PriceHistoryPort` y `GetPriceHistoryUseCase` + test con fake.
+
+### Infrastructure
+
+- [x] T72. Capturar una transcripción real del WebSocket en `app/test/fixtures/tradingview/` y
+      `tradingview_chart_protocol.dart` + tests (paquetes, latidos, serie, errores, velas
+      incoherentes).
+- [x] T73. `ChartConnection`, `IoChartConnection` y `TradingViewHistoryClient` + tests con
+      conexión falsa.
+- [x] T74. `TradingViewAdapter` implementa `PriceHistoryPort`: caché compacta de 6 h,
+      peticiones unidas y fallback en `fetchStockData`; el parser acepta histórico + tests.
+
+### Presentation
+
+- [x] T75. Dependencia `fl_chart`; `PriceChartController` + tests.
+- [x] T76. `PriceLineChart` y `PriceChartPanel` + tests de widget.
+- [x] T77. `AnalysisScreen` con pestañas Resumen/Detalle (y "Actualizar datos" en ambas) +
+      cableado en `app.dart`; actualizar los tests existentes.
+
+### Motor y documentación
+
+- [x] T78. `motorVersion` 1.2.0; test de una empresa con histórico largo (MACD, pendiente y
+      caída máxima con valor, sin aviso); `metricas.md` y skill `datos-mercado`.
+
+### Verificación
+
+- [x] T79. `dart format`, `flutter analyze` y `flutter test` limpios; análisis en vivo de
+      Nintendo, Fast Retailing e Iberdrola con gráfica y motor.
+- [ ] T80. En el móvil: pestañas, periodos, medias, toque sobre la gráfica y fallo sin conexión.
+- [x] T81. `flutter-reviewer`.
+
+---
+
+## Revisión 4: gráfica del día y de la última semana
+
+- [x] T82. Dominio: `IntradayBar`, `IntradaySeries`, `IntradayResolution`, `ChartRange.day/week`,
+      `sessions.dart`, `exchange_clock.dart` + tests (pausa de Tokio, fin de semana, cambio de
+      hora de la UE y de EE. UU.).
+- [x] T83. `IntradayHistoryPort` y `GetIntradayHistoryUseCase` + test.
+- [x] T84. Capturar transcripciones reales de 5 y 30 minutos; protocolo con `Candle`,
+      `symbol_resolved` y resolución + tests.
+- [x] T85. Cliente (`fetchCandles`), caché compacta del intradía y adapter (5 minutos, descargas
+      unidas) + tests.
+- [x] T86. `PriceChartController` con intradía bajo demanda + tests.
+- [x] T87. Gráfica (eje por orden, etiquetas de hora y día, tooltip) y panel (1D/1S, medias
+      ocultas, pie, error propio) + tests.
+- [x] T88. `dart format`, `flutter analyze` y `flutter test`; prueba en vivo con Nintendo,
+      Iberdrola y Apple; `flutter-reviewer`.
+- [ ] T89. En el móvil: 1D y 1S con mercado abierto y cerrado.
+
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas
+
+- [x] T90. `SymbolMatch` ampliado, `CompanyListings` y `group_listings.dart` + tests.
+- [x] T91. Fixtures reales de la búsqueda ("nintendo", "iberdrola", "inditex" y su ISIN) y
+      parser de búsqueda con los campos nuevos + tests.
+- [x] T92. `searchSymbol` del adapter con complementación por ISIN, fallo aislado, límite y caché + tests.
+- [x] T93. `SearchSymbolUseCase` devuelve empresas agrupadas + test.
+- [x] T94. Scanner: columnas `isin`, `exchange`, `is_primary` (ampliar las fixtures existentes);
+      `CompanyOverview`, `AnalysisResult` y su JSON + tests.
+- [x] T95. `HomeController`, `company_listings_tile.dart` y `HomeScreen` + tests.
+- [x] T96. Cabecera del resultado con bolsa, ISIN y principal + test.
+- [x] T97. `dart format`, `flutter analyze`, `flutter test`; prueba en vivo ("nintendo",
+      "inditex", ISIN); `flutter-reviewer`; skill `datos-mercado`.
+- [ ] T98. En el móvil: buscar "Inditex", "Nintendo" y un ISIN.
+
+---
+
+## Revisión 6: conversor a euros
+
+- [x] T99. Dominio: `ExchangeRateSeries`, `QuoteCurrency`/`resolveQuoteCurrency` y `euro_conversion.dart`
+      + tests (arrastre, antes del primer tipo, GBX/ZAC/ILA, euro).
+- [x] T100. `ExchangeRatePort` y `GetExchangeRatesUseCase` + test.
+- [x] T101. Capturar respuestas reales (BCE y CSV recortado del BdE) y parsers + tests.
+- [x] T102. Adapters del BCE y del BdE + tests con cliente falso.
+- [x] T103. `FallbackExchangeRateAdapter` y `CachedExchangeRateAdapter` + tests.
+- [x] T104. `DisplayCurrencyController` + tests.
+- [x] T105. `PriceChartController` con valores convertidos + tests.
+- [x] T106. `CurrencySwitch`, cabecera y panel con la moneda mostrada + tests.
+- [x] T107. `AnalysisScreen` y composition root; historial en euros.
+- [x] T108. `dart format`, `flutter analyze`, `flutter test`; prueba en vivo con Nintendo,
+      Tesco (GBX) y una moneda sin tipo; `flutter-reviewer`; skill `datos-mercado`.
+- [ ] T109. En el móvil: selector, gráficas en euros y sin conexión.
+

@@ -63,4 +63,9 @@ const tradingViewFields = <String>[
   'net_income_fq_h',
   'free_cash_flow_fq_h',
   'total_debt_fq_h',
+  // Identificación de la cotización (se añaden al final para poder ampliar las
+  // fixtures ya guardadas sin recapturarlas).
+  'isin',
+  'exchange',
+  'is_primary',
 ];

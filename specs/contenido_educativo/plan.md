@@ -226,3 +226,26 @@ sin que esta lo importe.
 reintento, pregunta, chips); `metric_row_test`, `block_tile_test` y `analysis_screen_test`
 (con y sin `buildInfo`; mostrar y ocultar; empieza oculto; cada fila por separado).
 
+---
+
+## Revisión: conceptos de la gráfica de precio (2026-10-08)
+
+> Basada en los criterios 68-71 de `spec.md`.
+
+### Cambios
+
+| Dónde | Cambio |
+|---|---|
+| `assets/contenido/conceptos.es.json` | Tres explicaciones, con la estructura de una métrica: `media_50`, `media_200` y `grafico_precio` |
+| `domain/entities/educational_content.dart` | `concepts` (lista de `MetricContent`) y `explanationById(id)`, que busca en métricas y en conceptos; `metricById` solo en métricas |
+| `infrastructure/adapters/educational_content_parser.dart` | Lee `conceptos.es.json`; los `combinaCon` de métricas y de conceptos pueden apuntar a ambos; un `id` de concepto no puede coincidir con el de una métrica |
+| `infrastructure/adapters/asset_educational_content_adapter.dart` | Lee el cuarto archivo |
+| `presentation/` | `TopicController`, la hoja y la vista en línea resuelven el tema con `explanationById`, así que un concepto se ve igual que una métrica |
+
+### Decisiones
+
+1. **Conceptos separados de las métricas**: el test "una ficha por cada métrica del motor y
+   ninguna de más" sigue valiendo tal cual, y los conceptos tienen su propia comprobación.
+2. **Los ids son un contrato de strings**, como los de bloque: `analisis_accion` los define
+   (`labels.dart`) y el test de `app/test/` comprueba que existen en el contenido.
+

@@ -281,3 +281,333 @@ tras reiniciar la app y el mensaje de límite de peticiones.
 El ticker sin bolsa (`7974`, no `TSE:7974`) y el nombre van en la búsqueda; el texto se
 codifica con `Uri` (sin concatenar a mano).
 
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+> Basada en la Revisión 3 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué hay en el canal de gráficos de TradingView (comprobado 2026-10-08)
+
+- **Conexión:** WebSocket `wss://data.tradingview.com/socket.io/websocket` con la cabecera
+  `Origin: https://www.tradingview.com`. Sin clave.
+- **Formato:** cada mensaje va enmarcado como `~m~<longitud>~m~<json>`, y un mismo paquete
+  puede traer varios. El servidor manda latidos `~h~<n>` que hay que devolver tal cual.
+- **Secuencia que funciona:** `set_auth_token ["unauthorized_user_token"]` →
+  `chart_create_session [sesión, ""]` → `resolve_symbol [sesión, "sds_sym_1",
+  "={\"symbol\":\"TSE:7974\",\"adjustment\":\"splits\"}"]` → `create_series [sesión,
+  "sds_1", "s1", "sds_sym_1", "D", 6000, ""]`.
+- **Respuesta:** un `timescale_update` con `p[1].sds_1.s`, una lista de `{i, v:[t, o, h, l,
+  c, v]}` con `t` en segundos. Un `symbol_error` o `critical_error` indica un símbolo
+  inexistente o un fallo.
+- **Alcance:** hasta ~6.000 velas (24 años). Precios ajustados por splits.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `ports/price_history_port.dart` | `PriceHistoryPort`: `fetchPriceHistory(symbol, {forceRefresh})` → `List<DailyBar>` ascendente; solo lanza `MarketDataException` |
+| `chart/chart_range.dart` | `ChartRange` (`month1`, `months3`, `months6`, `year1`, `years5`, `all`) con los días de cada uno |
+| `chart/price_series.dart` | Funciones puras: `ChartPoint`, `sliceRange`, `movingAverageSeries` (`null` donde no hay datos suficientes), `downsample` (agrupa conservando máximo y mínimo por tramo), `closeExtremes` |
+
+#### application/use_cases
+
+| Archivo | Contenido |
+|---|---|
+| `get_price_history_use_case.dart` | `GetPriceHistoryUseCase`: llama al port |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_chart_protocol.dart` | Funciones puras del protocolo: enmarcar y partir paquetes, construir los mensajes de la petición, detectar latidos y errores, y convertir la serie a `DailyBar` descartando velas incoherentes (criterio 57) |
+| `tradingview_chart_connection.dart` | `ChartConnection` (interfaz interna: mensajes, enviar, cerrar), `ChartConnector` y `IoChartConnection` con `dart:io WebSocket` |
+| `tradingview_history_client.dart` | `TradingViewHistoryClient`: abre la conexión, envía la petición, devuelve los latidos y espera la serie con un tiempo máximo; traduce los fallos a `MarketDataException` |
+| `tradingview_adapter.dart` | Además implementa `PriceHistoryPort`; cachea el histórico (6 h, formato compacto), evita dos peticiones simultáneas del mismo símbolo y, en `fetchStockData`, usa el histórico si llega y, si falla, la barra única de siempre |
+| `tradingview_parser.dart` | `parseTradingViewScan` acepta un histórico opcional en lugar de la barra única |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/price_chart_controller.dart` | `PriceChartController` (`ChangeNotifier`): carga, error, periodo, interruptores de medias y los datos ya recortados y agrupados que pinta la gráfica |
+| `widgets/price_chart_panel.dart` | Selector de periodo, interruptores, gráfica, pie de fuente y estado de error con "Reintentar" |
+| `widgets/price_line_chart.dart` | Línea de cierres con `fl_chart`: marcadores de máximo y mínimo, medias, y la ficha de fecha y precio al tocar |
+| `screens/analysis_screen.dart` | Con controller de gráfica: `TabBar` Resumen (por defecto) / Detalle; sin él, como ahora |
+| `app.dart` | Crea el `PriceChartController` de cada resultado |
+
+#### motor
+
+`motorVersion = '1.2.0'`. El motor no cambia de código: ya trabaja con `dailyBars`. Con histórico
+real, `macd`, `pendiente_sma200`, `caida_maxima`, `precio_sma200` y `dist_maximo` se calculan
+con datos reales, y `references/metricas.md` lo refleja.
+
+### Decisiones técnicas no obvias
+
+1. **Un fallo del histórico nunca impide analizar.** `fetchStockData` lo captura (solo
+   `MarketDataException`) y cae a la barra única. La gráfica, en cambio, sí muestra el error
+   (criterio 53).
+2. **El histórico tiene su propia caché y petición**, no va dentro de `StockData`. El
+   `AnalysisResult` guardado en el historial no lleva velas (serían cientos de KB por entrada).
+   Abrir una entrada antigua pide el histórico a la caché o a la red.
+3. **Peticiones simultáneas del mismo símbolo se unen** en un único `Future`: al abrir un
+   análisis nuevo, el análisis y la gráfica piden el histórico a la vez.
+4. **Formato compacto en caché**: lista de `[t, o, h, l, c, v]` en lugar de objetos, unos 45
+   bytes por vela (~270 KB para 6.000), con la clave `tv:v1:history:<símbolo>`.
+5. **La conexión se abstrae (`ChartConnection`)** para probar el cliente con una transcripción
+   real guardada, sin red.
+6. **Agrupar puntos al dibujar, no al guardar**: la caché conserva las velas completas (el
+   motor las necesita); solo la gráfica reduce a unos 500 puntos.
+7. **`fl_chart` solo en `presentation/`**; el dominio no sabe que existe.
+
+### Tests
+
+| Qué | Cómo |
+|---|---|
+| `price_series`, `chart_range` | Valores conocidos: recorte por periodo, medias con huecos, agrupado conserva máximo y mínimo, extremos |
+| `tradingview_chart_protocol` | Transcripción real guardada en `test/fixtures/tradingview/`: partir paquetes, latidos, serie, error de símbolo, velas incoherentes |
+| `tradingview_history_client` | `ChartConnection` falso escrito a mano: éxito, latidos devueltos, símbolo inexistente, cierre prematuro, tiempo agotado |
+| `tradingview_adapter` | Caché 6 h, `forceRefresh`, peticiones simultáneas unidas, fallback a la barra única |
+| `price_chart_controller` | Carga, error y reintento, cambio de periodo, interruptores |
+| Widgets y pantalla | Selector, marcadores, pestañas (Resumen por defecto, Detalle intacto), error con reintento |
+| Motor | Empresa con 300 sesiones: MACD, pendiente y caída máxima con valor, sin aviso |
+
+### Cambios en la configuración asociados
+
+- Skill `datos-mercado`: el histórico diario sí llega (protocolo, secuencia, riesgos); caché.
+- `references/metricas.md`: con histórico real, las métricas técnicas se calculan.
+- Dependencia `fl_chart` en `app/pubspec.yaml`.
+
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+> Basada en la Revisión 4 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué da el canal de gráficos (comprobado 2026-10-08)
+
+- La misma petición `create_series`, cambiando la resolución: `"5"` y `"30"` (minutos) en vez
+  de `"D"`. Cada vela es `[t, o, h, l, c, v]` con `t` en segundos.
+- `symbol_resolved` trae `timezone` (IANA: `Asia/Tokyo`, `Europe/Madrid`, `America/New_York`) y,
+  según la bolsa, `delay` en segundos (Tokio 1200, Madrid 900).
+- Solo sesión regular: 09:00-17:38 en Madrid, 09:30-16:00 en Nueva York, 09:00-15:31 en Tokio
+  con pausa de la comida.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/intraday_bar.dart` | `IntradayBar`: instante (UTC) y cierre |
+| `entities/intraday_series.dart` | `IntradaySeries`: velas ascendentes, zona horaria de la bolsa y retraso |
+| `ports/intraday_history_port.dart` | `IntradayHistoryPort`: `fetchIntraday(symbol, resolution, {forceRefresh})` |
+| `chart/intraday_resolution.dart` | `IntradayResolution` (`minutes5`, `minutes30`) con su número de velas pedidas |
+| `chart/chart_range.dart` | Añade `day` y `week`, con `isIntraday` |
+| `chart/sessions.dart` | `splitSessions` (rachas sin hueco de más de 3 h) y `lastSessions(n)` |
+| `chart/exchange_clock.dart` | `exchangeWallClock(instante, zona)`: la hora local de la bolsa con una tabla de zonas y las reglas de cambio de hora de la UE y de EE. UU.; `null` si la zona no se conoce |
+
+#### application/use_cases
+
+| Archivo | Contenido |
+|---|---|
+| `get_intraday_history_use_case.dart` | `GetIntradayHistoryUseCase` |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_chart_protocol.dart` | Pasa a leer velas con su instante (`Candle`) y reconoce `symbol_resolved` (zona y retraso); `buildHistoryRequest` recibe la resolución. Las velas diarias se convierten a `DailyBar` como hasta ahora |
+| `tradingview_history_client.dart` | `fetchCandles(ticker, resolution, bars)` devuelve velas + zona + retraso; `fetch` (diario) se apoya en él |
+| `tradingview_history_cache.dart` | Formato compacto del intradía `{tz, delay, bars:[[t, cierre]]}` |
+| `tradingview_adapter.dart` | Implementa también `IntradayHistoryPort`: caché de 5 minutos, descargas simultáneas unidas por resolución |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/price_chart_controller.dart` | Carga el intradía bajo demanda al elegir 1D o 1S (estado y error propios); `PriceChartView` añade `isIntraday`, el `ExchangeClock` y el retraso; las medias no aplican |
+| `widgets/price_line_chart.dart` | En intradía el eje X es el orden de las velas, con etiquetas de hora (1D) o de día (1S) en la hora de la bolsa; tooltip con día y hora |
+| `widgets/price_chart_panel.dart` | Selector con 1D y 1S; oculta las medias en intradía; pie con la sesión, el retraso y la zona horaria; error propio del intradía |
+| `formatters/` | Etiquetas de hora y de día de la semana en español |
+
+### Decisiones técnicas no obvias
+
+1. **Sesiones por huecos de más de 3 horas**, no por fecha: no depende de la zona horaria y
+   resiste la pausa de la comida de Tokio (1 h).
+2. **Eje por orden de velas** en 1D y 1S: sin huecos de noche y de fin de semana.
+3. **Tabla de zonas con reglas de cambio de hora en vez de un paquete de zonas horarias**: unas
+   15 zonas cubren las bolsas habituales y, si la zona no está, se usa la del dispositivo y se
+   avisa. Evita meter la base de datos completa de zonas.
+4. **El intradía no entra en `StockData` ni en el motor**: solo alimenta la gráfica.
+5. **Caché de 5 minutos**: los datos llegan con 15-20 min de retraso; pedirlos más a menudo no
+   da datos nuevos.
+6. **Conceptos educativos (`contenido_educativo`)**: `analisis_accion` ya recibe un
+   `InfoBuilder`; el panel de la gráfica lo usa también para las medias y el título de la
+   gráfica con los ids `media_50`, `media_200` y `grafico_precio`.
+
+### Tests
+
+Recorte de sesiones (con la pausa de Tokio y fines de semana), reglas de cambio de hora en las
+fechas de cambio de la UE y de EE. UU., transcripciones reales de 5 y 30 minutos, cliente con
+conexión falsa, adapter (caché de 5 minutos, descargas unidas, fallo aislado), controller
+(carga bajo demanda, error propio, medias recordadas), gráfica (etiquetas, tooltip, marcadores)
+y panel (selector, medias ocultas, pie).
+
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas (2026-10-08)
+
+> Basada en la Revisión 5 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué da TradingView (comprobado 2026-10-08)
+
+- **Buscador:** cada resultado trae `isin`, `is_primary_listing`, `type` (`stock`/`dr`), `exchange`,
+  `source2.name` (nombre de la bolsa), `country` y `currency_code`. Una búsqueda devuelve hasta
+  ~50 resultados sin paginar. Buscar un ISIN completo devuelve todas sus cotizaciones
+  (`found_by_isin`).
+- **Scanner:** columnas `isin`, `exchange` e `is_primary` por símbolo.
+- **Huecos:** por nombre, "Inditex" solo trae versiones OTC; la principal (`BME:ITX`) sale por
+  ticker, nombre legal o ISIN.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/symbol_match.dart` | Añade `isin`, `exchange`, `exchangeName`, `isPrimaryListing` e `isDepositaryReceipt` |
+| `entities/company_listings.dart` | `CompanyListings`: una empresa con su `defaultListing`, si la principal está confirmada (`hasConfirmedPrimary`), `others` y si es ADR |
+| `search/group_listings.dart` | Funciones puras: `groupListings` (por ISIN, sin ISIN descartado, principal primero, otras con euros primero, grupos por relevancia y ADR al final) y `isinsMissingPrimary` (qué ISIN hay que completar) |
+| `entities/company_overview.dart` | Añade `isin`, `exchange` e `isPrimaryListing` |
+| `entities/analysis_result.dart` | `AnalysisResult` lleva `isin`, `exchange` e `isPrimaryListing` (opcionales) |
+| `motor/stock_analyzer.dart` | Copia esos datos del `overview` al resultado (sin cambiar ningún cálculo, así que el motor no sube de versión) |
+
+#### application
+
+| Archivo | Contenido |
+|---|---|
+| `use_cases/search_symbol_use_case.dart` | Devuelve `List<CompanyListings>` agrupadas con `groupListings`; la complementación por ISIN la hace el adapter |
+
+#### infrastructure
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_parser.dart` | La búsqueda rellena los campos nuevos de `SymbolMatch` y conserva ADR; el scanner rellena `isin`, `exchange` e `is_primary` |
+| `tradingview_fields.dart` | Tres columnas nuevas, **al final** de la lista |
+| `tradingview_adapter.dart` | `searchSymbol` completa los grupos sin principal buscando por su ISIN (máximo 3), tolera que falle y cachea cada búsqueda 6 h |
+| `analysis_result_json.dart` | Guarda y lee los campos nuevos; ausentes en entradas antiguas = `null` |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/home_controller.dart` | `companies` en lugar de `matches`; contador y estado de "Mostrar certificados ADR" |
+| `widgets/company_listings_tile.dart` | Sustituye a `symbol_match_tile.dart`: fila de la empresa con "Principal" y desplegable "Otras cotizaciones (n)" |
+| `screens/home_screen.dart` | Lista de empresas y el botón de ADR |
+| `widgets/verdict_header.dart` | Línea con bolsa, ISIN y "Cotización principal" / "Otra cotización" |
+
+### Decisiones técnicas no obvias
+
+1. **Agrupar en `domain/`, completar en `infrastructure/`:** agrupar y ordenar es regla de
+   presentación de resultados (pura y testeable); completar por ISIN es una estrategia propia
+   de TradingView, así que vive en su adapter.
+2. **Las columnas nuevas del scanner van al final de la lista** para poder ampliar las fixtures
+   reales ya guardadas sin recapturarlas (los tests dependen de sus precios y fechas).
+3. **El motor no sube de versión:** solo se copian tres datos de identificación.
+4. **`hasConfirmedPrimary`:** la etiqueta "Principal" solo sale si el proveedor la marcó.
+5. **La relevancia es el orden de entrada, no una puntuación.** Las puntuaciones de la búsqueda
+   por nombre y las de las búsquedas por ISIN que la completan no son comparables (cada una
+   empieza en 1,0). `groupListings` ordena las empresas por la posición de su primera
+   coincidencia en la lista ya unida, así que una principal recuperada por ISIN no adelanta a
+   empresas que el proveedor puso antes, y no hay empates (el orden de `List.sort` no está
+   garantizado). Un certificado ADR nunca se etiqueta como principal.
+
+### Tests
+
+Agrupación (varias bolsas, sin ISIN, ADR, empates, sin principal, euros primero, orden de grupos),
+parser con la búsqueda real de "nintendo", "iberdrola" e "inditex", búsqueda complementaria
+(caso Inditex con transcripción real, fallo aislado, límite de 3, caché), `HomeController`
+(agrupa, ADR ocultos y mostrados), tile (principal, desplegable, tap), pantalla de inicio,
+cabecera del resultado, JSON con y sin los campos nuevos.
+
+---
+
+## Revisión 6: conversor a euros (2026-10-08)
+
+> Basada en la Revisión 6 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Fuentes (comprobadas 2026-10-08)
+
+- **BCE:** `GET https://data-api.ecb.europa.eu/service/data/EXR/D.<MONEDA>.EUR.SP00.A?startPeriod=2001-01-01&format=jsondata&detail=dataonly`.
+  La respuesta trae `dataSets[0].series["0:0:0:0:0"].observations` (índice → `[tipo, ...]`) y
+  `structure.dimensions.observation[0].values[índice].id` (la fecha `AAAA-MM-DD`). Es el tipo de
+  moneda extranjera por 1 €. Una moneda desconocida da HTTP 404.
+- **Banco de España:** `GET https://www.bde.es/webbe/es/estadisticas/compartido/datos/csv/tc_1_1.csv`
+  (1,9 MB, codificación latin-1). Primera línea: códigos de serie (`DTCCBCEJPYEUR.B`); a partir
+  de la séptima, una fila por día con fecha `"04 ENE 1999"` y los tipos separados por comas,
+  con `"_"` en los huecos. Se usa solo como respaldo.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/exchange_rate_series.dart` | `RatePoint` y `ExchangeRateSeries`: moneda, puntos ascendentes (día UTC y unidades de la moneda por euro), `rateOn(día)` (el último publicado hasta ese día; `null` antes del primero) y `latest` |
+| `currency/quote_currency.dart` | `QuoteCurrency` (código ISO, divisor de la subunidad) y `resolveQuoteCurrency`: `GBX`→`GBP`/100, `ZAC`→`ZAR`/100, `ILA`→`ILS`/100, `EUR`→euro |
+| `currency/euro_conversion.dart` | Funciones puras: `toEuros(valor, moneda, serie, día)` y la conversión de velas diarias, intradía y puntos; devuelven `null` donde no hay tipo |
+| `ports/exchange_rate_port.dart` | `ExchangeRatePort.fetchRates(isoCode, {forceRefresh})`; `NotFoundException` si la moneda no existe |
+
+#### application
+
+| Archivo | Contenido |
+|---|---|
+| `use_cases/get_exchange_rates_use_case.dart` | `GetExchangeRatesUseCase` |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `ecb_rate_parser.dart` / `ecb_exchange_rate_adapter.dart` | Parser SDMX y adapter del BCE |
+| `bde_rate_parser.dart` / `bde_exchange_rate_adapter.dart` | Parser del CSV (fechas en español, `_`, latin-1) y adapter del Banco de España |
+| `fallback_exchange_rate_adapter.dart` | `FallbackExchangeRateAdapter(primary, secondary)`: usa el secundario si el principal falla por red, límite o respuesta inválida; **no** si la moneda no existe (`NotFound`) |
+| `cached_exchange_rate_adapter.dart` | `CachedExchangeRateAdapter(inner, cache)`: caché de 6 h por moneda, en formato compacto `[día, tipo]`, que ignora una entrada ilegible |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/display_currency_controller.dart` | `DisplayCurrencyController`: moneda de cotización, estado (`none`, `loading`, `ready`, `unsupported`, `failed`), euros por defecto, selector, `toDisplay(valor, día)` y la etiqueta de la moneda mostrada |
+| `controllers/price_chart_controller.dart` | Escucha al anterior y recalcula la vista con velas y puntos convertidos (las medias, sobre lo convertido) |
+| `widgets/currency_switch.dart` | Selector "EUR \| JPY" más la nota del tipo usado, el aviso de moneda sin tipo y "Reintentar" |
+| `widgets/verdict_header.dart` | Precio convertido con la nota del equivalente original |
+| `widgets/price_chart_panel.dart` | La moneda del tooltip, los máximos y mínimos y el pie con la nota del BCE |
+| `screens/analysis_screen.dart` | Crea el selector al conocer la moneda del resultado y recarga los tipos con "Actualizar datos" |
+
+### Decisiones técnicas no obvias
+
+1. **Se convierte al mostrar, no al analizar.** El motor y el historial siguen en la divisa
+   original; el selector solo cambia lo que se pinta. Los análisis guardados no se tocan
+   (criterio 94).
+2. **Cada punto con el tipo de su día** (`rateOn`), y los tipos se piden desde 2001 una sola
+   vez por moneda; con ~6.600 puntos y formato compacto, ~130 KB en la caché.
+3. **Respaldo con el CSV del BdE y no con su API REST**, que solo da 3, 12 o 36 meses: el CSV
+   cubre las gráficas de 5 años y de todo el histórico con el mismo código.
+4. **Caché en un decorador**, común al BCE y al BdE, para que el origen no importe.
+5. **El `DisplayCurrencyController` conoce la moneda cuando llega el resultado**, no antes:
+   `AnalysisScreen` lo configura al tener `result.currency`.
+6. **Las subunidades se resuelven en el dominio** (`resolveQuoteCurrency`): GBX/ZAC/ILA no son
+   monedas del BCE.
+
+### Tests
+
+Conversión pura (arrastre en fin de semana, antes del primer tipo, subunidades, euro sin
+cambio), parsers con respuestas reales guardadas (BCE y CSV del BdE, incluido `_` y fecha
+española), adapters con cliente falso (404, 500, límite, JSON roto), respaldo (cuándo sí y cuándo
+no), caché (6 h, entrada ilegible), controller de moneda (estados, selector, euros por defecto,
+sin selector en euros, moneda sin tipo), controller de la gráfica (diarios con el tipo de cada
+día, intradía con el último, medias convertidas), cabecera y panel.
+

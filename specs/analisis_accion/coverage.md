@@ -100,3 +100,91 @@ actualizado a los archivos de TradingView.
 Comprobado además en vivo (2026-10-06, sin test automático porque los tests no usan la
 red): búsqueda de Nintendo, Fast Retailing e Iberdrola, análisis de `TSE:7974`, `TSE:9983`
 y `BME:IBE`, y `NotFoundException` para un símbolo inexistente.
+
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+Sustituye al criterio 35 (sin histórico → aviso). Rutas relativas a `app/test/features/analisis_accion/`.
+
+| # | Criterio | Tests | Dispositivo |
+|---|---|---|---|
+| 44 | Pestañas Resumen (por defecto) y Detalle | `presentation/screens/analysis_screen_test.dart` (grupo "con pestañas") | T80 |
+| 45 | El estado de Detalle se conserva; "Actualizar datos" actúa sobre las dos | `analysis_screen_test.dart` | T80 |
+| 46 | Línea de cierres del último año con selector de periodo | `widgets/price_chart_panel_test.dart`; `controllers/price_chart_controller_test.dart` | T80 |
+| 47 | El periodo redibuja; histórico corto muestra todo | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `domain/chart/price_series_test.dart` | |
+| 48 | Máximo y mínimo marcados con valor y fecha | `price_chart_panel_test.dart`; `price_series_test.dart` | T80 |
+| 49 | Fecha y precio al tocar | Sin test automático (tooltip de `fl_chart`) | **T80** |
+| 50 | Medias de 50 y 200: desactivadas, sin inventar | `price_chart_controller_test.dart`; `price_chart_panel_test.dart`; `price_series_test.dart` | |
+| 51 | Agrupado de puntos conservando máximos y mínimos | `price_series_test.dart`; `price_chart_controller_test.dart` | T80 (fluidez) |
+| 52 | Pie de fuente | `price_chart_panel_test.dart` | |
+| 53 | Sin histórico: error con Reintentar y Detalle intacto | `price_chart_panel_test.dart`; `analysis_screen_test.dart`; `infrastructure/adapters/tradingview_adapter_test.dart` | **T80** |
+| 54 | Caché de 6 h; "Actualizar datos" la vuelve a pedir | `tradingview_adapter_test.dart`; `tradingview_history_client_test.dart` | |
+| 55 | Con ≥ 252 sesiones, MACD, pendiente y caída máxima con valor y sin aviso | `domain/motor/stock_analyzer_test.dart` | T79 (en vivo) |
+| 56 | Un fallo del histórico nunca impide analizar | `tradingview_adapter_test.dart` (fallback a la barra única); `stock_analyzer_test.dart` | |
+| 57 | Velas incoherentes descartadas | `infrastructure/adapters/tradingview_chart_protocol_test.dart` | |
+
+Los tests del canal de gráficos usan una transcripción real guardada (`chart_tse_7974`,
+`chart_unknown_symbol`), no la red.
+
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+Rutas relativas a `app/test/features/analisis_accion/`.
+
+| # | Criterio | Tests | Dispositivo |
+|---|---|---|---|
+| 58 | Selector con 1D y 1S delante; 1A por defecto | `presentation/widgets/price_chart_panel_test.dart`; `presentation/formatters/labels_test.dart` | T89 |
+| 59 | 1D: última sesión en velas de 5 minutos, eje en horas de la bolsa | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `infrastructure/adapters/tradingview_adapter_test.dart` | **T89** |
+| 60 | 1S: 5 sesiones pegadas, con el día de cada una | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `domain/chart/sessions_test.dart` | **T89** |
+| 61 | Máximo y mínimo con día y hora | `price_chart_panel_test.dart` | |
+| 62 | Tooltip con día, hora y precio | `price_chart_panel_test.dart` (contenido del tooltip) | T89 (el toque) |
+| 63 | Medias ocultas en 1D y 1S y recordadas | `price_chart_panel_test.dart`; `price_chart_controller_test.dart` | |
+| 64 | Pie con sesión, horas de la bolsa o del dispositivo, y retraso | `price_chart_panel_test.dart`; `domain/chart/exchange_clock_test.dart` (cambios de hora de la UE y de EE. UU.) | |
+| 65 | Caché de 5 minutos; "Actualizar datos" la vuelve a pedir | `tradingview_adapter_test.dart`; `price_chart_controller_test.dart` | |
+| 66 | Un fallo del intradía solo afecta a esa vista | `price_chart_panel_test.dart`; `price_chart_controller_test.dart` | |
+| 67 | Con menos sesiones de las pedidas, las que haya | `sessions_test.dart`; `price_chart_controller_test.dart` | |
+
+Los tests del canal usan transcripciones reales guardadas (`chart_intra5_bme_ibe`,
+`chart_intra30_tse_7974`). Comprobado además en vivo el 2026-10-08 con Nintendo, Fast Retailing,
+Iberdrola y Apple: sesiones bien cortadas y horas de cada bolsa correctas.
+
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas (2026-10-08)
+
+Sustituye al criterio 1. Rutas relativas a `app/test/features/analisis_accion/`.
+
+| # | Criterio | Tests | Dispositivo |
+|---|---|---|---|
+| 72 | Una fila por empresa, con la principal etiquetada | `domain/search/group_listings_test.dart`; `presentation/widgets/company_listings_tile_test.dart`; `presentation/screens/home_screen_test.dart`; `infrastructure/adapters/tradingview_parser_test.dart` (búsquedas reales de Nintendo e Iberdrola) | T98 |
+| 73 | "Otras cotizaciones (n)" plegado, euros primero | `group_listings_test.dart`; `company_listings_tile_test.dart` | T98 |
+| 74 | Pulsar la empresa analiza la principal; otra cotización, esa | `company_listings_tile_test.dart`; `home_screen_test.dart` | T98 |
+| 75 | ADR ocultos con "Mostrar certificados ADR (n)" | `controllers/home_controller_test.dart`; `home_screen_test.dart`; `company_listings_tile_test.dart` | |
+| 76 | Sin ISIN, no aparece | `group_listings_test.dart`; `tradingview_parser_test.dart` (Apple real) | |
+| 77 | Completar por ISIN cuando falta la principal ("Inditex" → `BME:ITX`) | `infrastructure/adapters/tradingview_adapter_test.dart`; `tradingview_parser_test.dart` (búsqueda real de "inditex" y de su ISIN) | **T98** |
+| 78 | Buscar por ISIN agrupa todas sus cotizaciones | `tradingview_adapter_test.dart`; `tradingview_parser_test.dart` | T98 |
+| 79 | Orden por relevancia, principal primero | `group_listings_test.dart` | |
+| 80 | La cabecera muestra bolsa, ISIN y principal/otra | `presentation/widgets/verdict_header_test.dart`; `tradingview_parser_test.dart`; `domain/motor/stock_analyzer_test.dart` | T98 |
+| 81 | Un análisis antiguo se ve igual, sin esa línea | `infrastructure/adapters/analysis_result_json_test.dart`; `verdict_header_test.dart` | |
+| 82 | Si falla la búsqueda complementaria, se ven los resultados de la primera | `tradingview_adapter_test.dart` | |
+| 83 | Misma búsqueda en 6 h sale de la caché (complementaria incluida) | `tradingview_adapter_test.dart` | |
+
+Comprobado además en vivo el 2026-10-08: "nintendo" (1 empresa principal + ADR ocultos), "inditex"
+(`BME:ITX` principal con 20 cotizaciones; antes solo OTC), `JP3756600007` (1 empresa), "iberdrola",
+"apple" y "santander".
+
+## Revisión 6: conversor a euros (criterios 84-97)
+
+| Criterios | Tests |
+|---|---|
+| 84-86 Euros por defecto, selector a la divisa original, sin selector en euros | `presentation/widgets/currency_switch_test.dart`; `controllers/display_currency_controller_test.dart` |
+| 87-89 Cierres, extremos y medias convertidos con el tipo de cada día; día y semana con el último | `controllers/price_chart_controller_test.dart` (grupo "en euros") |
+| 90 Aviso de gráfica convertida | `price_chart_panel.dart` (`convertedChartCaption`) |
+| 91-93 Tipos del BCE con respaldo del BdE, arrastre de fin de semana, GBX/ZAC/ILA | `domain/currency/*_test.dart`; `infrastructure/adapters/{ecb_rate_parser,bde_rate_parser,ecb_exchange_rate_adapter,fallback_and_cached_exchange_rate_adapter}_test.dart` |
+| 94-95 Caché de 6 h y "Actualizar datos" | `fallback_and_cached_exchange_rate_adapter_test.dart`; `display_currency_controller_test.dart` |
+| 96-97 Estados cargando / sin tipo / fallo y tipo antiguo | `currency_switch_test.dart` |
+
+Comprobado en vivo el 2026-10-08: BCE JPY (177,05) y GBP; SAR sin tipo (NotFound); BdE JPY (176,85 del día 7).
+

@@ -3,21 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
-import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/home_screen.dart';
 
 import '../../application/fake_ports.dart';
 import '../../domain/motor/synthetic_companies.dart';
-
-const _tesco = SymbolMatch(
-  symbol: 'TSCO.LON',
-  name: 'Tesco PLC',
-  region: 'United Kingdom',
-  currency: 'GBX',
-  matchScore: 0.73,
-);
+import '../../search_samples.dart';
 
 /// Pantalla de resultado de mentira: solo muestra qué se abrió.
 Widget _fakeAnalysisScreen(String symbol, {HistoryEntry? entry}) => Scaffold(
@@ -54,6 +46,79 @@ Future<void> _search(WidgetTester tester, String text) async {
 }
 
 void main() {
+  group('HomeScreen resultados agrupados', () {
+    testWidgets(
+      'una empresa con varias cotizaciones es una sola fila con la principal marcada (criterio 72)',
+      (tester) async {
+        final marketData = FakeMarketData(
+          matches: [tescoFrankfurt, tescoLondon, tescoReceipt],
+        );
+        await _pumpHome(tester, marketData);
+
+        await _search(tester, 'tesco');
+
+        expect(find.text('Tesco PLC'), findsOneWidget);
+        expect(find.text('Principal'), findsOneWidget);
+        expect(find.text('Otras cotizaciones (1)'), findsOneWidget);
+      },
+    );
+
+    testWidgets('los certificados ADR no se ven hasta pedirlos (criterio 75)', (
+      tester,
+    ) async {
+      final marketData = FakeMarketData(matches: [tescoLondon, tescoReceipt]);
+      await _pumpHome(tester, marketData);
+
+      await _search(tester, 'tesco');
+
+      expect(find.text('Tesco PLC ADR'), findsNothing);
+      expect(find.text('Mostrar certificados ADR (1)'), findsOneWidget);
+      await tester.tap(find.text('Mostrar certificados ADR (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tesco PLC ADR'), findsOneWidget);
+      expect(find.text('Ocultar certificados ADR'), findsOneWidget);
+    });
+
+    testWidgets('ocultarlos otra vez quita sus filas', (tester) async {
+      final marketData = FakeMarketData(matches: [tescoLondon, tescoReceipt]);
+      await _pumpHome(tester, marketData);
+      await _search(tester, 'tesco');
+      await tester.tap(find.text('Mostrar certificados ADR (1)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Ocultar certificados ADR'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tesco PLC ADR'), findsNothing);
+    });
+
+    testWidgets('sin certificados no hay botón de ADR', (tester) async {
+      await _pumpHome(tester, FakeMarketData(matches: [tescoLondon]));
+
+      await _search(tester, 'tesco');
+
+      expect(find.textContaining('certificados ADR'), findsNothing);
+    });
+
+    testWidgets(
+      'elegir otra cotización del desplegable analiza esa (criterio 74)',
+      (tester) async {
+        final marketData = FakeMarketData(
+          matches: [tescoLondon, tescoFrankfurt],
+        );
+        await _pumpHome(tester, marketData);
+        await _search(tester, 'tesco');
+
+        await tester.tap(find.text('Otras cotizaciones (1)'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Gettex · DE · EUR'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Análisis de GETTEX:TCO'), findsOneWidget);
+      },
+    );
+  });
+
   group('HomeScreen aprender', () {
     testWidgets('con onOpenLearn muestra "Aprender" y lo abre', (tester) async {
       var opened = 0;
@@ -75,7 +140,7 @@ void main() {
     testWidgets('busca al confirmar y muestra las coincidencias', (
       tester,
     ) async {
-      final marketData = FakeMarketData(matches: [_tesco]);
+      final marketData = FakeMarketData(matches: [tescoLondon]);
       await _pumpHome(tester, marketData);
 
       await tester.enterText(find.byType(TextField), 'tesco');
@@ -87,11 +152,12 @@ void main() {
 
       expect(marketData.searchQueries, ['tesco']);
       expect(find.text('Tesco PLC'), findsOneWidget);
-      expect(find.text('TSCO.LON · United Kingdom · GBX'), findsOneWidget);
+      expect(find.text('London Stock Exchange · GB · GBX'), findsOneWidget);
+      expect(find.text('ISIN GB0008847096'), findsOneWidget);
     });
 
     testWidgets('también busca al pulsar intro (criterio 2)', (tester) async {
-      final marketData = FakeMarketData(matches: [_tesco]);
+      final marketData = FakeMarketData(matches: [tescoLondon]);
       await _pumpHome(tester, marketData);
 
       await tester.enterText(find.byType(TextField), 'tesco');
@@ -111,13 +177,13 @@ void main() {
     });
 
     testWidgets('al elegir una coincidencia abre su análisis', (tester) async {
-      await _pumpHome(tester, FakeMarketData(matches: [_tesco]));
+      await _pumpHome(tester, FakeMarketData(matches: [tescoLondon]));
       await _search(tester, 'tesco');
 
       await tester.tap(find.text('Tesco PLC'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Análisis de TSCO.LON'), findsOneWidget);
+      expect(find.text('Análisis de LSE:TSCO'), findsOneWidget);
     });
 
     testWidgets('muestra el historial y abre el análisis guardado', (

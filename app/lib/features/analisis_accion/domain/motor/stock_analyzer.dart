@@ -61,6 +61,9 @@ class StockAnalyzer {
       ),
       missingData: _missingData(blocks, values),
       motorVersion: motorVersion,
+      isin: data.overview.isin,
+      exchange: data.overview.exchange,
+      isPrimaryListing: data.overview.isPrimaryListing,
     );
   }
 

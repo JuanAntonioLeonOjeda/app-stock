@@ -1,17 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/motor_version.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/price_chart_panel.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/show_info.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 
@@ -34,11 +39,13 @@ Future<void> _pumpScreen(
   FakeLinkOpener? linkOpener,
   ShowInfo? showInfo,
   InfoBuilder? buildInfo,
+  PriceChartController? chartController,
 }) => tester.pumpWidget(
   MaterialApp(
     home: AnalysisScreen(
       showInfo: showInfo,
       buildInfo: buildInfo,
+      chartController: chartController,
       controller: AnalysisController(
         openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
         analyzeStock: AnalyzeStockUseCase(
@@ -57,7 +64,149 @@ Future<void> _pumpScreen(
 Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
     .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).first);
 
+PriceChartController _chart(FakePriceHistory history) => PriceChartController(
+  getPriceHistory: GetPriceHistoryUseCase(history),
+  getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
+  symbol: 'CALI',
+);
+
 void main() {
+  group('AnalysisScreen con pestañas', () {
+    Future<FakePriceHistory> pumpTabs(
+      WidgetTester tester, {
+      FakePriceHistory? history,
+      FakeMarketData? marketData,
+    }) async {
+      tester.view.physicalSize = const Size(800, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final port =
+          history ?? FakePriceHistory(bars: priceHistory(sessions: 400));
+      await _pumpScreen(
+        tester,
+        marketData ?? FakeMarketData(),
+        entry: _qualityEntry(),
+        chartController: _chart(port),
+      );
+      await tester.pumpAndSettle();
+      return port;
+    }
+
+    testWidgets(
+      'muestra Resumen y Detalle, con Resumen abierto (criterio 44)',
+      (tester) async {
+        await pumpTabs(tester);
+
+        expect(find.text('Resumen'), findsOneWidget);
+        expect(find.text('Detalle'), findsOneWidget);
+        expect(find.byType(LineChart), findsOneWidget);
+        expect(find.text('Calidad S.A.'), findsOneWidget);
+        expect(find.text('Valoración'), findsNothing);
+      },
+    );
+
+    testWidgets('Detalle es la vista de siempre (criterio 44)', (tester) async {
+      await pumpTabs(tester);
+
+      await tester.tap(find.text('Detalle'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Valoración'), findsOneWidget);
+      expect(find.text('Ver noticias recientes'), findsOneWidget);
+      expect(find.byType(LineChart), findsNothing);
+    });
+
+    testWidgets(
+      'al volver de pestaña, lo desplegado sigue como estaba (criterio 45)',
+      (tester) async {
+        await pumpTabs(tester);
+        await tester.tap(find.text('Detalle'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Valoración'));
+        await tester.pumpAndSettle();
+        expect(find.text('PER 12 meses'), findsOneWidget);
+
+        await tester.tap(find.text('Resumen'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Detalle'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('PER 12 meses'), findsOneWidget);
+      },
+    );
+
+    testWidgets('la gráfica carga el histórico del símbolo al abrir', (
+      tester,
+    ) async {
+      final history = await pumpTabs(tester);
+
+      expect(history.calls.single.symbol, 'CALI');
+      expect(history.calls.single.forceRefresh, isFalse);
+    });
+
+    testWidgets(
+      '"Actualizar datos" vuelve a pedir también la gráfica (criterio 45)',
+      (tester) async {
+        final marketData = FakeMarketData(stockData: qualityCompany());
+        final history = await pumpTabs(tester, marketData: marketData);
+
+        await tester.tap(find.byTooltip('Actualizar datos'));
+        await tester.pumpAndSettle();
+
+        expect(history.calls, hasLength(2));
+        expect(history.calls.last.forceRefresh, isTrue);
+        expect(marketData.fetchCalls.last.forceRefresh, isTrue);
+      },
+    );
+
+    testWidgets(
+      'si falla el histórico, Resumen avisa y Detalle sigue igual (criterio 53)',
+      (tester) async {
+        await pumpTabs(
+          tester,
+          history: FakePriceHistory(error: const NetworkException()),
+        );
+
+        expect(find.text(priceChartErrorText), findsOneWidget);
+        await tester.tap(find.text('Detalle'));
+        await tester.pumpAndSettle();
+        expect(find.text('Valoración'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'con buildInfo, Resumen ofrece la explicación de las medias y de la gráfica (criterios 68-69)',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 3000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await _pumpScreen(
+          tester,
+          FakeMarketData(),
+          entry: _qualityEntry(),
+          chartController: _chart(
+            FakePriceHistory(bars: priceHistory(sessions: 400)),
+          ),
+          buildInfo: (_, topicId) => Text('Explicación de $topicId'),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Qué es la media de 200 sesiones'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Explicación de media_200'), findsOneWidget);
+        expect(find.byTooltip('Qué es cómo leer la gráfica'), findsOneWidget);
+      },
+    );
+
+    testWidgets('sin controller de gráfica no hay pestañas', (tester) async {
+      await _pumpScreen(tester, FakeMarketData(), entry: _qualityEntry());
+
+      expect(find.byType(TabBar), findsNothing);
+      expect(find.text('Valoración'), findsOneWidget);
+    });
+  });
+
   group('AnalysisScreen', () {
     testWidgets('muestra la cabecera, los bloques plegados y el aviso '
         'educativo', (tester) async {

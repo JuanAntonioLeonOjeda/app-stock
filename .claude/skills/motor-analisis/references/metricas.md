@@ -119,3 +119,11 @@ unidad) evitan mezclar monedas.
 
 Si no hay histórico diario (una sola barra), el aviso es "Sin histórico de precios", y
 MACD, pendiente de la SMA200 y caída máxima quedan "sin dato".
+
+## Histórico real de TradingView (motor 1.2.0)
+
+TradingView da el histórico diario por su canal de gráficos (hasta ~6.000 velas, precios
+ajustados por splits). Con él, todas las métricas técnicas se calculan con datos reales:
+RSI, MACD, precio frente a la SMA200, pendiente de la SMA200, distancia al máximo de 52
+semanas y caída máxima. Los ratios del proveedor de la tabla anterior pasan a ser solo el
+respaldo cuando el histórico no se puede obtener (el análisis nunca falla por eso).

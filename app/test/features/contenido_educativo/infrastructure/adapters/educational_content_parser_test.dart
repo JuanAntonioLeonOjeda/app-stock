@@ -9,6 +9,7 @@ import '../../sample_content.dart';
 /// Las tres piezas del contenido de muestra como objetos, para romper una.
 typedef _Parts = ({
   Map<String, Object?> metrics,
+  Map<String, Object?> concepts,
   Map<String, Object?> blocks,
   Map<String, Object?> guide,
 });
@@ -17,6 +18,7 @@ _Parts _parts() {
   final files = sampleFiles();
   return (
     metrics: jsonDecode(files.metrics) as Map<String, Object?>,
+    concepts: jsonDecode(files.concepts) as Map<String, Object?>,
     blocks: jsonDecode(files.blocks) as Map<String, Object?>,
     guide: jsonDecode(files.guide) as Map<String, Object?>,
   );
@@ -36,6 +38,7 @@ Matcher _failsWith(String fragment) => throwsA(
 
 void _parse(_Parts parts) => parseEducationalContent(
   metrics: jsonEncode(parts.metrics),
+  concepts: jsonEncode(parts.concepts),
   blocks: jsonEncode(parts.blocks),
   guide: jsonEncode(parts.guide),
 );
@@ -69,6 +72,7 @@ void main() {
     test('los archivos vacíos de partida son válidos', () {
       final content = parseEducationalContent(
         metrics: '{"metricas": []}',
+        concepts: '{"conceptos": []}',
         blocks: '{"bloques": []}',
         guide: '{"secciones": [], "queMirar": {"titulo": "t", "introduccion": "i", "preguntas": []}}',
       );
@@ -80,6 +84,7 @@ void main() {
       expect(
         () => parseEducationalContent(
           metrics: 'no json',
+          concepts: '{"conceptos": []}',
           blocks: '{"bloques": []}',
           guide: '{}',
         ),
@@ -182,6 +187,75 @@ void main() {
       (parts.guide['queMirar']! as Map<String, Object?>).remove('preguntas');
 
       expect(() => _parse(parts), _failsWith('guia.es.json'));
+    });
+
+    test('convierte los conceptos de la gráfica', () {
+      final content = sampleContent();
+
+      expect(content.concepts.map((c) => c.id), ['media_50', 'grafico_precio']);
+      expect(
+        content.explanationById('media_50')?.title,
+        'Media de 50 sesiones',
+      );
+      expect(content.explanationById('grafico_precio')?.combinesWith, [
+        'media_50',
+        'rsi',
+      ]);
+    });
+
+    test('un concepto no es una métrica del motor', () {
+      final content = sampleContent();
+
+      expect(content.metricById('media_50'), isNull);
+      expect(content.explanationById('per')?.id, 'per');
+      expect(content.explanationById('no_existe'), isNull);
+    });
+
+    test('una métrica puede combinarse con un concepto', () {
+      final parts = _parts();
+      _metric(parts, 0)['combinaCon'] = ['media_50'];
+
+      expect(() => _parse(parts), returnsNormally);
+    });
+
+    test('un concepto no puede tener el id de una métrica', () {
+      final parts = _parts();
+      final concept =
+          (parts.concepts['conceptos']! as List<Object?>).first!
+              as Map<String, Object?>;
+      concept['id'] = 'per';
+
+      expect(() => _parse(parts), _failsWith('ids que ya son métricas'));
+    });
+
+    test('un concepto con combinaCon desconocido es inválido', () {
+      final parts = _parts();
+      final concept =
+          (parts.concepts['conceptos']! as List<Object?>).first!
+              as Map<String, Object?>;
+      concept['combinaCon'] = ['inventada'];
+
+      expect(() => _parse(parts), _failsWith('conceptos.es.json › media_50'));
+    });
+
+    test('un concepto incompleto nombra su archivo y el campo', () {
+      final parts = _parts();
+      final concept =
+          (parts.concepts['conceptos']! as List<Object?>).first!
+              as Map<String, Object?>;
+      concept.remove('formula');
+
+      expect(() => _parse(parts), _failsWith('conceptos.es.json'));
+      expect(() => _parse(parts), _failsWith('media_50 › formula'));
+    });
+
+    test('un id de concepto repetido es inválido', () {
+      final parts = _parts();
+      final list = parts.concepts['conceptos']! as List<Object?>;
+      (list.last! as Map<String, Object?>)['id'] = 'media_50';
+
+      expect(() => _parse(parts), _failsWith('conceptos.es.json › conceptos'));
+      expect(() => _parse(parts), _failsWith('id repetido: media_50'));
     });
   });
 }

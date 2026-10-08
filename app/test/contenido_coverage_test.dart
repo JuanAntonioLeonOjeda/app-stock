@@ -52,6 +52,7 @@ EducationalContent _realContent() {
       File('assets/contenido/$name.es.json').readAsStringSync();
   return parseEducationalContent(
     metrics: read('metricas'),
+    concepts: read('conceptos'),
     blocks: read('bloques'),
     guide: read('guia'),
   );
@@ -59,7 +60,7 @@ EducationalContent _realContent() {
 
 /// Todos los textos del contenido, para las comprobaciones de estilo.
 List<String> _allTexts(EducationalContent content) => [
-  for (final metric in content.metrics) ...[
+  for (final metric in [...content.metrics, ...content.concepts]) ...[
     metric.title,
     metric.summary,
     metric.intuition,
@@ -120,7 +121,7 @@ void main() {
     });
 
     test('cada pregunta tiene al menos 3 opciones y un índice válido', () {
-      for (final metric in content.metrics) {
+      for (final metric in [...content.metrics, ...content.concepts]) {
         final question = metric.question;
         expect(
           question.options.length,
@@ -143,11 +144,14 @@ void main() {
       expect(positions.length, greaterThan(1));
     });
 
-    test('cada métrica se combina con al menos otra', () {
-      for (final metric in content.metrics) {
-        expect(metric.combinesWith, isNotEmpty, reason: metric.id);
-      }
-    });
+    test(
+      'cada métrica y cada concepto se combina con al menos otra explicación',
+      () {
+        for (final metric in [...content.metrics, ...content.concepts]) {
+          expect(metric.combinesWith, isNotEmpty, reason: metric.id);
+        }
+      },
+    );
 
     test('ningún texto contiene frases de recomendación', () {
       for (final text in _allTexts(content)) {
@@ -163,7 +167,7 @@ void main() {
     });
 
     test('los ejemplos no usan empresas reales', () {
-      for (final metric in content.metrics) {
+      for (final metric in [...content.metrics, ...content.concepts]) {
         final example = metric.example.toLowerCase();
         for (final company in _realCompanies) {
           expect(
@@ -176,7 +180,7 @@ void main() {
     });
 
     test('los textos de las fichas no están vacíos ni son enormes', () {
-      for (final metric in content.metrics) {
+      for (final metric in [...content.metrics, ...content.concepts]) {
         for (final text in [
           metric.intuition,
           metric.formula,
@@ -188,6 +192,28 @@ void main() {
         expect(metric.summary.length, lessThan(160), reason: metric.id);
       }
     });
+
+    test('existe la explicación de cada concepto que referencia la gráfica (criterio 71)', () {
+      for (final id in [
+        priceChartTopicId,
+        shortAverageTopicId,
+        longAverageTopicId,
+      ]) {
+        expect(content.explanationById(id), isNotNull, reason: id);
+      }
+    });
+
+    test(
+      'los conceptos de la gráfica no se confunden con métricas del motor',
+      () {
+        final motorIds = {for (final rule in metricRules) rule.id};
+
+        for (final concept in content.concepts) {
+          expect(motorIds, isNot(contains(concept.id)), reason: concept.id);
+          expect(content.metricById(concept.id), isNull, reason: concept.id);
+        }
+      },
+    );
 
     test('los ids de tema de bloque y guía son los acordados', () {
       expect(guideTopicId, diagnosisGuideTopicId);

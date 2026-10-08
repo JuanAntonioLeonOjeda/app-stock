@@ -52,6 +52,16 @@ void main() {
       expect(find.text('Comprueba lo que has aprendido'), findsOneWidget);
     });
 
+    testWidgets('un concepto de la gráfica se ve como una ficha', (
+      tester,
+    ) async {
+      await _pump(tester, topic: 'media_50');
+
+      expect(find.text('Media de 50 sesiones'), findsOneWidget);
+      expect(find.text('Cómo leerla'), findsOneWidget);
+      expect(find.text('Comprueba lo que has aprendido'), findsOneWidget);
+    });
+
     testWidgets('mientras carga muestra un indicador', (tester) async {
       final port = FakeEducationalContent()..gate = Completer<void>();
       await _pump(tester, port: port);

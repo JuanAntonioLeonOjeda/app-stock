@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/company_listings.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
-import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/history_list.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/search_bar_section.dart';
-import 'package:stock_app/features/analisis_accion/presentation/widgets/symbol_match_tile.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/company_listings_tile.dart';
 
 /// Construye la pantalla de resultado para [symbol]: análisis nuevo, o el
 /// guardado en [entry] si viene del historial. Lo aporta el composition root,
@@ -92,6 +92,20 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   );
 
+  /// "Mostrar certificados ADR (n)" / "Ocultar certificados ADR" (criterio 75).
+  Widget _receiptsButton() => Align(
+    alignment: Alignment.centerLeft,
+    child: TextButton(
+      onPressed: () =>
+          _controller.setShowReceipts(isVisible: !_controller.showReceipts),
+      child: Text(
+        _controller.showReceipts
+            ? 'Ocultar certificados ADR'
+            : 'Mostrar certificados ADR (${_controller.receiptCount})',
+      ),
+    ),
+  );
+
   List<Widget> _searchResults() {
     if (_controller.isSearching) return const [LinearProgressIndicator()];
     if (_controller.searchError case final error?) {
@@ -106,8 +120,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
     }
     return [
-      for (final match in _controller.matches ?? const <SymbolMatch>[])
-        SymbolMatchTile(match: match, onTap: () => _openAnalysis(match.symbol)),
+      for (final company in _controller.companies ?? const <CompanyListings>[])
+        CompanyListingsTile(company: company, onSelect: _openAnalysis),
+      if (_controller.canToggleReceipts) _receiptsButton(),
     ];
   }
 }

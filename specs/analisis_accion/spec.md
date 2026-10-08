@@ -1,7 +1,11 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). **Revisión 2 (proveedor TradingView) cerrada el
-> 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
+> Estado: cerrada (2026-09-30). **Revisión 6 (conversor a euros, fase B) cerrada el
+> 2026-10-08**: ver la sección "Revisión 6" al final. **Revisión 5 (búsqueda sin versiones duplicadas, fase A)
+> cerrada el 2026-10-08**: sustituye el criterio 1. **Revisión 4 (gráfica del día y de la semana) cerrada el
+> 2026-10-08**: ver la sección "Revisión 4" al final. **Revisión 3 (histórico real y gráfica de precio, fase 1
+> del panel "Resumen") cerrada el 2026-10-08**: ver la sección "Revisión 3" al final; sustituye
+> el criterio 35. **Revisión 2 (proveedor TradingView) cerrada el 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
 > proveedor y modifica los criterios 5, 22, 27 y 31. Siguiente paso: actualizar `plan.md`.
 
 ## Qué resuelve
@@ -244,3 +248,331 @@ empresa.
 ### Preguntas abiertas
 
 Ninguna.
+
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+Primera de tres fases del panel "Resumen" (las siguientes: panel "cara o barata" con precio
+implícito, y gráficas de fundamentales; cada una con su propia revisión del spec).
+
+### Qué cambia y por qué
+
+La Revisión 2 asumía que TradingView no daba histórico diario. Sí lo da, por el canal de
+gráficos que usa su propia web (WebSocket `data.tradingview.com`, sin clave). Comprobado el
+2026-10-08: Nintendo 5.878 velas diarias desde 2001 (4 s), Iberdrola 6.000 desde 2003 (1 s).
+Con él:
+
+- El resultado gana una pestaña **Resumen** con la evolución del precio, para entender de
+  un vistazo lo que hasta ahora eran números sueltos. La vista actual pasa a la pestaña
+  **Detalle**, sin cambios.
+- El motor calcula por fin MACD, volatilidad, caída máxima y pendiente de la media con datos
+  reales, y deja de avisar de "Sin histórico de precios".
+
+Es una fuente **no oficial** y más frágil que el scanner. Si falla, la app sigue como en la
+Revisión 2: sin gráfica y con una sola barra de precio.
+
+### Fuera de alcance (añade a los de arriba)
+
+- El panel "cara o barata", el precio implícito y los pares del sector (fase 2).
+- Gráficas de ingresos, beneficio y caja, y las explicaciones educativas de cada gráfica
+  (fase 3).
+- Velas japonesas, volumen, indicadores superpuestos distintos de las medias de 50 y 200
+  sesiones, dibujar sobre la gráfica y comparar con otras acciones.
+- Intradía: solo cierres diarios.
+- Ajuste por dividendos: los precios vienen ajustados por splits, no por dividendos.
+- Guardar el histórico en el historial de análisis: se vuelve a pedir (o se lee de caché).
+
+### Criterios de aceptación
+
+#### Pestañas
+
+44. **Dado** un resultado de análisis (nuevo o del historial), **cuando** se abre, **entonces**
+    veo dos pestañas, **Resumen** (la primera, abierta por defecto) y **Detalle**, que es la
+    vista de la Revisión 2 sin cambios (cabecera, avisos, bloques, datos que faltan y
+    botones).
+45. **Dado** que cambio de pestaña, **cuando** vuelvo, **entonces** lo que estaba desplegado
+    en Detalle sigue como lo dejé, y "Actualizar datos" actúa sobre las dos.
+
+#### Gráfica de precio
+
+46. **Dado** la pestaña Resumen, **cuando** hay histórico, **entonces** veo una línea con los
+    cierres diarios del último año y, encima, un selector de periodo con 1M, 3M, 6M, 1A, 5A y
+    Todo.
+47. **Dado** el selector, **cuando** elijo un periodo, **entonces** la gráfica se redibuja con
+    ese periodo. Si el histórico es más corto que el periodo, muestra todo lo que hay.
+48. **Dado** la gráfica, **cuando** la miro, **entonces** el máximo y el mínimo de cierre del
+    periodo elegido aparecen marcados con su valor y su fecha.
+49. **Dado** la gráfica, **cuando** toco o arrastro sobre ella, **entonces** veo la fecha y el
+    precio de ese día con su divisa.
+50. **Dado** los interruptores "Media 50" y "Media 200", **cuando** los activo, **entonces** se
+    superpone la media de ese número de sesiones; empiezan desactivados. Una media sin datos
+    suficientes en el periodo no se dibuja (nunca se inventa).
+51. **Dado** cualquier periodo, **cuando** hay muchos puntos, **entonces** la gráfica sigue
+    fluida: se agrupan los puntos conservando máximos y mínimos de cada tramo.
+52. **Dado** la gráfica, **cuando** la miro, **entonces** debajo pone "Datos de TradingView.
+    Precios ajustados por splits, sin dividendos."
+53. **Dado** que el histórico no se puede obtener (bloqueo, sin conexión o cambio de
+    protocolo), **cuando** abro Resumen, **entonces** veo "No se ha podido cargar la gráfica"
+    con "Reintentar", y Detalle funciona igual que antes, con el aviso de "Sin histórico de
+    precios".
+54. **Dado** que ya cargué la gráfica de una acción hace menos de 6 horas, **cuando** la abro,
+    **entonces** sale de la caché sin hacer ninguna petición; "Actualizar datos" la vuelve a
+    pedir.
+
+#### Motor con histórico real
+
+55. **Dado** un histórico de al menos 252 sesiones, **cuando** se analiza, **entonces** MACD,
+    pendiente de la media de 200 sesiones y caída máxima tienen valor, y no aparece el aviso
+    de "Sin histórico de precios" (sustituye al criterio 35).
+56. **Dado** que el histórico falla durante un análisis, **cuando** termina, **entonces** el
+    análisis se completa igualmente con la única barra del último cierre (como en la Revisión
+    2) y con el aviso del criterio 35; un fallo del histórico nunca impide analizar.
+57. **Dado** un histórico con huecos o velas incoherentes (máximo menor que el mínimo, cierre
+    fuera del rango), **cuando** se procesa, **entonces** esas velas se descartan y, si queda
+    menos de 2 sesiones, se trata como histórico no disponible.
+
+### Decisiones y riesgos
+
+- **Pestaña Resumen por defecto**: es el "dashboard general al entrar" que se pidió.
+- **El histórico no se guarda en el historial de análisis**: el `AnalysisResult` ya guardado
+  sigue igual y la gráfica se pide aparte. Abrir una entrada antigua sin conexión muestra el
+  criterio 53 en Resumen y Detalle intacto.
+- **Fuente no oficial**: el protocolo del WebSocket puede cambiar. Los tests usan una
+  transcripción real guardada para detectarlo, y el fallo se aísla del análisis (criterio 56).
+- **`motorVersion` pasa a 1.2.0**: cambian los datos de entrada de varias métricas.
+- **Dependencia nueva**: `fl_chart` (solo en `presentation/`).
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+### Qué cambia y por qué
+
+La gráfica de la Revisión 3 empieza en 1 mes y solo usa cierres diarios. Para ver cómo se ha
+movido la acción hoy y esta semana hacen falta velas intradía. El canal de gráficos de
+TradingView las da con la misma conexión (comprobado el 2026-10-08 con Nintendo, Iberdrola y
+Apple: velas de 5, 30 y 60 minutos, con la zona horaria de la bolsa y el retraso de los datos).
+Esto sustituye la exclusión "Intradía: solo cierres diarios" de la Revisión 3.
+
+### Fuera de alcance (añade a los de arriba)
+
+- Periodos intradía a medida, otras resoluciones, velas japonesas y volumen.
+- Mostrar en la hora de la bolsa las plazas cuya zona horaria no esté en la tabla de la app
+  (se muestra la hora del dispositivo y se avisa).
+- Antes y después de mercado, y datos en tiempo real: TradingView los da con retraso y así se
+  muestran.
+- Medias de 50 y 200 en 1D y 1S (son de sesiones diarias).
+
+### Criterios de aceptación
+
+58. **Dado** el selector de periodo, **cuando** lo veo, **entonces** empieza por **1D** y
+    **1S**, seguidos de 1M, 3M, 6M, 1A, 5A y Todo; el periodo por defecto sigue siendo 1A.
+59. **Dado** 1D, **cuando** lo elijo, **entonces** veo la línea de la última sesión de
+    negociación en tramos de 5 minutos, con el eje en horas de la bolsa ("09:00", "10:00"...).
+    Si hoy no hay mercado (fin de semana, festivo), es la última sesión que hubo, y el pie
+    dice su fecha.
+60. **Dado** 1S, **cuando** lo elijo, **entonces** veo las últimas 5 sesiones en tramos de
+    30 minutos, pegadas unas a otras sin huecos de noche ni de fin de semana, con el día de
+    cada sesión en el eje ("jue 8").
+61. **Dado** 1D o 1S, **cuando** miro la gráfica, **entonces** el máximo y el mínimo del
+    periodo aparecen marcados con su valor, su día y su hora.
+62. **Dado** 1D o 1S, **cuando** toco o arrastro, **entonces** veo el día, la hora y el precio
+    de ese punto con su divisa.
+63. **Dado** 1D o 1S, **cuando** los elijo, **entonces** los interruptores de las medias no se
+    muestran; al volver a un periodo largo, reaparecen como los dejé.
+64. **Dado** que TradingView informa de retraso, **cuando** veo 1D o 1S, **entonces** el pie
+    dice "Datos con 15 minutos de retraso" (los que indique). Las horas son las de la bolsa; si
+    su zona horaria no se conoce, son las del dispositivo y el pie lo dice.
+65. **Dado** que ya cargué 1D o 1S hace menos de 5 minutos, **cuando** los vuelvo a elegir,
+    **entonces** salen de la caché; "Actualizar datos" los vuelve a pedir.
+66. **Dado** que 1D o 1S no se pueden cargar, **cuando** los elijo, **entonces** veo "No se ha
+    podido cargar la gráfica" con "Reintentar" solo en esa vista; los periodos largos siguen
+    funcionando.
+67. **Dado** una acción con una sola sesión disponible (cotización muy reciente o poco
+    líquida), **cuando** elijo 1S, **entonces** veo las sesiones que haya, sin inventar las
+    que faltan.
+
+### Decisiones y riesgos
+
+- **Sesiones por huecos, no por fechas**: una sesión es una racha de velas sin un hueco de más
+  de 3 horas (la pausa de la comida de Tokio es de 1 hora). Así el corte no depende de la zona
+  horaria.
+- **Horas de la bolsa con una tabla de zonas** (Tokio, Madrid, Londres, Nueva York y las
+  principales) con sus reglas de cambio de hora; una zona desconocida usa la del dispositivo.
+- **En 1D y 1S el eje es el orden de las velas, no el tiempo**, para que las sesiones no
+  dejen huecos (como hace la propia TradingView).
+- **Caché de 5 minutos** para el intradía (los datos llegan con retraso de 15-20 minutos).
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas (2026-10-08)
+
+Fase A de dos (la B es el conversor de divisas, con su propia revisión).
+
+### Qué cambia y por qué
+
+Una misma empresa aparece en la búsqueda muchas veces: Nintendo sale 14 veces (Tokio, Londres,
+Fráncfort, México, dos de LS Exchange, certificados ADR...). Comprobado el 2026-10-08:
+
+- Todas las versiones de las acciones ordinarias comparten el **ISIN**; los certificados de
+  depósito (ADR) tienen otro. El ISIN es además como Trade Republic identifica cada valor.
+- TradingView marca la **cotización principal** (`is_primary_listing`): la bolsa de origen de la
+  empresa (Nintendo = Tokio, Iberdrola = Madrid, Apple = Nasdaq). No depende del país del usuario.
+- La búsqueda por nombre puede devolver solo versiones secundarias: "Inditex" no trae su
+  cotización de Madrid (TradingView la llama "Industria de Diseno Textil"; sale por `ITX`, por
+  el nombre legal o por el ISIN).
+
+Se agrupa por empresa, se marca la principal y se completa el grupo con el ISIN cuando falta.
+Esto sustituye al criterio 1 (lista plana de coincidencias).
+
+### Fuera de alcance (añade a los de arriba)
+
+- Saber qué instrumento muestra Trade Republic: no tiene API pública. Se muestra el ISIN para
+  cotejarlo.
+- Convertir a euros (fase B).
+- Analizar por defecto una cotización distinta de la principal.
+- Fusionar un ADR con su acción ordinaria (tienen ISIN distinto).
+
+### Criterios de aceptación
+
+72. **Dado** que busco "Nintendo", **cuando** termina, **entonces** veo una fila por empresa
+    (agrupadas por ISIN) con su nombre, país, ISIN, la bolsa y la divisa de su cotización
+    principal y la etiqueta "Principal"; las demás versiones no son filas aparte.
+73. **Dado** una empresa con más cotizaciones, **cuando** veo su fila, **entonces** hay "Otras
+    cotizaciones (n)" plegado; al desplegarlo veo la bolsa, la divisa y el símbolo de cada una,
+    con las que cotizan en euros primero.
+74. **Dado** una fila de empresa, **cuando** la pulso, **entonces** se analiza su cotización
+    principal; si pulso otra cotización del desplegable, se analiza esa.
+75. **Dado** que entre los resultados hay certificados (ADR), **cuando** veo la lista,
+    **entonces** no aparecen por defecto y veo "Mostrar certificados ADR (n)"; al pulsarlo salen
+    al final marcados "ADR".
+76. **Dado** un resultado sin ISIN (instrumentos sintéticos, p. ej. "Pyth:AAPL"), **cuando** veo
+    la lista, **entonces** no aparece.
+77. **Dado** que busco por nombre y TradingView solo devuelve cotizaciones secundarias de una
+    empresa, **cuando** termina la búsqueda, **entonces** la app completa el grupo buscando por su
+    ISIN y aparece su cotización principal (p. ej. "Inditex" → `BME:ITX`).
+78. **Dado** que escribo un ISIN completo, **cuando** busco, **entonces** veo esa empresa con
+    todas sus cotizaciones agrupadas.
+79. **Dado** varios resultados, **cuando** veo la lista, **entonces** las empresas van por
+    relevancia y, dentro de cada una, la principal primero.
+80. **Dado** un resultado de análisis, **cuando** veo su cabecera, **entonces** aparecen la bolsa,
+    el ISIN y "Cotización principal" u "Otra cotización".
+81. **Dado** el historial, **cuando** abro un análisis guardado antes de esta revisión,
+    **entonces** se ve igual que siempre, sin esa línea.
+82. **Dado** que falla la búsqueda complementaria por ISIN, **cuando** termina, **entonces** veo
+    los resultados de la primera búsqueda, sin error.
+83. **Dado** que ya hice la misma búsqueda hace menos de 6 horas, **cuando** la repito,
+    **entonces** sale de la caché, incluida la complementaria.
+
+### Decisiones y riesgos
+
+- **Sin cotización marcada como principal** en un grupo (el proveedor no la marca): se abre la
+  mejor coincidencia, pero no se etiqueta "Principal".
+- **"Otras cotizaciones" con las de euros primero**: es lo más cercano a un inversor en euros.
+- **La búsqueda complementaria se limita a 3 empresas** por búsqueda para no multiplicar
+  peticiones.
+- **El ISIN y la bolsa de la cabecera salen del scanner**, no de la búsqueda, para que también
+  estén al abrir un análisis desde el historial.
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 6: conversor a euros (2026-10-08)
+
+Fase B de dos (la A fue la búsqueda sin versiones duplicadas).
+
+### Qué cambia y por qué
+
+Una acción de Tokio cotiza en yenes, una de Nueva York en dólares y una de Londres en peniques.
+Para un inversor en euros, un precio de 7.851 JPY no dice nada. El resultado pasa a mostrar el
+precio **en euros por defecto**, con un selector para ver la divisa original.
+
+Decisiones del usuario (2026-10-08): se analiza la cotización tal cual (la principal) y se
+convierte solo para mostrar; euros por defecto también en el historial; cada resultado empieza
+siempre en euros (la elección no se recuerda); el Banco de España es el respaldo del BCE.
+
+### Qué datos hay (comprobado 2026-10-08)
+
+- **BCE** (`data-api.ecb.europa.eu`, SDMX/JSON, sin clave): tipos de referencia diarios desde 1999
+  de 44 monedas. Se publican una vez al día, hacia las 16:00 CET, en días laborables.
+- **Banco de España**: republica los mismos tipos del BCE ("cotización en el BCE") con un día de
+  retraso y unas 33 monedas. Su API REST solo da 3, 12 o 36 meses; su CSV oficial
+  (`tc_1_1.csv`) trae todo el histórico desde 1999. Sirve de respaldo.
+- **TradingView**: los precios de Londres vienen en **GBX** (peniques), los de Johannesburgo en
+  **ZAC** (céntimos) y los de Tel Aviv en **ILA** (agorot).
+
+### Fuera de alcance (añade a los de arriba)
+
+- Otras divisas de destino, tipos en tiempo real, el cambio y las comisiones de un bróker (el de
+  Trade Republic aplica los suyos), y guardar la elección entre sesiones.
+- Convertir los ratios o los indicadores del motor: no tienen unidad y siguen calculándose en la
+  divisa original. Solo se convierte lo que se muestra como precio.
+- Convertir los importes de los estados financieros: la app no los muestra.
+
+### Criterios de aceptación
+
+84. **Dado** un resultado de una acción que cotiza en una divisa distinta del euro, **cuando** lo
+    veo, **entonces** el precio de la cabecera, la gráfica, sus máximos y mínimos y el tooltip
+    salen en euros, y hay un selector "EUR | JPY" (la divisa original) en la cabecera.
+85. **Dado** el selector, **cuando** elijo la divisa original, **entonces** todo vuelve a sus
+    valores sin convertir; al elegir EUR, se convierte de nuevo. Cada resultado que abro empieza
+    en euros.
+86. **Dado** una acción que ya cotiza en euros, **cuando** veo el resultado, **entonces** no hay
+    selector ni nota de conversión.
+87. **Dado** la gráfica de un periodo diario (1M a Todo), **cuando** está en euros, **entonces**
+    cada cierre se convierte con el tipo de **su día** (con el último publicado en fines de semana
+    y festivos), de modo que la línea refleja también lo que ha hecho la divisa; el máximo y el
+    mínimo se toman de los cierres ya convertidos.
+88. **Dado** el día o la semana (1D y 1S) en euros, **cuando** los veo, **entonces** todos los
+    puntos se convierten con el último tipo publicado, porque el BCE da uno al día.
+89. **Dado** las medias de 50 y 200 sesiones, **cuando** la gráfica está en euros, **entonces** se
+    calculan sobre los cierres ya convertidos, para que el precio y su media sean comparables.
+90. **Dado** un precio en euros, **cuando** lo veo en la cabecera, **entonces** debajo aparece el
+    equivalente original y el tipo usado ("7.851 JPY · 1 € = 177,05 JPY, BCE del 08/10/2026"), y
+    el pie de la gráfica dice que es el tipo de referencia del BCE y no el cambio al que se
+    operaría.
+91. **Dado** una acción cotizada en peniques (GBX), céntimos (ZAC) o agorot (ILA), **cuando** la
+    convierto, **entonces** se divide entre 100 antes de aplicar el tipo de la libra, el rand o
+    el séquel; en la divisa original se muestra tal como cotiza.
+92. **Dado** una divisa sin tipo de cambio publicado (p. ej. el riyal saudí), **cuando** veo el
+    resultado, **entonces** no hay selector, se muestra el precio en su divisa original y aparece
+    "Sin tipo de cambio del BCE para SAR".
+93. **Dado** que el BCE no responde, **cuando** se piden los tipos, **entonces** se piden al Banco
+    de España; si ambos fallan, se muestra el precio en la divisa original con "No se ha podido
+    convertir a euros" y "Reintentar". Nada más se bloquea.
+94. **Dado** un análisis del historial, **cuando** lo abro, **entonces** su precio sale en euros con
+    el tipo del día de su último cierre, no con el de hoy.
+95. **Dado** que ya pedí los tipos de una divisa hace menos de 6 horas, **cuando** abro otro
+    resultado en esa divisa, **entonces** salen de la caché; "Actualizar datos" los vuelve a pedir.
+96. **Dado** que los tipos aún no han llegado, **cuando** abro el resultado, **entonces** veo el
+    precio en la divisa original con "Convirtiendo a euros…" y pasa a euros al llegar, sin
+    bloquear la pantalla.
+97. **Dado** que el último tipo publicado tiene más de 5 días, **cuando** veo un precio en euros,
+    **entonces** la nota del tipo lo dice ("tipo de hace 7 días").
+
+### Decisiones y riesgos
+
+- **Es el tipo de referencia, no el de operar.** Sirve para entender magnitudes y comparar, no
+  para saber cuántos euros recibirás: el bróker aplica su propio cambio y comisión.
+- **Una línea en euros no es la línea original dividida entre una constante.** Una acción
+  japonesa que sube un 10 % en yenes puede estar plana en euros. Es lo correcto para un inversor
+  en euros y se explica en el pie.
+- **El BdE llega con un día de retraso** respecto al BCE: como respaldo es válido (criterio 97).
+- **Los días sin tipo anteriores al primero publicado** (1999) no se dibujan en euros.
+
+### Preguntas abiertas
+
+Ninguna.
+

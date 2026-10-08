@@ -32,9 +32,9 @@ class TopicController extends ChangeNotifier {
 
   String get currentTopicId => _stack.last;
 
-  /// Ficha de la métrica actual; `null` si el tema no es una métrica o no hay
-  /// contenido.
-  MetricContent? get currentMetric => _content?.metricById(currentTopicId);
+  /// Explicación de la métrica o del concepto de la gráfica actual; `null` si
+  /// el tema no es ninguna de las dos o no hay contenido.
+  MetricContent? get currentMetric => _content?.explanationById(currentTopicId);
 
   BlockContent? get currentBlock => _content?.blockById(currentTopicId);
 

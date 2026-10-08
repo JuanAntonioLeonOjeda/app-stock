@@ -74,6 +74,9 @@ CompanyOverview overview({
   double? analystTargetPrice = 150,
   double? movingAverage200,
   double? week52High,
+  String? isin,
+  String? exchange,
+  bool? isPrimaryListing,
 }) => CompanyOverview(
   symbol: symbol,
   name: name,
@@ -96,6 +99,9 @@ CompanyOverview overview({
   movingAverage200: movingAverage200,
   week52High: week52High,
   week52Low: null,
+  isin: isin,
+  exchange: exchange,
+  isPrimaryListing: isPrimaryListing,
 );
 
 /// Construye una empresa completa. Listas anuales del año más reciente al

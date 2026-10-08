@@ -38,6 +38,9 @@ Map<String, Object?> analysisResultToJson(AnalysisResult result) => {
   'flags': result.flags,
   'missingData': result.missingData,
   'motorVersion': result.motorVersion,
+  'isin': result.isin,
+  'exchange': result.exchange,
+  'isPrimaryListing': result.isPrimaryListing,
 };
 
 /// Lanza [FormatException] si el JSON no tiene el formato esperado.
@@ -61,6 +64,10 @@ AnalysisResult analysisResultFromJson(Object? json) {
       for (final label in _list(map['missingData'])) _requiredString(label),
     ],
     motorVersion: _requiredString(map['motorVersion']),
+    // Ausentes en los análisis guardados antes de la Revisión 5.
+    isin: _string(map['isin']),
+    exchange: _string(map['exchange']),
+    isPrimaryListing: _bool(map['isPrimaryListing']),
   );
 }
 
@@ -119,6 +126,9 @@ List<Object?> _list(Object? json) => json is List<Object?>
     : throw FormatException('Se esperaba una lista: $json');
 
 String? _string(Object? json) => json is String ? json : null;
+
+/// Un booleano, o `null` si falta o no lo es.
+bool? _bool(Object? json) => json is bool ? json : null;
 
 String _requiredString(Object? json) =>
     _string(json) ?? (throw FormatException('Se esperaba texto: $json'));

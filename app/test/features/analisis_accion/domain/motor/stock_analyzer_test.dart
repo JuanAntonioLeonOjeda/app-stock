@@ -83,6 +83,35 @@ void main() {
       expect(_fingerprint(second), _fingerprint(first));
     });
 
+    test(
+      'copia al resultado el ISIN, la bolsa y si es la principal (criterio 80)',
+      () {
+        final data = buildCompany(
+          companyOverview: overview(
+            isin: 'ES0144580Y14',
+            exchange: 'BME',
+            isPrimaryListing: true,
+          ),
+        );
+
+        final result = _analyzer.analyze(data, referenceDate: referenceDate);
+
+        expect(result.isin, 'ES0144580Y14');
+        expect(result.exchange, 'BME');
+        expect(result.isPrimaryListing, isTrue);
+      },
+    );
+
+    test('sin esos datos el resultado los deja en null', () {
+      final result = _analyzer.analyze(
+        qualityCompany(),
+        referenceDate: referenceDate,
+      );
+
+      expect(result.isin, isNull);
+      expect(result.isPrimaryListing, isNull);
+    });
+
     test('rellena los datos de cabecera y la versión del motor', () {
       final data = qualityCompany();
 
@@ -179,5 +208,44 @@ void main() {
         contains('Pendiente de la media de 200 sesiones'),
       );
     });
+
+    test('con histórico real calcula MACD, pendiente y caída máxima sin avisar '
+        '(criterio 55)', () {
+      final data = buildCompany(dailyBars: priceHistory(sessions: 400));
+
+      final result = _analyzer.analyze(data, referenceDate: referenceDate);
+
+      expect(_metric(result, 'macd')?.value, isNotNull);
+      expect(_metric(result, 'pendiente_sma200')?.value, isNotNull);
+      expect(_metric(result, 'caida_maxima')?.value, isNotNull);
+      expect(_metric(result, 'precio_sma200')?.value, isNotNull);
+      expect(result.flags, isNot(contains(noPriceHistoryText)));
+      expect(result.flags, isNot(contains(shortHistoryText)));
+    });
+
+    test('con una sola barra esas métricas siguen sin dato y avisa '
+        '(criterio 56)', () {
+      final data = buildCompany(dailyBars: priceHistory(sessions: 1));
+
+      final result = _analyzer.analyze(data, referenceDate: referenceDate);
+
+      expect(_metric(result, 'macd')?.value, isNull);
+      expect(_metric(result, 'pendiente_sma200')?.value, isNull);
+      expect(_metric(result, 'caida_maxima')?.value, isNull);
+      expect(result.flags, contains(noPriceHistoryText));
+    });
+
+    test(
+      'con 6.000 sesiones el resultado sigue siendo el mismo (determinista)',
+      () {
+        final data = buildCompany(dailyBars: priceHistory(sessions: 6000));
+
+        final first = _analyzer.analyze(data, referenceDate: referenceDate);
+        final second = _analyzer.analyze(data, referenceDate: referenceDate);
+
+        expect(_fingerprint(first), _fingerprint(second));
+        expect(_metric(first, 'macd')?.value, isNotNull);
+      },
+    );
   });
 }

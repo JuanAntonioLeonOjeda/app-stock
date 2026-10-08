@@ -57,6 +57,21 @@ class StockData {
   /// Momento en que se obtuvieron los datos del proveedor.
   final DateTime fetchedAt;
 
+  /// El mismo `StockData` con otro histórico de precios (se reordena igual que
+  /// al construirlo).
+  StockData withDailyBars(List<DailyBar> bars) => StockData(
+    overview: overview,
+    dailyBars: bars,
+    annualIncome: annualIncome,
+    quarterlyIncome: quarterlyIncome,
+    annualBalance: annualBalance,
+    quarterlyBalance: quarterlyBalance,
+    annualCashFlow: annualCashFlow,
+    quarterlyCashFlow: quarterlyCashFlow,
+    quarterlyEarnings: quarterlyEarnings,
+    fetchedAt: fetchedAt,
+  );
+
   static List<T> _newestFirst<T>(List<T> items, DateTime Function(T) dateOf) =>
       _sortedByDate(items, dateOf, newestFirst: true);
 

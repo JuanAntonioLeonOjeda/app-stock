@@ -141,3 +141,37 @@ Ninguna. Decisiones tomadas al cerrar el spec:
   vive en `app/test/` (nivel raíz), no dentro de la feature.
 - Los textos van en un archivo de datos por idioma (`app/assets/contenido/`), con la
   estructura de la skill `contenido-educativo`.
+
+---
+
+## Revisión: conceptos de la gráfica de precio (2026-10-08)
+
+La gráfica del resumen (spec `analisis_accion`, Revisión 3) tiene cosas que se entienden mal sin
+una explicación, sobre todo las medias de 50 y 200 sesiones. Se añaden explicaciones del mismo
+tipo que las de las métricas, pero para **conceptos de la gráfica**, que no son métricas del
+motor.
+
+### Criterios
+
+68. **Dado** la pestaña Resumen, **cuando** veo los interruptores "Media 50" y "Media 200",
+    **entonces** cada uno tiene un icono de información que despliega, justo debajo, su
+    explicación (qué es, cómo se calcula, cómo leerla, cuándo engaña, con qué se combina y una
+    pregunta); al pulsarlo otra vez se oculta.
+69. **Dado** la gráfica de precio, **cuando** pulso el icono junto a su título, **entonces**
+    se despliega cómo leerla: qué es cada línea, qué marcan el máximo y el mínimo, qué significa
+    "ajustado por splits" y cómo usar los periodos.
+70. **Dado** una explicación de concepto, **cuando** la leo, **entonces** tiene la misma
+    estructura que la de una métrica, usa un ejemplo inventado y rotulado, y no recomienda
+    nada.
+71. **Dado** el contenido real, **cuando** se ejecutan los tests, **entonces** existe una
+    explicación para cada concepto que la gráfica referencia (`media_50`, `media_200`,
+    `grafico_precio`), sus `combinaCon` apuntan a métricas o conceptos existentes y ningún
+    concepto se confunde con una métrica del motor.
+
+### Decisiones
+
+- Los conceptos viven en su propio archivo (`conceptos.es.json`) y no cuentan como métricas: el
+  test que exige una ficha por cada métrica del motor sigue igual.
+- No aparecen en el glosario "Aprender" de esta revisión (el glosario es por bloques del motor).
+  La fase 3 del panel decidirá si se agrupan en un apartado de gráficas.
+

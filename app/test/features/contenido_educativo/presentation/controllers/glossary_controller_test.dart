@@ -26,6 +26,19 @@ void main() {
       expect(controller.hasNoResults, isFalse);
     });
 
+    test('el glosario no incluye los conceptos de la gráfica', () async {
+      final controller = _controller(FakeEducationalContent());
+
+      await controller.load();
+
+      final ids = [
+        for (final group in controller.groups)
+          for (final metric in group.metrics) metric.id,
+      ];
+      expect(ids, isNot(contains('media_50')));
+      expect(ids, containsAll(['per', 'peg', 'rsi']));
+    });
+
     test('buscar filtra las métricas sin distinguir tildes', () async {
       final controller = _controller(FakeEducationalContent());
       await controller.load();
