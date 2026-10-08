@@ -1,8 +1,65 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 
 void main() {
+  group('formatChartAxisDate', () {
+    final date = DateTime.utc(2025, 9, 12);
+
+    test('en periodos de hasta un año muestra día y mes', () {
+      expect(formatChartAxisDate(date, ChartRange.month1), '12 sep');
+      expect(formatChartAxisDate(date, ChartRange.year1), '12 sep');
+    });
+
+    test('en periodos largos muestra mes y año de dos cifras', () {
+      expect(formatChartAxisDate(date, ChartRange.years5), 'sep 25');
+      expect(formatChartAxisDate(date, ChartRange.all), 'sep 25');
+    });
+
+    test('los doce meses tienen su abreviatura', () {
+      final months = [
+        for (var m = 1; m <= 12; m++)
+          formatChartAxisDate(DateTime.utc(2026, m, 1), ChartRange.month1),
+      ];
+      expect(months, [
+        '1 ene',
+        '1 feb',
+        '1 mar',
+        '1 abr',
+        '1 may',
+        '1 jun',
+        '1 jul',
+        '1 ago',
+        '1 sep',
+        '1 oct',
+        '1 nov',
+        '1 dic',
+      ]);
+    });
+
+    test('un año anterior al 2010 conserva el cero inicial', () {
+      expect(
+        formatChartAxisDate(DateTime.utc(2005, 3, 1), ChartRange.all),
+        'mar 05',
+      );
+    });
+  });
+
+  group('formatChartAxisPrice', () {
+    test('sin decimales por encima de 1.000', () {
+      expect(formatChartAxisPrice(14630.4), '14.630');
+    });
+
+    test('un decimal entre 10 y 1.000', () {
+      expect(formatChartAxisPrice(75.55), '75,5');
+    });
+
+    test('dos decimales por debajo de 10', () {
+      expect(formatChartAxisPrice(3.6267), '3,63');
+    });
+  });
+
   group('formatMetricValue', () {
     test('una fracción se muestra como porcentaje con un decimal', () {
       expect(formatMetricValue(0.025, MetricFormat.percent), '2,5 %');

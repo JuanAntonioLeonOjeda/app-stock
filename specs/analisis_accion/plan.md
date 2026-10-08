@@ -281,3 +281,102 @@ tras reiniciar la app y el mensaje de límite de peticiones.
 El ticker sin bolsa (`7974`, no `TSE:7974`) y el nombre van en la búsqueda; el texto se
 codifica con `Uri` (sin concatenar a mano).
 
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+> Basada en la Revisión 3 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué hay en el canal de gráficos de TradingView (comprobado 2026-10-08)
+
+- **Conexión:** WebSocket `wss://data.tradingview.com/socket.io/websocket` con la cabecera
+  `Origin: https://www.tradingview.com`. Sin clave.
+- **Formato:** cada mensaje va enmarcado como `~m~<longitud>~m~<json>`, y un mismo paquete
+  puede traer varios. El servidor manda latidos `~h~<n>` que hay que devolver tal cual.
+- **Secuencia que funciona:** `set_auth_token ["unauthorized_user_token"]` →
+  `chart_create_session [sesión, ""]` → `resolve_symbol [sesión, "sds_sym_1",
+  "={\"symbol\":\"TSE:7974\",\"adjustment\":\"splits\"}"]` → `create_series [sesión,
+  "sds_1", "s1", "sds_sym_1", "D", 6000, ""]`.
+- **Respuesta:** un `timescale_update` con `p[1].sds_1.s`, una lista de `{i, v:[t, o, h, l,
+  c, v]}` con `t` en segundos. Un `symbol_error` o `critical_error` indica un símbolo
+  inexistente o un fallo.
+- **Alcance:** hasta ~6.000 velas (24 años). Precios ajustados por splits.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `ports/price_history_port.dart` | `PriceHistoryPort`: `fetchPriceHistory(symbol, {forceRefresh})` → `List<DailyBar>` ascendente; solo lanza `MarketDataException` |
+| `chart/chart_range.dart` | `ChartRange` (`month1`, `months3`, `months6`, `year1`, `years5`, `all`) con los días de cada uno |
+| `chart/price_series.dart` | Funciones puras: `ChartPoint`, `sliceRange`, `movingAverageSeries` (`null` donde no hay datos suficientes), `downsample` (agrupa conservando máximo y mínimo por tramo), `closeExtremes` |
+
+#### application/use_cases
+
+| Archivo | Contenido |
+|---|---|
+| `get_price_history_use_case.dart` | `GetPriceHistoryUseCase`: llama al port |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_chart_protocol.dart` | Funciones puras del protocolo: enmarcar y partir paquetes, construir los mensajes de la petición, detectar latidos y errores, y convertir la serie a `DailyBar` descartando velas incoherentes (criterio 57) |
+| `tradingview_chart_connection.dart` | `ChartConnection` (interfaz interna: mensajes, enviar, cerrar), `ChartConnector` y `IoChartConnection` con `dart:io WebSocket` |
+| `tradingview_history_client.dart` | `TradingViewHistoryClient`: abre la conexión, envía la petición, devuelve los latidos y espera la serie con un tiempo máximo; traduce los fallos a `MarketDataException` |
+| `tradingview_adapter.dart` | Además implementa `PriceHistoryPort`; cachea el histórico (6 h, formato compacto), evita dos peticiones simultáneas del mismo símbolo y, en `fetchStockData`, usa el histórico si llega y, si falla, la barra única de siempre |
+| `tradingview_parser.dart` | `parseTradingViewScan` acepta un histórico opcional en lugar de la barra única |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/price_chart_controller.dart` | `PriceChartController` (`ChangeNotifier`): carga, error, periodo, interruptores de medias y los datos ya recortados y agrupados que pinta la gráfica |
+| `widgets/price_chart_panel.dart` | Selector de periodo, interruptores, gráfica, pie de fuente y estado de error con "Reintentar" |
+| `widgets/price_line_chart.dart` | Línea de cierres con `fl_chart`: marcadores de máximo y mínimo, medias, y la ficha de fecha y precio al tocar |
+| `screens/analysis_screen.dart` | Con controller de gráfica: `TabBar` Resumen (por defecto) / Detalle; sin él, como ahora |
+| `app.dart` | Crea el `PriceChartController` de cada resultado |
+
+#### motor
+
+`motorVersion = '1.2.0'`. El motor no cambia de código: ya trabaja con `dailyBars`. Con histórico
+real, `macd`, `pendiente_sma200`, `caida_maxima`, `precio_sma200` y `dist_maximo` se calculan
+con datos reales, y `references/metricas.md` lo refleja.
+
+### Decisiones técnicas no obvias
+
+1. **Un fallo del histórico nunca impide analizar.** `fetchStockData` lo captura (solo
+   `MarketDataException`) y cae a la barra única. La gráfica, en cambio, sí muestra el error
+   (criterio 53).
+2. **El histórico tiene su propia caché y petición**, no va dentro de `StockData`. El
+   `AnalysisResult` guardado en el historial no lleva velas (serían cientos de KB por entrada).
+   Abrir una entrada antigua pide el histórico a la caché o a la red.
+3. **Peticiones simultáneas del mismo símbolo se unen** en un único `Future`: al abrir un
+   análisis nuevo, el análisis y la gráfica piden el histórico a la vez.
+4. **Formato compacto en caché**: lista de `[t, o, h, l, c, v]` en lugar de objetos, unos 45
+   bytes por vela (~270 KB para 6.000), con la clave `tv:v1:history:<símbolo>`.
+5. **La conexión se abstrae (`ChartConnection`)** para probar el cliente con una transcripción
+   real guardada, sin red.
+6. **Agrupar puntos al dibujar, no al guardar**: la caché conserva las velas completas (el
+   motor las necesita); solo la gráfica reduce a unos 500 puntos.
+7. **`fl_chart` solo en `presentation/`**; el dominio no sabe que existe.
+
+### Tests
+
+| Qué | Cómo |
+|---|---|
+| `price_series`, `chart_range` | Valores conocidos: recorte por periodo, medias con huecos, agrupado conserva máximo y mínimo, extremos |
+| `tradingview_chart_protocol` | Transcripción real guardada en `test/fixtures/tradingview/`: partir paquetes, latidos, serie, error de símbolo, velas incoherentes |
+| `tradingview_history_client` | `ChartConnection` falso escrito a mano: éxito, latidos devueltos, símbolo inexistente, cierre prematuro, tiempo agotado |
+| `tradingview_adapter` | Caché 6 h, `forceRefresh`, peticiones simultáneas unidas, fallback a la barra única |
+| `price_chart_controller` | Carga, error y reintento, cambio de periodo, interruptores |
+| Widgets y pantalla | Selector, marcadores, pestañas (Resumen por defecto, Detalle intacto), error con reintento |
+| Motor | Empresa con 300 sesiones: MACD, pendiente y caída máxima con valor, sin aviso |
+
+### Cambios en la configuración asociados
+
+- Skill `datos-mercado`: el histórico diario sí llega (protocolo, secuencia, riesgos); caché.
+- `references/metricas.md`: con histórico real, las métricas técnicas se calculan.
+- Dependencia `fl_chart` en `app/pubspec.yaml`.
+

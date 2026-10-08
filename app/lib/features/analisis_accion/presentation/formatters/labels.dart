@@ -1,5 +1,6 @@
 // Nombres visibles de los valores de los enums del dominio.
 
+import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
 
@@ -29,6 +30,16 @@ String blockLabel(Block block) => switch (block) {
   Block.growth => 'Crecimiento y rentabilidad',
   Block.technical => 'Técnico',
   Block.context => 'Contexto',
+};
+
+/// Texto del selector de periodo de la gráfica (criterio 46).
+String chartRangeLabel(ChartRange range) => switch (range) {
+  ChartRange.month1 => '1M',
+  ChartRange.months3 => '3M',
+  ChartRange.months6 => '6M',
+  ChartRange.year1 => '1A',
+  ChartRange.years5 => '5A',
+  ChartRange.all => 'Todo',
 };
 
 /// Id del tema educativo de un bloque. Es un contrato de strings con el

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:stock_app/core/theme/app_theme.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
@@ -15,9 +16,11 @@ import 'package:stock_app/features/analisis_accion/domain/entities/history_entry
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/file_analysis_history_adapter.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/file_cache_adapter.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_adapter.dart';
+import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_chart_connection.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/url_launcher_adapter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/home_screen.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
@@ -42,6 +45,7 @@ class _StockAppState extends State<StockApp> {
   final _httpClient = http.Client();
   late final AnalyzeStockUseCase _analyzeStock;
   late final HomeController _homeController;
+  late final GetPriceHistoryUseCase _getPriceHistory;
   late final LoadEducationalContentUseCase _loadEducationalContent;
 
   @override
@@ -51,6 +55,7 @@ class _StockAppState extends State<StockApp> {
     final marketData = TradingViewAdapter(
       client: _httpClient,
       cache: FileCacheAdapter(directory: Directory('$storagePath/cache')),
+      chartConnector: IoChartConnection.connect,
     );
     final history = FileAnalysisHistoryAdapter(
       directory: widget.storageDirectory,
@@ -59,6 +64,7 @@ class _StockAppState extends State<StockApp> {
       marketData: marketData,
       history: history,
     );
+    _getPriceHistory = GetPriceHistoryUseCase(marketData);
     _loadEducationalContent = LoadEducationalContentUseCase(
       AssetEducationalContentAdapter(bundle: rootBundle),
     );
@@ -115,6 +121,10 @@ class _StockAppState extends State<StockApp> {
         ),
         showInfo: _openTopic,
         buildInfo: _buildInfo,
+        chartController: PriceChartController(
+          getPriceHistory: _getPriceHistory,
+          symbol: symbol,
+        ),
       );
 
   @override

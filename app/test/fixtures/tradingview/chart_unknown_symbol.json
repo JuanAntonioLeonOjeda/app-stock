@@ -1,0 +1,13 @@
+{
+ "symbol": "NASDAQ:ZZZZZZQ",
+ "sent": [
+  "~m~54~m~{\"m\":\"set_auth_token\",\"p\":[\"unauthorized_user_token\"]}",
+  "~m~54~m~{\"m\":\"chart_create_session\",\"p\":[\"cs_fixture0001\",\"\"]}",
+  "~m~118~m~{\"m\":\"resolve_symbol\",\"p\":[\"cs_fixture0001\",\"sds_sym_1\",\"={\\\"symbol\\\":\\\"NASDAQ:ZZZZZZQ\\\",\\\"adjustment\\\":\\\"splits\\\"}\"]}",
+  "~m~79~m~{\"m\":\"create_series\",\"p\":[\"cs_fixture0001\",\"sds_1\",\"s1\",\"sds_sym_1\",\"D\",30,\"\"]}"
+ ],
+ "received": [
+  "~m~291~m~{\"session_id\":\"0.44838280.1_lux1-charts-free-5-tvbs-s2zdq-9\",\"timestamp\":1791470517,\"timestampMs\":1791470517263,\"release\":\"release_210-6\",\"studies_metadata_hash\":\"2732c87781e15988be19602efaf7915965787112\",\"auth_scheme_vsn\":2,\"protocol\":\"json\",\"via\":\"85.234.76.63:443\",\"javastudies\":[\"3.66\"]}",
+  "~m~94~m~{\"m\":\"series_loading\",\"p\":[\"cs_fixture0001\",\"sds_1\",\"s1\"],\"t\":1791470517,\"t_ms\":1791470517391}~m~108~m~{\"m\":\"symbol_error\",\"p\":[\"cs_fixture0001\",\"sds_sym_1\",\"invalid symbol\"],\"t\":1791470517,\"t_ms\":1791470517391}~m~174~m~{\"m\":\"series_error\",\"p\":[\"cs_fixture0001\",\"sds_1\",\"s1\",\"resolve error\",\"lux1-charts-free-5-tvbs-s2zdq-9@lux1-charts-free-5-tvbs-s2zdq-9\"],\"t\":1791470517,\"t_ms\":1791470517391}"
+ ]
+}

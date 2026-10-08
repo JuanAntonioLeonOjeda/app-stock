@@ -17,7 +17,8 @@ Origen de cada dato con el proveedor actual (TradingView):
 |---|---|
 | Vienen ya calculadas por el proveedor | PER, PEG, P/VC, P/Ventas, EV/EBITDA, P/FCF, beta, rentabilidad por dividendo, ROE, ROIC, márgenes, deuda/patrimonio, liquidez, RSI, SMA50/200 y máx./mín. 52 semanas |
 | Las calcula el código a partir de las series anuales y trimestrales | Crecimiento (CAGR), FCF positivo, margen operativo y bruto (si hay serie), TTM |
-| No llegan (sin dato) | MACD, volatilidad, caída máxima, pendiente de la SMA200, cobertura de intereses, sorpresas de BPA, potencial hasta el precio objetivo, dilución, tendencia del margen |
+| Las calcula el código a partir del histórico diario (canal de gráficos) | SMA, RSI, MACD, pendiente de la SMA200, distancia al máximo y caída máxima |
+| No llegan (sin dato) | Cobertura de intereses, sorpresas de BPA, dilución, tendencia del margen |
 
 Regla práctica: si el proveedor da el ratio ya calculado y su definición es fiable, úsalo; si no, calcúlalo tú para controlar la fórmula y poder testearla. Con TradingView es obligatorio usar su ratio donde el cálculo propio mezclaría monedas (ver "Particularidades").
 
@@ -46,7 +47,12 @@ La lista de campos pedidos está en `infrastructure/adapters/tradingview_fields.
 - **Escalares en USD, series en la moneda de reporte.** Capitalización, deuda neta, EBITDA TTM, patrimonio... (`*_ttm`, `*_fq`, `market_cap_basic`) vienen **convertidos a USD** (`fundamental_currency_code`), aunque el precio esté en JPY o EUR. Las series `*_fy_h` (20 años) y `*_fq_h` (32 trimestres) vienen en la moneda de reporte de la empresa. Nunca dividas un escalar entre una serie ni precio entre un importe: usa los ratios del proveedor, que no tienen unidad. Por eso la capitalización no se pasa al motor.
 - **Porcentajes en %**, no en fracción: `return_on_equity = 16,9`. El parser divide entre 100 (`dividends_yield`, `operating_margin_ttm`...). `debt_to_equity_fq`, `current_ratio_fq` y el resto de ratios ya son cocientes.
 - **Las series no traen fechas.** Se fechan restando 12 (anual) o 3 (trimestral) meses a `fiscal_period_end_fy` y `fiscal_period_end_current`, que son epoch en segundos. Las series vienen del más reciente al más antiguo y pueden contener `null` sueltos.
-- **No hay histórico diario de precios.** Solo el último cierre (`close`, `open`, `high`, `low`, `volume`, fecha en `time`): el adapter entrega una única `DailyBar`. RSI, SMA50/200 y máx./mín. 52 semanas llegan ya calculados y el motor los usa como respaldo.
+- **El histórico diario NO viene del scanner, sino del canal de gráficos** (WebSocket no oficial `wss://data.tradingview.com/socket.io/websocket`, cabecera `Origin: https://www.tradingview.com`, sin clave). Comprobado el 2026-10-08: Nintendo 5.878 velas desde 2001 en 4 s; Iberdrola 6.000 desde 2003 en 1 s. Los precios vienen ajustados por splits (no por dividendos).
+  - **Marcos:** cada mensaje es `~m~<longitud>~m~<json>` y un paquete puede traer varios. El servidor manda latidos `~h~<n>` que hay que devolver tal cual, enmarcados.
+  - **Secuencia:** `set_auth_token ["unauthorized_user_token"]` → `chart_create_session` → `resolve_symbol` (`={"symbol":"TSE:7974","adjustment":"splits"}`) → `create_series` (`"D"`, 6000 velas). Responde con `series_loading`, `symbol_resolved`, `timescale_update` (velas `[t, o, h, l, c, v]`, `t` en segundos) y `series_completed`. Un símbolo inexistente da `symbol_error` + `series_error`.
+  - **Código:** `tradingview_chart_protocol.dart` (funciones puras), `tradingview_chart_connection.dart` (`ChartConnection`, `IoChartConnection`) y `tradingview_history_client.dart`. Las velas incoherentes (máximo < mínimo, cierre fuera de rango, precio ≤ 0) se descartan; con menos de 2 sesiones es respuesta inválida.
+  - **Fragilidad:** es más frágil que el scanner. Un fallo del histórico **nunca impide analizar**: `fetchStockData` cae a una única `DailyBar` (cierre del scanner) y el motor usa los ratios ya calculados como respaldo. La gráfica, en cambio, muestra el error.
+  - **Fixtures:** `app/tool/capture_tradingview_chart.mjs` (Node 22+) guarda la transcripción real en `app/test/fixtures/tradingview/chart_*.json`.
 - **FCF vacío en algunas empresas** (comprobado con Nintendo e Iberdrola). El proveedor solo da el FCF ya restado: se guarda como flujo operativo con CAPEX 0.
 - **No llegan** resultado operativo, EBIT, intereses ni impuestos por periodo, patrimonio ni caja por periodo, precio objetivo de analistas, PER a futuro ni BPA estimado.
 - **ADR (`type = dr`):** la moneda de reporte de las series es desconocida, así que el adapter no la declara (`reportedCurrency = null`). Una cotización local (`type = stock`) usa la del precio. La búsqueda pone primero la cotización de origen y los ADR detrás.
@@ -59,7 +65,7 @@ Avisar (no fallar) si: último cierre > 5 días hábiles; último trimestre > 6 
 
 ## Caché
 
-Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Se guarda el JSON en crudo ya validado, nunca un error. Con TradingView todo viene en una sola petición, así que hay una sola caducidad: **6 horas** para búsquedas y datos (`tv:v1:search:<texto>`, `tv:v1:scan:<símbolo>`; subir la versión de la clave si cambia el formato guardado). Una entrada que ya no se puede interpretar se ignora y se vuelve a pedir.
+Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Se guarda el JSON en crudo ya validado, nunca un error. Con TradingView todo viene en una sola petición, así que hay una sola caducidad: **6 horas** para búsquedas, datos e histórico (`tv:v1:search:<texto>`, `tv:v1:scan:<símbolo>`, `tv:v1:history:<símbolo>`; el histórico se guarda en formato compacto `[t,o,h,l,c,v]` por vela y las descargas simultáneas del mismo símbolo se unen en una; subir la versión de la clave si cambia el formato guardado). Una entrada que ya no se puede interpretar se ignora y se vuelve a pedir.
 
 ## Arquitectura para la app
 

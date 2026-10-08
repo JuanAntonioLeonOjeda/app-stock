@@ -100,3 +100,30 @@ actualizado a los archivos de TradingView.
 Comprobado además en vivo (2026-10-06, sin test automático porque los tests no usan la
 red): búsqueda de Nintendo, Fast Retailing e Iberdrola, análisis de `TSE:7974`, `TSE:9983`
 y `BME:IBE`, y `NotFoundException` para un símbolo inexistente.
+
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+Sustituye al criterio 35 (sin histórico → aviso). Rutas relativas a `app/test/features/analisis_accion/`.
+
+| # | Criterio | Tests | Dispositivo |
+|---|---|---|---|
+| 44 | Pestañas Resumen (por defecto) y Detalle | `presentation/screens/analysis_screen_test.dart` (grupo "con pestañas") | T80 |
+| 45 | El estado de Detalle se conserva; "Actualizar datos" actúa sobre las dos | `analysis_screen_test.dart` | T80 |
+| 46 | Línea de cierres del último año con selector de periodo | `widgets/price_chart_panel_test.dart`; `controllers/price_chart_controller_test.dart` | T80 |
+| 47 | El periodo redibuja; histórico corto muestra todo | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `domain/chart/price_series_test.dart` | |
+| 48 | Máximo y mínimo marcados con valor y fecha | `price_chart_panel_test.dart`; `price_series_test.dart` | T80 |
+| 49 | Fecha y precio al tocar | Sin test automático (tooltip de `fl_chart`) | **T80** |
+| 50 | Medias de 50 y 200: desactivadas, sin inventar | `price_chart_controller_test.dart`; `price_chart_panel_test.dart`; `price_series_test.dart` | |
+| 51 | Agrupado de puntos conservando máximos y mínimos | `price_series_test.dart`; `price_chart_controller_test.dart` | T80 (fluidez) |
+| 52 | Pie de fuente | `price_chart_panel_test.dart` | |
+| 53 | Sin histórico: error con Reintentar y Detalle intacto | `price_chart_panel_test.dart`; `analysis_screen_test.dart`; `infrastructure/adapters/tradingview_adapter_test.dart` | **T80** |
+| 54 | Caché de 6 h; "Actualizar datos" la vuelve a pedir | `tradingview_adapter_test.dart`; `tradingview_history_client_test.dart` | |
+| 55 | Con ≥ 252 sesiones, MACD, pendiente y caída máxima con valor y sin aviso | `domain/motor/stock_analyzer_test.dart` | T79 (en vivo) |
+| 56 | Un fallo del histórico nunca impide analizar | `tradingview_adapter_test.dart` (fallback a la barra única); `stock_analyzer_test.dart` | |
+| 57 | Velas incoherentes descartadas | `infrastructure/adapters/tradingview_chart_protocol_test.dart` | |
+
+Los tests del canal de gráficos usan una transcripción real guardada (`chart_tse_7974`,
+`chart_unknown_symbol`), no la red.
+

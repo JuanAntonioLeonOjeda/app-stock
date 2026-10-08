@@ -1,14 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
+import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_chart_connection.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_adapter.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_fields.dart';
 
 import '../../../../fixtures/tradingview_fixtures.dart';
 import '../../application/fake_ports.dart';
+import 'fake_chart_connection.dart';
 
 final _now = DateTime.utc(2026, 10, 6, 12);
 
@@ -36,8 +40,42 @@ class _FakeServer {
   );
 }
 
-TradingViewAdapter _adapter(_FakeServer server, FakeCache cache) =>
-    TradingViewAdapter(client: server.client, cache: cache, now: () => _now);
+/// Canal de gráficos simulado: cada conexión reproduce un guion y se cuenta.
+class _FakeChart {
+  _FakeChart({List<String>? script, this.error, this.neverConnects = false})
+    : script = script ?? readChartTranscript('chart_tse_7974').received;
+
+  /// La conexión no llega nunca (simula un canal lento).
+  final bool neverConnects;
+
+  final List<String> script;
+  final Object? error;
+  final List<FakeChartConnection> connections = [];
+
+  Future<ChartConnection> connect() async {
+    final failure = error;
+    if (failure != null) throw failure;
+    if (neverConnects) return Completer<ChartConnection>().future;
+    final connection = FakeChartConnection(script);
+    connections.add(connection);
+    return connection;
+  }
+}
+
+TradingViewAdapter _adapter(
+  _FakeServer server,
+  FakeCache cache, {
+  _FakeChart? chart,
+}) => TradingViewAdapter(
+  client: server.client,
+  cache: cache,
+  chartConnector: (chart ?? _FakeChart()).connect,
+  now: () => _now,
+);
+
+/// Claves de la caché que guardan respuestas del scanner.
+Iterable<String> _scanKeys(FakeCache cache) =>
+    cache.values.keys.where((key) => key.startsWith('tv:v1:scan:'));
 
 void main() {
   group('TradingViewAdapter.fetchStockData', () {
@@ -79,7 +117,7 @@ void main() {
 
       await _adapter(_FakeServer(), cache).fetchStockData('TSE:7974');
 
-      expect(cache.values.keys, ['tv:v1:scan:TSE:7974']);
+      expect(cache.values.keys, contains('tv:v1:scan:TSE:7974'));
       expect(cache.ttls['tv:v1:scan:TSE:7974'], const Duration(hours: 6));
     });
 
@@ -150,7 +188,7 @@ void main() {
         _adapter(server, cache).fetchStockData('NASDAQ:ZZZZZZQ'),
         throwsA(isA<NotFoundException>()),
       );
-      expect(cache.values, isEmpty);
+      expect(_scanKeys(cache), isEmpty);
     });
   });
 
@@ -179,7 +217,7 @@ void main() {
         _adapter(server, cache).fetchStockData('TSE:7974'),
         throwsA(matcher),
       );
-      expect(cache.values, isEmpty);
+      expect(_scanKeys(cache), isEmpty);
     }
 
     test('HTTP 429 es límite de peticiones', () {
@@ -202,7 +240,11 @@ void main() {
       final client = MockClient(
         (_) async => throw http.ClientException('sin red'),
       );
-      final adapter = TradingViewAdapter(client: client, cache: FakeCache());
+      final adapter = TradingViewAdapter(
+        client: client,
+        cache: FakeCache(),
+        chartConnector: _FakeChart().connect,
+      );
 
       await expectLater(
         adapter.fetchStockData('TSE:7974'),
@@ -222,7 +264,7 @@ void main() {
           _adapter(server, cache).fetchStockData('TSE:7974'),
           throwsA(isA<InvalidResponseException>()),
         );
-        expect(cache.values, isEmpty);
+        expect(_scanKeys(cache), isEmpty);
       },
     );
   });
@@ -262,5 +304,268 @@ void main() {
       expect(matches, isEmpty);
       expect(server.requests, isEmpty);
     });
+  });
+
+  group('TradingViewAdapter.fetchPriceHistory', () {
+    test('devuelve las velas del canal de gráficos', () async {
+      final bars = await _adapter(
+        _FakeServer(),
+        FakeCache(),
+      ).fetchPriceHistory('tse:7974');
+
+      expect(bars, hasLength(30));
+      expect(bars.last.close, 7851);
+    });
+
+    test('guarda el histórico en caché 6 horas', () async {
+      final cache = FakeCache();
+
+      await _adapter(_FakeServer(), cache).fetchPriceHistory('TSE:7974');
+
+      expect(cache.values.keys, ['tv:v1:history:TSE:7974']);
+      expect(cache.ttls['tv:v1:history:TSE:7974'], const Duration(hours: 6));
+    });
+
+    test('con la caché vigente no abre ninguna conexión', () async {
+      final cache = FakeCache();
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), cache, chart: chart);
+      await adapter.fetchPriceHistory('TSE:7974');
+
+      final bars = await adapter.fetchPriceHistory('TSE:7974');
+
+      expect(chart.connections, hasLength(1));
+      expect(bars, hasLength(30));
+    });
+
+    test('con la caché caducada vuelve a pedir', () async {
+      final cache = FakeCache();
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), cache, chart: chart);
+      await adapter.fetchPriceHistory('TSE:7974');
+      cache.expire('tv:v1:history:TSE:7974');
+
+      await adapter.fetchPriceHistory('TSE:7974');
+
+      expect(chart.connections, hasLength(2));
+    });
+
+    test('forceRefresh ignora la caché', () async {
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+      await adapter.fetchPriceHistory('TSE:7974');
+
+      await adapter.fetchPriceHistory('TSE:7974', forceRefresh: true);
+
+      expect(chart.connections, hasLength(2));
+    });
+
+    test('una entrada de caché ilegible se ignora y se sustituye', () async {
+      final cache = FakeCache()
+        ..values['tv:v1:history:TSE:7974'] = '{"formato":"antiguo"}';
+      final chart = _FakeChart();
+
+      final bars = await _adapter(
+        _FakeServer(),
+        cache,
+        chart: chart,
+      ).fetchPriceHistory('TSE:7974');
+
+      expect(bars, hasLength(30));
+      expect(chart.connections, hasLength(1));
+      expect(
+        cache.values['tv:v1:history:TSE:7974'],
+        isNot(contains('antiguo')),
+      );
+    });
+
+    test('dos peticiones simultáneas comparten una sola conexión', () async {
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+
+      final results = await Future.wait([
+        adapter.fetchPriceHistory('TSE:7974'),
+        adapter.fetchPriceHistory('TSE:7974'),
+      ]);
+
+      expect(chart.connections, hasLength(1));
+      expect(results.first, hasLength(30));
+      expect(results.last, hasLength(30));
+    });
+
+    test(
+      'tras terminar, una nueva petición forzada abre otra conexión',
+      () async {
+        final chart = _FakeChart();
+        final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+        await Future.wait([
+          adapter.fetchPriceHistory('TSE:7974', forceRefresh: true),
+          adapter.fetchPriceHistory('TSE:7974', forceRefresh: true),
+        ]);
+
+        await adapter.fetchPriceHistory('TSE:7974', forceRefresh: true);
+
+        expect(chart.connections, hasLength(2));
+      },
+    );
+
+    test('un símbolo desconocido es NotFound y no se guarda', () async {
+      final cache = FakeCache();
+      final chart = _FakeChart(
+        script: readChartTranscript('chart_unknown_symbol').received,
+      );
+
+      await expectLater(
+        _adapter(_FakeServer(), cache, chart: chart).fetchPriceHistory('X:Y'),
+        throwsA(isA<NotFoundException>()),
+      );
+      expect(cache.values, isEmpty);
+    });
+
+    test('un fallo de red es NetworkException y no se guarda', () async {
+      final cache = FakeCache();
+      final chart = _FakeChart(error: const SocketException('sin red'));
+
+      await expectLater(
+        _adapter(_FakeServer(), cache, chart: chart).fetchPriceHistory('X:Y'),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(cache.values, isEmpty);
+    });
+
+    test('un símbolo vacío es NotFound sin abrir conexiones', () async {
+      final chart = _FakeChart();
+
+      await expectLater(
+        _adapter(
+          _FakeServer(),
+          FakeCache(),
+          chart: chart,
+        ).fetchPriceHistory(' '),
+        throwsA(isA<NotFoundException>()),
+      );
+      expect(chart.connections, isEmpty);
+    });
+  });
+
+  group('TradingViewAdapter.fetchStockData con histórico', () {
+    test('usa el histórico real en lugar de la barra única', () async {
+      final data = await _adapter(
+        _FakeServer(),
+        FakeCache(),
+      ).fetchStockData('TSE:7974');
+
+      expect(data.dailyBars, hasLength(30));
+      expect(data.dailyBars.last.date, DateTime.utc(2026, 10, 8));
+    });
+
+    test(
+      'si el histórico acaba antes que el scanner, añade el último cierre',
+      () async {
+        // El histórico llega hasta 2026-10-05 y el scanner trae 2026-10-06.
+        final chart = _FakeChart(script: [chartChunk(20730), chartCompleted]);
+
+        final data = await _adapter(
+          _FakeServer(),
+          FakeCache(),
+          chart: chart,
+        ).fetchStockData('TSE:7974');
+
+        expect(data.dailyBars, hasLength(3));
+        expect(data.dailyBars.last.date, DateTime.utc(2026, 10, 6));
+        expect(data.dailyBars.last.close, 7815);
+      },
+    );
+
+    test('si coinciden en el día, manda el cierre del scanner', () async {
+      // El histórico llega hasta 2026-10-06, el mismo día que el scanner.
+      final chart = _FakeChart(script: [chartChunk(20731), chartCompleted]);
+
+      final data = await _adapter(
+        _FakeServer(),
+        FakeCache(),
+        chart: chart,
+      ).fetchStockData('TSE:7974');
+
+      expect(data.dailyBars, hasLength(2));
+      expect(data.dailyBars.last.close, 7815);
+    });
+
+    test(
+      'si el histórico falla, se analiza con la barra única (criterio 56)',
+      () async {
+        final chart = _FakeChart(error: const SocketException('sin red'));
+
+        final data = await _adapter(
+          _FakeServer(),
+          FakeCache(),
+          chart: chart,
+        ).fetchStockData('TSE:7974');
+
+        expect(data.dailyBars, hasLength(1));
+        expect(data.overview.name, 'Nintendo Co., Ltd.');
+      },
+    );
+
+    test('si el símbolo no tiene histórico, también se analiza', () async {
+      final chart = _FakeChart(
+        script: readChartTranscript('chart_unknown_symbol').received,
+      );
+
+      final data = await _adapter(
+        _FakeServer(),
+        FakeCache(),
+        chart: chart,
+      ).fetchStockData('TSE:7974');
+
+      expect(data.dailyBars, hasLength(1));
+    });
+
+    test('reutiliza el histórico de la caché', () async {
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+      await adapter.fetchStockData('TSE:7974');
+
+      await adapter.fetchStockData('TSE:7974');
+
+      expect(chart.connections, hasLength(1));
+    });
+
+    test('forceRefresh también vuelve a pedir el histórico', () async {
+      final chart = _FakeChart();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+      await adapter.fetchStockData('TSE:7974');
+
+      await adapter.fetchStockData('TSE:7974', forceRefresh: true);
+
+      expect(chart.connections, hasLength(2));
+    });
+
+    test('si falla el scanner, el error sale al instante aunque el histórico '
+        'tarde', () async {
+      final server = _FakeServer(override: http.Response('error', 503));
+      final chart = _FakeChart(neverConnects: true);
+
+      await expectLater(
+        _adapter(
+          server,
+          FakeCache(),
+          chart: chart,
+        ).fetchStockData('TSE:7974').timeout(const Duration(seconds: 2)),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
+    test(
+      'si falla el scanner, el error sale y no queda nada colgado',
+      () async {
+        final server = _FakeServer(override: http.Response('error', 503));
+
+        await expectLater(
+          _adapter(server, FakeCache()).fetchStockData('TSE:7974'),
+          throwsA(isA<NetworkException>()),
+        );
+      },
+    );
   });
 }

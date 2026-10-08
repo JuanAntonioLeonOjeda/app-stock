@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
@@ -9,6 +10,15 @@ void main() {
       expect(
         fetchProgressLabel(FetchStep.fetching),
         'Obteniendo datos de la empresa',
+      );
+    });
+  });
+
+  group('chartRangeLabel', () {
+    test('cada periodo tiene su texto del selector', () {
+      expect(
+        [for (final range in ChartRange.values) chartRangeLabel(range)],
+        ['1M', '3M', '6M', '1A', '5A', 'Todo'],
       );
     });
   });

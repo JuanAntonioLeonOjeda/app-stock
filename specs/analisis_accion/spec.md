@@ -1,7 +1,8 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). **Revisión 2 (proveedor TradingView) cerrada el
-> 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
+> Estado: cerrada (2026-09-30). **Revisión 3 (histórico real y gráfica de precio, fase 1
+> del panel "Resumen") cerrada el 2026-10-08**: ver la sección "Revisión 3" al final; sustituye
+> el criterio 35. **Revisión 2 (proveedor TradingView) cerrada el 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
 > proveedor y modifica los criterios 5, 22, 27 y 31. Siguiente paso: actualizar `plan.md`.
 
 ## Qué resuelve
@@ -244,3 +245,102 @@ empresa.
 ### Preguntas abiertas
 
 Ninguna.
+
+---
+
+## Revisión 3: histórico real y gráfica de precio (2026-10-08)
+
+Primera de tres fases del panel "Resumen" (las siguientes: panel "cara o barata" con precio
+implícito, y gráficas de fundamentales; cada una con su propia revisión del spec).
+
+### Qué cambia y por qué
+
+La Revisión 2 asumía que TradingView no daba histórico diario. Sí lo da, por el canal de
+gráficos que usa su propia web (WebSocket `data.tradingview.com`, sin clave). Comprobado el
+2026-10-08: Nintendo 5.878 velas diarias desde 2001 (4 s), Iberdrola 6.000 desde 2003 (1 s).
+Con él:
+
+- El resultado gana una pestaña **Resumen** con la evolución del precio, para entender de
+  un vistazo lo que hasta ahora eran números sueltos. La vista actual pasa a la pestaña
+  **Detalle**, sin cambios.
+- El motor calcula por fin MACD, volatilidad, caída máxima y pendiente de la media con datos
+  reales, y deja de avisar de "Sin histórico de precios".
+
+Es una fuente **no oficial** y más frágil que el scanner. Si falla, la app sigue como en la
+Revisión 2: sin gráfica y con una sola barra de precio.
+
+### Fuera de alcance (añade a los de arriba)
+
+- El panel "cara o barata", el precio implícito y los pares del sector (fase 2).
+- Gráficas de ingresos, beneficio y caja, y las explicaciones educativas de cada gráfica
+  (fase 3).
+- Velas japonesas, volumen, indicadores superpuestos distintos de las medias de 50 y 200
+  sesiones, dibujar sobre la gráfica y comparar con otras acciones.
+- Intradía: solo cierres diarios.
+- Ajuste por dividendos: los precios vienen ajustados por splits, no por dividendos.
+- Guardar el histórico en el historial de análisis: se vuelve a pedir (o se lee de caché).
+
+### Criterios de aceptación
+
+#### Pestañas
+
+44. **Dado** un resultado de análisis (nuevo o del historial), **cuando** se abre, **entonces**
+    veo dos pestañas, **Resumen** (la primera, abierta por defecto) y **Detalle**, que es la
+    vista de la Revisión 2 sin cambios (cabecera, avisos, bloques, datos que faltan y
+    botones).
+45. **Dado** que cambio de pestaña, **cuando** vuelvo, **entonces** lo que estaba desplegado
+    en Detalle sigue como lo dejé, y "Actualizar datos" actúa sobre las dos.
+
+#### Gráfica de precio
+
+46. **Dado** la pestaña Resumen, **cuando** hay histórico, **entonces** veo una línea con los
+    cierres diarios del último año y, encima, un selector de periodo con 1M, 3M, 6M, 1A, 5A y
+    Todo.
+47. **Dado** el selector, **cuando** elijo un periodo, **entonces** la gráfica se redibuja con
+    ese periodo. Si el histórico es más corto que el periodo, muestra todo lo que hay.
+48. **Dado** la gráfica, **cuando** la miro, **entonces** el máximo y el mínimo de cierre del
+    periodo elegido aparecen marcados con su valor y su fecha.
+49. **Dado** la gráfica, **cuando** toco o arrastro sobre ella, **entonces** veo la fecha y el
+    precio de ese día con su divisa.
+50. **Dado** los interruptores "Media 50" y "Media 200", **cuando** los activo, **entonces** se
+    superpone la media de ese número de sesiones; empiezan desactivados. Una media sin datos
+    suficientes en el periodo no se dibuja (nunca se inventa).
+51. **Dado** cualquier periodo, **cuando** hay muchos puntos, **entonces** la gráfica sigue
+    fluida: se agrupan los puntos conservando máximos y mínimos de cada tramo.
+52. **Dado** la gráfica, **cuando** la miro, **entonces** debajo pone "Datos de TradingView.
+    Precios ajustados por splits, sin dividendos."
+53. **Dado** que el histórico no se puede obtener (bloqueo, sin conexión o cambio de
+    protocolo), **cuando** abro Resumen, **entonces** veo "No se ha podido cargar la gráfica"
+    con "Reintentar", y Detalle funciona igual que antes, con el aviso de "Sin histórico de
+    precios".
+54. **Dado** que ya cargué la gráfica de una acción hace menos de 6 horas, **cuando** la abro,
+    **entonces** sale de la caché sin hacer ninguna petición; "Actualizar datos" la vuelve a
+    pedir.
+
+#### Motor con histórico real
+
+55. **Dado** un histórico de al menos 252 sesiones, **cuando** se analiza, **entonces** MACD,
+    pendiente de la media de 200 sesiones y caída máxima tienen valor, y no aparece el aviso
+    de "Sin histórico de precios" (sustituye al criterio 35).
+56. **Dado** que el histórico falla durante un análisis, **cuando** termina, **entonces** el
+    análisis se completa igualmente con la única barra del último cierre (como en la Revisión
+    2) y con el aviso del criterio 35; un fallo del histórico nunca impide analizar.
+57. **Dado** un histórico con huecos o velas incoherentes (máximo menor que el mínimo, cierre
+    fuera del rango), **cuando** se procesa, **entonces** esas velas se descartan y, si queda
+    menos de 2 sesiones, se trata como histórico no disponible.
+
+### Decisiones y riesgos
+
+- **Pestaña Resumen por defecto**: es el "dashboard general al entrar" que se pidió.
+- **El histórico no se guarda en el historial de análisis**: el `AnalysisResult` ya guardado
+  sigue igual y la gráfica se pide aparte. Abrir una entrada antigua sin conexión muestra el
+  criterio 53 en Resumen y Detalle intacto.
+- **Fuente no oficial**: el protocolo del WebSocket puede cambiar. Los tests usan una
+  transcripción real guardada para detectarlo, y el fallo se aísla del análisis (criterio 56).
+- **`motorVersion` pasa a 1.2.0**: cambian los datos de entrada de varias métricas.
+- **Dependencia nueva**: `fl_chart` (solo en `presentation/`).
+
+### Preguntas abiertas
+
+Ninguna.
+

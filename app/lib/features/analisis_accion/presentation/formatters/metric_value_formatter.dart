@@ -3,6 +3,7 @@
 // porcentaje (naming-conventions.md).
 
 import 'package:intl/intl.dart';
+import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
 
 /// Texto para una métrica sin dato.
@@ -42,6 +43,39 @@ String formatPrice(double? price, String? currency) {
 String formatDate(DateTime date) {
   String twoDigits(int n) => n.toString().padLeft(2, '0');
   return '${twoDigits(date.day)}/${twoDigits(date.month)}/${date.year}';
+}
+
+const _months = [
+  'ene',
+  'feb',
+  'mar',
+  'abr',
+  'may',
+  'jun',
+  'jul',
+  'ago',
+  'sep',
+  'oct',
+  'nov',
+  'dic',
+];
+
+/// Fecha corta para el eje de la gráfica: "12 sep" en periodos de hasta un
+/// año y "sep 25" en los más largos, donde el día no se distingue.
+String formatChartAxisDate(DateTime date, ChartRange range) {
+  final month = _months[date.month - 1];
+  final days = range.days;
+  final isShort = days != null && days <= 365;
+  if (isShort) return '${date.day} $month';
+  return '$month ${(date.year % 100).toString().padLeft(2, '0')}';
+}
+
+/// Precio compacto para el eje de la gráfica: más decimales cuanto más
+/// pequeño es el valor.
+String formatChartAxisPrice(double price) {
+  if (price >= 1000) return _noDecimals.format(price);
+  if (price >= 10) return _oneDecimal.format(price);
+  return _twoDecimals.format(price);
 }
 
 /// Antigüedad en palabras: "hace 5 minutos", "hace 1 hora", "hace 3 días".

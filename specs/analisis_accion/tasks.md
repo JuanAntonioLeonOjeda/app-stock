@@ -191,3 +191,44 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [x] T69. `AnalysisController.openNews()`, botón en `AnalysisScreen`, cableado en `app.dart`
       y tests del controller y de la pantalla.
 
+---
+
+## Revisión 3: histórico real y gráfica de precio
+
+> Derivadas de la Revisión 3 de `plan.md`. Mismas reglas que arriba.
+
+### Domain y application
+
+- [x] T70. `ChartRange` y `price_series.dart` (`sliceRange`, `movingAverageSeries`, `downsample`,
+      `closeExtremes`) + tests.
+- [x] T71. `PriceHistoryPort` y `GetPriceHistoryUseCase` + test con fake.
+
+### Infrastructure
+
+- [x] T72. Capturar una transcripción real del WebSocket en `app/test/fixtures/tradingview/` y
+      `tradingview_chart_protocol.dart` + tests (paquetes, latidos, serie, errores, velas
+      incoherentes).
+- [x] T73. `ChartConnection`, `IoChartConnection` y `TradingViewHistoryClient` + tests con
+      conexión falsa.
+- [x] T74. `TradingViewAdapter` implementa `PriceHistoryPort`: caché compacta de 6 h,
+      peticiones unidas y fallback en `fetchStockData`; el parser acepta histórico + tests.
+
+### Presentation
+
+- [x] T75. Dependencia `fl_chart`; `PriceChartController` + tests.
+- [x] T76. `PriceLineChart` y `PriceChartPanel` + tests de widget.
+- [x] T77. `AnalysisScreen` con pestañas Resumen/Detalle (y "Actualizar datos" en ambas) +
+      cableado en `app.dart`; actualizar los tests existentes.
+
+### Motor y documentación
+
+- [x] T78. `motorVersion` 1.2.0; test de una empresa con histórico largo (MACD, pendiente y
+      caída máxima con valor, sin aviso); `metricas.md` y skill `datos-mercado`.
+
+### Verificación
+
+- [x] T79. `dart format`, `flutter analyze` y `flutter test` limpios; análisis en vivo de
+      Nintendo, Fast Retailing e Iberdrola con gráfica y motor.
+- [ ] T80. En el móvil: pestañas, periodos, medias, toque sobre la gráfica y fallo sin conexión.
+- [x] T81. `flutter-reviewer`.
+
