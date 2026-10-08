@@ -39,6 +39,13 @@ String formatPrice(double? price, String? currency) {
   return currency == null ? amount : '$amount $currency';
 }
 
+/// Tipo de cambio con cuatro decimales por debajo de 10 ("1,1789 USD") y dos
+/// por encima ("177,05 JPY"), para no perder precisión en monedas de tipo bajo.
+String formatExchangeRate(double rate, String currency) {
+  final format = rate < 10 ? NumberFormat('#,##0.0000', 'es') : _twoDecimals;
+  return '${format.format(rate)} $currency';
+}
+
 /// Fecha como "29/09/2026".
 String formatDate(DateTime date) {
   String twoDigits(int n) => n.toString().padLeft(2, '0');

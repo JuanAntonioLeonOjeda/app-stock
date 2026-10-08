@@ -533,3 +533,81 @@ parser con la búsqueda real de "nintendo", "iberdrola" e "inditex", búsqueda c
 (agrupa, ADR ocultos y mostrados), tile (principal, desplegable, tap), pantalla de inicio,
 cabecera del resultado, JSON con y sin los campos nuevos.
 
+---
+
+## Revisión 6: conversor a euros (2026-10-08)
+
+> Basada en la Revisión 6 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Fuentes (comprobadas 2026-10-08)
+
+- **BCE:** `GET https://data-api.ecb.europa.eu/service/data/EXR/D.<MONEDA>.EUR.SP00.A?startPeriod=2001-01-01&format=jsondata&detail=dataonly`.
+  La respuesta trae `dataSets[0].series["0:0:0:0:0"].observations` (índice → `[tipo, ...]`) y
+  `structure.dimensions.observation[0].values[índice].id` (la fecha `AAAA-MM-DD`). Es el tipo de
+  moneda extranjera por 1 €. Una moneda desconocida da HTTP 404.
+- **Banco de España:** `GET https://www.bde.es/webbe/es/estadisticas/compartido/datos/csv/tc_1_1.csv`
+  (1,9 MB, codificación latin-1). Primera línea: códigos de serie (`DTCCBCEJPYEUR.B`); a partir
+  de la séptima, una fila por día con fecha `"04 ENE 1999"` y los tipos separados por comas,
+  con `"_"` en los huecos. Se usa solo como respaldo.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/exchange_rate_series.dart` | `RatePoint` y `ExchangeRateSeries`: moneda, puntos ascendentes (día UTC y unidades de la moneda por euro), `rateOn(día)` (el último publicado hasta ese día; `null` antes del primero) y `latest` |
+| `currency/quote_currency.dart` | `QuoteCurrency` (código ISO, divisor de la subunidad) y `resolveQuoteCurrency`: `GBX`→`GBP`/100, `ZAC`→`ZAR`/100, `ILA`→`ILS`/100, `EUR`→euro |
+| `currency/euro_conversion.dart` | Funciones puras: `toEuros(valor, moneda, serie, día)` y la conversión de velas diarias, intradía y puntos; devuelven `null` donde no hay tipo |
+| `ports/exchange_rate_port.dart` | `ExchangeRatePort.fetchRates(isoCode, {forceRefresh})`; `NotFoundException` si la moneda no existe |
+
+#### application
+
+| Archivo | Contenido |
+|---|---|
+| `use_cases/get_exchange_rates_use_case.dart` | `GetExchangeRatesUseCase` |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `ecb_rate_parser.dart` / `ecb_exchange_rate_adapter.dart` | Parser SDMX y adapter del BCE |
+| `bde_rate_parser.dart` / `bde_exchange_rate_adapter.dart` | Parser del CSV (fechas en español, `_`, latin-1) y adapter del Banco de España |
+| `fallback_exchange_rate_adapter.dart` | `FallbackExchangeRateAdapter(primary, secondary)`: usa el secundario si el principal falla por red, límite o respuesta inválida; **no** si la moneda no existe (`NotFound`) |
+| `cached_exchange_rate_adapter.dart` | `CachedExchangeRateAdapter(inner, cache)`: caché de 6 h por moneda, en formato compacto `[día, tipo]`, que ignora una entrada ilegible |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/display_currency_controller.dart` | `DisplayCurrencyController`: moneda de cotización, estado (`none`, `loading`, `ready`, `unsupported`, `failed`), euros por defecto, selector, `toDisplay(valor, día)` y la etiqueta de la moneda mostrada |
+| `controllers/price_chart_controller.dart` | Escucha al anterior y recalcula la vista con velas y puntos convertidos (las medias, sobre lo convertido) |
+| `widgets/currency_switch.dart` | Selector "EUR \| JPY" más la nota del tipo usado, el aviso de moneda sin tipo y "Reintentar" |
+| `widgets/verdict_header.dart` | Precio convertido con la nota del equivalente original |
+| `widgets/price_chart_panel.dart` | La moneda del tooltip, los máximos y mínimos y el pie con la nota del BCE |
+| `screens/analysis_screen.dart` | Crea el selector al conocer la moneda del resultado y recarga los tipos con "Actualizar datos" |
+
+### Decisiones técnicas no obvias
+
+1. **Se convierte al mostrar, no al analizar.** El motor y el historial siguen en la divisa
+   original; el selector solo cambia lo que se pinta. Los análisis guardados no se tocan
+   (criterio 94).
+2. **Cada punto con el tipo de su día** (`rateOn`), y los tipos se piden desde 2001 una sola
+   vez por moneda; con ~6.600 puntos y formato compacto, ~130 KB en la caché.
+3. **Respaldo con el CSV del BdE y no con su API REST**, que solo da 3, 12 o 36 meses: el CSV
+   cubre las gráficas de 5 años y de todo el histórico con el mismo código.
+4. **Caché en un decorador**, común al BCE y al BdE, para que el origen no importe.
+5. **El `DisplayCurrencyController` conoce la moneda cuando llega el resultado**, no antes:
+   `AnalysisScreen` lo configura al tener `result.currency`.
+6. **Las subunidades se resuelven en el dominio** (`resolveQuoteCurrency`): GBX/ZAC/ILA no son
+   monedas del BCE.
+
+### Tests
+
+Conversión pura (arrastre en fin de semana, antes del primer tipo, subunidades, euro sin
+cambio), parsers con respuestas reales guardadas (BCE y CSV del BdE, incluido `_` y fecha
+española), adapters con cliente falso (404, 500, límite, JSON roto), respaldo (cuándo sí y cuándo
+no), caché (6 h, entrada ilegible), controller de moneda (estados, selector, euros por defecto,
+sin selector en euros, moneda sin tipo), controller de la gráfica (diarios con el tipo de cada
+día, intradía con el último, medias convertidas), cabecera y panel.
+

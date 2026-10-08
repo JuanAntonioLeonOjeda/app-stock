@@ -5,6 +5,7 @@ import 'dart:async';
 
 import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/exchange_rate_series.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/intraday_series.dart';
@@ -14,6 +15,7 @@ import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data
 import 'package:stock_app/features/analisis_accion/domain/ports/analysis_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/link_opener_port.dart';
+import 'package:stock_app/features/analisis_accion/domain/ports/exchange_rate_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/intraday_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/market_data_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/price_history_port.dart';
@@ -70,6 +72,32 @@ class FakeIntradayHistory implements IntradayHistoryPort {
     if (failure != null) throw failure;
     return byResolution[resolution] ??
         IntradaySeries(bars: const [], timezone: null, delay: null);
+  }
+}
+
+/// Tipos de cambio en memoria: una serie por moneda. Una moneda que no está
+/// en [byCurrency] es `NotFoundException`; con [error] falla todo, y con
+/// [gate] se retiene la respuesta hasta que el test la complete.
+class FakeExchangeRates implements ExchangeRatePort {
+  FakeExchangeRates({this.byCurrency = const {}, this.error});
+
+  final Map<String, ExchangeRateSeries> byCurrency;
+  final MarketDataException? error;
+  Completer<void>? gate;
+  final List<({String currency, bool forceRefresh})> calls = [];
+
+  @override
+  Future<ExchangeRateSeries> fetchRates(
+    String isoCode, {
+    bool forceRefresh = false,
+  }) async {
+    calls.add((currency: isoCode, forceRefresh: forceRefresh));
+    await gate?.future;
+    final failure = error;
+    if (failure != null) throw failure;
+    final series = byCurrency[isoCode];
+    if (series == null) throw NotFoundException('Sin tipo para $isoCode');
+    return series;
   }
 }
 

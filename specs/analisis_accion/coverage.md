@@ -175,3 +175,16 @@ Comprobado además en vivo el 2026-10-08: "nintendo" (1 empresa principal + ADR 
 (`BME:ITX` principal con 20 cotizaciones; antes solo OTC), `JP3756600007` (1 empresa), "iberdrola",
 "apple" y "santander".
 
+## Revisión 6: conversor a euros (criterios 84-97)
+
+| Criterios | Tests |
+|---|---|
+| 84-86 Euros por defecto, selector a la divisa original, sin selector en euros | `presentation/widgets/currency_switch_test.dart`; `controllers/display_currency_controller_test.dart` |
+| 87-89 Cierres, extremos y medias convertidos con el tipo de cada día; día y semana con el último | `controllers/price_chart_controller_test.dart` (grupo "en euros") |
+| 90 Aviso de gráfica convertida | `price_chart_panel.dart` (`convertedChartCaption`) |
+| 91-93 Tipos del BCE con respaldo del BdE, arrastre de fin de semana, GBX/ZAC/ILA | `domain/currency/*_test.dart`; `infrastructure/adapters/{ecb_rate_parser,bde_rate_parser,ecb_exchange_rate_adapter,fallback_and_cached_exchange_rate_adapter}_test.dart` |
+| 94-95 Caché de 6 h y "Actualizar datos" | `fallback_and_cached_exchange_rate_adapter_test.dart`; `display_currency_controller_test.dart` |
+| 96-97 Estados cargando / sin tipo / fallo y tipo antiguo | `currency_switch_test.dart` |
+
+Comprobado en vivo el 2026-10-08: BCE JPY (177,05) y GBP; SAR sin tipo (NotFound); BdE JPY (176,85 del día 7).
+

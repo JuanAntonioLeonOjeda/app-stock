@@ -8,6 +8,7 @@ import 'package:stock_app/features/analisis_accion/domain/chart/sessions.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/intraday_series.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
 
 /// Medias móviles que se pueden superponer (criterio 50).
 const shortAverageSessions = 50;
@@ -64,6 +65,11 @@ class PriceChartView {
 /// Estado de la gráfica de precio de la pestaña Resumen: carga del histórico,
 /// periodo, interruptores de medias y los datos que se dibujan.
 ///
+/// Con un [DisplayCurrencyController] en euros, dibuja los precios convertidos:
+/// cada cierre con el tipo de su día en los periodos diarios (criterio 87) y el
+/// último tipo en el día y la semana (criterio 88). Las medias se calculan
+/// sobre lo ya convertido (criterio 89).
+///
 /// El día y la semana (intradía) se cargan al elegirlos y tienen su propio
 /// estado y error: un fallo ahí no afecta a los periodos largos (criterio 66).
 class PriceChartController extends ChangeNotifier {
@@ -71,11 +77,15 @@ class PriceChartController extends ChangeNotifier {
     required this._getPriceHistory,
     required this._getIntradayHistory,
     required this.symbol,
-  });
+    DisplayCurrencyController? displayCurrency,
+  }) : _display = displayCurrency {
+    _display?.addListener(_onDisplayCurrencyChanged);
+  }
 
   final GetPriceHistoryUseCase _getPriceHistory;
   final GetIntradayHistoryUseCase _getIntradayHistory;
   final String symbol;
+  final DisplayCurrencyController? _display;
 
   List<DailyBar>? _bars;
   MarketDataException? _error;
@@ -224,9 +234,44 @@ class PriceChartController extends ChangeNotifier {
     _view = resolution == null ? _dailyView() : _intradayView(resolution);
   }
 
+  /// La moneda mostrada cambió (llegaron los tipos, o se eligió euros/original).
+  void _onDisplayCurrencyChanged() {
+    _recompute();
+    _notify();
+  }
+
+  /// [bars] en la moneda que se ve. En euros, cada vela con el tipo de su día;
+  /// las que no tienen tipo (anteriores al primero publicado) no se dibujan.
+  List<DailyBar> _inDisplayCurrency(List<DailyBar> bars) {
+    final display = _display;
+    if (display == null || !display.isInEuros) return bars;
+    final converted = <DailyBar>[];
+    for (final bar in bars) {
+      final open = display.toDisplay(bar.open, bar.date);
+      final high = display.toDisplay(bar.high, bar.date);
+      final low = display.toDisplay(bar.low, bar.date);
+      final close = display.toDisplay(bar.close, bar.date);
+      if (open == null || high == null || low == null || close == null) {
+        continue;
+      }
+      converted.add(
+        DailyBar(
+          date: bar.date,
+          open: open,
+          high: high,
+          low: low,
+          close: close,
+          volume: bar.volume,
+        ),
+      );
+    }
+    return converted;
+  }
+
   PriceChartView? _dailyView() {
-    final bars = _bars;
-    if (bars == null) return null;
+    final raw = _bars;
+    if (raw == null) return null;
+    final bars = _inDisplayCurrency(raw);
     final slice = sliceRange(bars, _range);
     final closes = closePoints(slice);
     return PriceChartView(
@@ -247,8 +292,12 @@ class PriceChartController extends ChangeNotifier {
     if (series == null) return null;
     final sessionCount = _range == ChartRange.day ? 1 : weekSessions;
     final slice = lastSessions(series.bars, sessionCount);
+    final display = _display;
     final points = [
-      for (final bar in slice.bars) ChartPoint(bar.time, bar.close),
+      for (final bar in slice.bars)
+        if ((display == null ? bar.close : display.toDisplayLatest(bar.close))
+            case final close?)
+          ChartPoint(bar.time, close),
     ];
     return PriceChartView(
       closes: points,
@@ -286,6 +335,7 @@ class PriceChartController extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    _display?.removeListener(_onDisplayCurrencyChanged);
     super.dispose();
   }
 }

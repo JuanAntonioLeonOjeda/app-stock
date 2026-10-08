@@ -268,3 +268,21 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       "inditex", ISIN); `flutter-reviewer`; skill `datos-mercado`.
 - [ ] T98. En el móvil: buscar "Inditex", "Nintendo" y un ISIN.
 
+---
+
+## Revisión 6: conversor a euros
+
+- [x] T99. Dominio: `ExchangeRateSeries`, `QuoteCurrency`/`resolveQuoteCurrency` y `euro_conversion.dart`
+      + tests (arrastre, antes del primer tipo, GBX/ZAC/ILA, euro).
+- [x] T100. `ExchangeRatePort` y `GetExchangeRatesUseCase` + test.
+- [x] T101. Capturar respuestas reales (BCE y CSV recortado del BdE) y parsers + tests.
+- [x] T102. Adapters del BCE y del BdE + tests con cliente falso.
+- [x] T103. `FallbackExchangeRateAdapter` y `CachedExchangeRateAdapter` + tests.
+- [x] T104. `DisplayCurrencyController` + tests.
+- [x] T105. `PriceChartController` con valores convertidos + tests.
+- [x] T106. `CurrencySwitch`, cabecera y panel con la moneda mostrada + tests.
+- [x] T107. `AnalysisScreen` y composition root; historial en euros.
+- [x] T108. `dart format`, `flutter analyze`, `flutter test`; prueba en vivo con Nintendo,
+      Tesco (GBX) y una moneda sin tipo; `flutter-reviewer`; skill `datos-mercado`.
+- [ ] T109. En el móvil: selector, gráficas en euros y sin conexión.
+

@@ -64,6 +64,16 @@ La lista de campos pedidos está en `infrastructure/adapters/tradingview_fields.
 - **Errores:** HTTP 429 o 403 → `RateLimitException`; 5xx y fallos de conexión → `NetworkException`; sin fila en `data` o sin precio → `NotFoundException`; JSON que no es el esperado o un campo con otro tipo → `InvalidResponseException`. Nunca guardes en caché una respuesta de error.
 - **Comprobado con respuestas reales (2026-10-06, fixtures en `app/test/fixtures/tradingview/`):** Nintendo (`TSE:7974`), Fast Retailing (`TSE:9983`), Iberdrola (`BME:IBE`) y Apple devuelven datos completos salvo lo listado arriba. Capturar fixtures nuevas: `app/tool/capture_tradingview_fixtures.sh`.
 
+## Tipos de cambio (conversor a euros)
+
+- Port `ExchangeRatePort`; adapters: BCE (SDMX JSON) como principal y CSV del Banco de España
+  (latin-1) como respaldo; la API REST del BdE solo da 36 meses, por eso se usa el CSV.
+- Los tipos son "unidades de divisa por euro" y se publican en días hábiles: el fin de semana
+  se arrastra el último publicado. Monedas sin tipo (p. ej. SAR) → `NotFoundException`.
+- Subunidades: GBX, ZAC e ILA se dividen entre 100 antes de convertir.
+- Caché 6 h (`fx:v1:<MONEDA>`). La conversión es solo de presentación: el motor y el
+  historial guardado siguen en la divisa original.
+
 ## Validación tras normalizar
 
 Avisar (no fallar) si: último cierre > 5 días hábiles; último trimestre > 6 meses; capitalización difiere > 10 % de precio × acciones; divisa del informe distinta de la de cotización.

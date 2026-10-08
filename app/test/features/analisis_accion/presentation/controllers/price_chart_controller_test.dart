@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_exchange_rates_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/exchange_rate_series.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 
 import '../../application/fake_ports.dart';
@@ -518,6 +521,289 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(intraday.calls, hasLength(1));
+    });
+  });
+
+  group('PriceChartController en euros', () {
+    // Tres días hábiles consecutivos con el mismo cierre en yenes y un tipo
+    // distinto cada día: lo que cambia en euros es solo la divisa.
+    final start = DateTime.utc(2026, 10, 6);
+    List<DailyBar> yenBars() => [
+      for (var i = 0; i < 3; i++)
+        DailyBar(
+          date: start.add(Duration(days: i)),
+          open: 17000,
+          high: 18000,
+          low: 16000,
+          close: 17000,
+          volume: 100,
+        ),
+    ];
+    final rates = ExchangeRateSeries(
+      currency: 'JPY',
+      points: [
+        RatePoint(start, 170),
+        RatePoint(start.add(const Duration(days: 1)), 175),
+        RatePoint(start.add(const Duration(days: 2)), 200),
+      ],
+    );
+
+    Future<(PriceChartController, DisplayCurrencyController)> build({
+      FakeIntradayHistory? intraday,
+      List<DailyBar>? bars,
+      ExchangeRateSeries? series,
+    }) async {
+      final display = DisplayCurrencyController(
+        getExchangeRates: GetExchangeRatesUseCase(
+          FakeExchangeRates(byCurrency: {'JPY': series ?? rates}),
+        ),
+        now: () => DateTime.utc(2026, 10, 9),
+      );
+      final chart = PriceChartController(
+        getPriceHistory: GetPriceHistoryUseCase(
+          FakePriceHistory(bars: bars ?? yenBars()),
+        ),
+        getIntradayHistory: GetIntradayHistoryUseCase(
+          intraday ?? FakeIntradayHistory(),
+        ),
+        symbol: 'TSE:7974',
+        displayCurrency: display,
+      );
+      addTearDown(chart.dispose);
+      addTearDown(display.dispose);
+      await display.configure('JPY');
+      await chart.load();
+      return (chart, display);
+    }
+
+    test(
+      'cada cierre se convierte con el tipo de su día (criterio 87)',
+      () async {
+        final (chart, _) = await build();
+
+        final closes = chart.view!.closes.map((p) => p.value).toList();
+
+        expect(closes[0], closeTo(17000 / 170, 1e-9));
+        expect(closes[1], closeTo(17000 / 175, 1e-9));
+        expect(closes[2], closeTo(17000 / 200, 1e-9));
+      },
+    );
+
+    test(
+      'la línea en euros se mueve aunque el precio en yenes no (criterio 87)',
+      () async {
+        final (chart, _) = await build();
+
+        final closes = chart.view!.closes.map((p) => p.value).toList();
+
+        expect(closes.first, greaterThan(closes.last));
+      },
+    );
+
+    test('el máximo y el mínimo se toman de los cierres ya convertidos (criterio 87)', () async {
+      final (chart, _) = await build();
+
+      final extremes = chart.view!.extremes!;
+
+      expect(extremes.high.date, start);
+      expect(extremes.high.value, closeTo(100, 1e-9));
+      expect(extremes.low.date, start.add(const Duration(days: 2)));
+      expect(extremes.low.value, closeTo(85, 1e-9));
+    });
+
+    test(
+      'las medias se calculan sobre los cierres convertidos (criterio 89)',
+      () async {
+        final bars = [
+          for (var i = 0; i < 60; i++)
+            DailyBar(
+              date: DateTime.utc(2026, 8, 1).add(Duration(days: i)),
+              open: 1000,
+              high: 1000,
+              low: 1000,
+              close: 1000,
+              volume: 1,
+            ),
+        ];
+        final steady = ExchangeRateSeries(
+          currency: 'JPY',
+          points: [
+            for (var i = 0; i < 60; i++)
+              RatePoint(
+                DateTime.utc(2026, 8, 1).add(Duration(days: i)),
+                100.0 + i,
+              ),
+          ],
+        );
+        final (chart, _) = await build(bars: bars, series: steady);
+
+        chart.setShortAverage(isVisible: true);
+
+        // La media de 50 de los 50 últimos cierres convertidos (1000 / tipo).
+        final expected =
+            [for (var i = 10; i < 60; i++) 1000 / (100.0 + i)]
+                .reduce((a, b) => a + b) /
+            50;
+        expect(chart.view!.shortAverage.last.value, closeTo(expected, 1e-9));
+        // Una media de yenes dividida entre el último tipo no daría lo mismo.
+        expect(
+          chart.view!.shortAverage.last.value,
+          isNot(closeTo(1000 / 159, 1e-3)),
+        );
+      },
+    );
+
+    test('elegir la divisa original devuelve los valores sin convertir (criterio 85)', () async {
+      final (chart, display) = await build();
+
+      display.showOriginal(original: true);
+
+      expect(chart.view!.closes.map((p) => p.value), [17000, 17000, 17000]);
+    });
+
+    test('volver a euros convierte otra vez y avisa a los oyentes', () async {
+      final (chart, display) = await build();
+      display.showOriginal(original: true);
+      var notifications = 0;
+      chart.addListener(() => notifications++);
+
+      display.showOriginal(original: false);
+
+      expect(notifications, 1);
+      expect(chart.view!.closes.first.value, closeTo(100, 1e-9));
+    });
+
+    test(
+      'mientras llegan los tipos se dibuja la divisa original (criterio 96)',
+      () async {
+        final display = DisplayCurrencyController(
+          getExchangeRates: GetExchangeRatesUseCase(
+            FakeExchangeRates(byCurrency: {'JPY': rates})
+              ..gate = Completer<void>(),
+          ),
+        );
+        final chart = PriceChartController(
+          getPriceHistory: GetPriceHistoryUseCase(
+            FakePriceHistory(bars: yenBars()),
+          ),
+          getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
+          symbol: 'TSE:7974',
+          displayCurrency: display,
+        );
+        addTearDown(chart.dispose);
+        unawaited(display.configure('JPY'));
+        await chart.load();
+
+        expect(chart.view!.closes.map((p) => p.value), [17000, 17000, 17000]);
+      },
+    );
+
+    test('al llegar los tipos la gráfica pasa a euros sola', () async {
+      final gate = Completer<void>();
+      final display = DisplayCurrencyController(
+        getExchangeRates: GetExchangeRatesUseCase(
+          FakeExchangeRates(byCurrency: {'JPY': rates})..gate = gate,
+        ),
+      );
+      final chart = PriceChartController(
+        getPriceHistory: GetPriceHistoryUseCase(
+          FakePriceHistory(bars: yenBars()),
+        ),
+        getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
+        symbol: 'TSE:7974',
+        displayCurrency: display,
+      );
+      addTearDown(chart.dispose);
+      final configuring = display.configure('JPY');
+      await chart.load();
+
+      gate.complete();
+      await configuring;
+
+      expect(chart.view!.closes.first.value, closeTo(100, 1e-9));
+    });
+
+    test('los días anteriores al primer tipo no se dibujan en euros', () async {
+      final shortRates = ExchangeRateSeries(
+        currency: 'JPY',
+        points: [RatePoint(start.add(const Duration(days: 1)), 175)],
+      );
+      final (chart, _) = await build(series: shortRates);
+
+      expect(chart.view!.closes, hasLength(2));
+      expect(chart.view!.closes.first.date, start.add(const Duration(days: 1)));
+    });
+
+    test(
+      'el día usa el último tipo para todos los puntos (criterio 88)',
+      () async {
+        final intraday = FakeIntradayHistory(
+          byResolution: {IntradayResolution.minutes5: intradaySeries()},
+        );
+        final (chart, _) = await build(intraday: intraday);
+
+        chart.selectRange(ChartRange.day);
+        await Future<void>.delayed(Duration.zero);
+
+        final original = intradaySeries().bars
+            .where((b) => b.time.day == intradaySeries().bars.last.time.day)
+            .map((b) => b.close)
+            .toList();
+        final converted = chart.view!.closes.map((p) => p.value).toList();
+        expect(converted, hasLength(original.length));
+        for (var i = 0; i < converted.length; i++) {
+          expect(converted[i], closeTo(original[i] / 200, 1e-9));
+        }
+      },
+    );
+
+    test('la semana en la divisa original no convierte nada', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes30: intradaySeries()},
+      );
+      final (chart, display) = await build(intraday: intraday);
+      display.showOriginal(original: true);
+
+      chart.selectRange(ChartRange.week);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(chart.view!.extremes!.high.value, 500);
+    });
+
+    test('tras liberar la gráfica ya no escucha a la moneda', () async {
+      final display = DisplayCurrencyController(
+        getExchangeRates: GetExchangeRatesUseCase(
+          FakeExchangeRates(byCurrency: {'JPY': rates}),
+        ),
+      );
+      addTearDown(display.dispose);
+      final chart = PriceChartController(
+        getPriceHistory: GetPriceHistoryUseCase(
+          FakePriceHistory(bars: yenBars()),
+        ),
+        getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
+        symbol: 'TSE:7974',
+        displayCurrency: display,
+      );
+      await display.configure('JPY');
+      chart.dispose();
+
+      // Si siguiera escuchando, notificaría a una gráfica ya liberada.
+      expect(() => display.showOriginal(original: true), returnsNormally);
+    });
+
+    test('sin controller de moneda dibuja la divisa original', () async {
+      final chart = PriceChartController(
+        getPriceHistory: GetPriceHistoryUseCase(
+          FakePriceHistory(bars: yenBars()),
+        ),
+        getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
+        symbol: 'TSE:7974',
+      );
+      addTearDown(chart.dispose);
+      await chart.load();
+
+      expect(chart.view!.closes.map((p) => p.value), [17000, 17000, 17000]);
     });
   });
 }

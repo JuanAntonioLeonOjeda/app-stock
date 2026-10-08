@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/exchange_clock.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/price_series.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/price_line_chart.dart';
+
+/// Aviso de que la gráfica está convertida (criterio 90).
+const convertedChartCaption =
+    'Convertido a euros con el tipo de referencia del BCE (no es el cambio '
+    'al que se operaría).';
 
 /// Pie con la fuente y el tipo de ajuste (criterio 52).
 const priceChartSourceText =
@@ -25,11 +31,15 @@ class PriceChartPanel extends StatefulWidget {
     super.key,
     required this.controller,
     required this.currency,
+    this.display,
     this.buildInfo,
   });
 
   final PriceChartController controller;
   final String? currency;
+
+  /// Moneda en la que se ve la gráfica; sin ella, la original.
+  final DisplayCurrencyController? display;
   final InfoBuilder? buildInfo;
 
   @override
@@ -38,14 +48,14 @@ class PriceChartPanel extends StatefulWidget {
 
 class _PriceChartPanelState extends State<PriceChartPanel> {
   PriceChartController get controller => widget.controller;
-  String? get currency => widget.currency;
+  String? get currency => widget.display?.currencyLabel ?? widget.currency;
 
   /// Explicaciones desplegadas ahora mismo, por id de tema.
   final Set<String> _openInfo = {};
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller,
+    listenable: Listenable.merge([controller, widget.display]),
     builder: (context, _) {
       final view = controller.view;
       return Column(
@@ -76,6 +86,11 @@ class _PriceChartPanelState extends State<PriceChartPanel> {
               view.isIntraday ? _intradayCaption(view) : priceChartSourceText,
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            if (widget.display?.isInEuros ?? false)
+              Text(
+                convertedChartCaption,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
           ],
         ],
       );

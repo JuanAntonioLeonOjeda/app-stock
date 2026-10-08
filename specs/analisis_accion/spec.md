@@ -1,6 +1,7 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). **Revisión 5 (búsqueda sin versiones duplicadas, fase A)
+> Estado: cerrada (2026-09-30). **Revisión 6 (conversor a euros, fase B) cerrada el
+> 2026-10-08**: ver la sección "Revisión 6" al final. **Revisión 5 (búsqueda sin versiones duplicadas, fase A)
 > cerrada el 2026-10-08**: sustituye el criterio 1. **Revisión 4 (gráfica del día y de la semana) cerrada el
 > 2026-10-08**: ver la sección "Revisión 4" al final. **Revisión 3 (histórico real y gráfica de precio, fase 1
 > del panel "Resumen") cerrada el 2026-10-08**: ver la sección "Revisión 3" al final; sustituye
@@ -481,6 +482,95 @@ Esto sustituye al criterio 1 (lista plana de coincidencias).
   peticiones.
 - **El ISIN y la bolsa de la cabecera salen del scanner**, no de la búsqueda, para que también
   estén al abrir un análisis desde el historial.
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 6: conversor a euros (2026-10-08)
+
+Fase B de dos (la A fue la búsqueda sin versiones duplicadas).
+
+### Qué cambia y por qué
+
+Una acción de Tokio cotiza en yenes, una de Nueva York en dólares y una de Londres en peniques.
+Para un inversor en euros, un precio de 7.851 JPY no dice nada. El resultado pasa a mostrar el
+precio **en euros por defecto**, con un selector para ver la divisa original.
+
+Decisiones del usuario (2026-10-08): se analiza la cotización tal cual (la principal) y se
+convierte solo para mostrar; euros por defecto también en el historial; cada resultado empieza
+siempre en euros (la elección no se recuerda); el Banco de España es el respaldo del BCE.
+
+### Qué datos hay (comprobado 2026-10-08)
+
+- **BCE** (`data-api.ecb.europa.eu`, SDMX/JSON, sin clave): tipos de referencia diarios desde 1999
+  de 44 monedas. Se publican una vez al día, hacia las 16:00 CET, en días laborables.
+- **Banco de España**: republica los mismos tipos del BCE ("cotización en el BCE") con un día de
+  retraso y unas 33 monedas. Su API REST solo da 3, 12 o 36 meses; su CSV oficial
+  (`tc_1_1.csv`) trae todo el histórico desde 1999. Sirve de respaldo.
+- **TradingView**: los precios de Londres vienen en **GBX** (peniques), los de Johannesburgo en
+  **ZAC** (céntimos) y los de Tel Aviv en **ILA** (agorot).
+
+### Fuera de alcance (añade a los de arriba)
+
+- Otras divisas de destino, tipos en tiempo real, el cambio y las comisiones de un bróker (el de
+  Trade Republic aplica los suyos), y guardar la elección entre sesiones.
+- Convertir los ratios o los indicadores del motor: no tienen unidad y siguen calculándose en la
+  divisa original. Solo se convierte lo que se muestra como precio.
+- Convertir los importes de los estados financieros: la app no los muestra.
+
+### Criterios de aceptación
+
+84. **Dado** un resultado de una acción que cotiza en una divisa distinta del euro, **cuando** lo
+    veo, **entonces** el precio de la cabecera, la gráfica, sus máximos y mínimos y el tooltip
+    salen en euros, y hay un selector "EUR | JPY" (la divisa original) en la cabecera.
+85. **Dado** el selector, **cuando** elijo la divisa original, **entonces** todo vuelve a sus
+    valores sin convertir; al elegir EUR, se convierte de nuevo. Cada resultado que abro empieza
+    en euros.
+86. **Dado** una acción que ya cotiza en euros, **cuando** veo el resultado, **entonces** no hay
+    selector ni nota de conversión.
+87. **Dado** la gráfica de un periodo diario (1M a Todo), **cuando** está en euros, **entonces**
+    cada cierre se convierte con el tipo de **su día** (con el último publicado en fines de semana
+    y festivos), de modo que la línea refleja también lo que ha hecho la divisa; el máximo y el
+    mínimo se toman de los cierres ya convertidos.
+88. **Dado** el día o la semana (1D y 1S) en euros, **cuando** los veo, **entonces** todos los
+    puntos se convierten con el último tipo publicado, porque el BCE da uno al día.
+89. **Dado** las medias de 50 y 200 sesiones, **cuando** la gráfica está en euros, **entonces** se
+    calculan sobre los cierres ya convertidos, para que el precio y su media sean comparables.
+90. **Dado** un precio en euros, **cuando** lo veo en la cabecera, **entonces** debajo aparece el
+    equivalente original y el tipo usado ("7.851 JPY · 1 € = 177,05 JPY, BCE del 08/10/2026"), y
+    el pie de la gráfica dice que es el tipo de referencia del BCE y no el cambio al que se
+    operaría.
+91. **Dado** una acción cotizada en peniques (GBX), céntimos (ZAC) o agorot (ILA), **cuando** la
+    convierto, **entonces** se divide entre 100 antes de aplicar el tipo de la libra, el rand o
+    el séquel; en la divisa original se muestra tal como cotiza.
+92. **Dado** una divisa sin tipo de cambio publicado (p. ej. el riyal saudí), **cuando** veo el
+    resultado, **entonces** no hay selector, se muestra el precio en su divisa original y aparece
+    "Sin tipo de cambio del BCE para SAR".
+93. **Dado** que el BCE no responde, **cuando** se piden los tipos, **entonces** se piden al Banco
+    de España; si ambos fallan, se muestra el precio en la divisa original con "No se ha podido
+    convertir a euros" y "Reintentar". Nada más se bloquea.
+94. **Dado** un análisis del historial, **cuando** lo abro, **entonces** su precio sale en euros con
+    el tipo del día de su último cierre, no con el de hoy.
+95. **Dado** que ya pedí los tipos de una divisa hace menos de 6 horas, **cuando** abro otro
+    resultado en esa divisa, **entonces** salen de la caché; "Actualizar datos" los vuelve a pedir.
+96. **Dado** que los tipos aún no han llegado, **cuando** abro el resultado, **entonces** veo el
+    precio en la divisa original con "Convirtiendo a euros…" y pasa a euros al llegar, sin
+    bloquear la pantalla.
+97. **Dado** que el último tipo publicado tiene más de 5 días, **cuando** veo un precio en euros,
+    **entonces** la nota del tipo lo dice ("tipo de hace 7 días").
+
+### Decisiones y riesgos
+
+- **Es el tipo de referencia, no el de operar.** Sirve para entender magnitudes y comparar, no
+  para saber cuántos euros recibirás: el bróker aplica su propio cambio y comisión.
+- **Una línea en euros no es la línea original dividida entre una constante.** Una acción
+  japonesa que sube un 10 % en yenes puede estar plana en euros. Es lo correcto para un inversor
+  en euros y se explica en el pie.
+- **El BdE llega con un día de retraso** respecto al BCE: como respaldo es válido (criterio 97).
+- **Los días sin tipo anteriores al primero publicado** (1999) no se dibujan en euros.
 
 ### Preguntas abiertas
 

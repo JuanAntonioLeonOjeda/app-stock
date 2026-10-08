@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
@@ -30,12 +31,17 @@ class AnalysisScreen extends StatefulWidget {
     this.showInfo,
     this.buildInfo,
     this.chartController,
+    this.displayCurrency,
   });
 
   final AnalysisController controller;
 
   /// Estado de la gráfica de precio de la pestaña Resumen.
   final PriceChartController? chartController;
+
+  /// Moneda en la que se ven los precios (euros por defecto). La pantalla la
+  /// configura con la moneda del resultado y la libera al cerrarse.
+  final DisplayCurrencyController? displayCurrency;
 
   /// Abre una explicación educativa aparte (la guía del diagnóstico); sin ella
   /// no hay botón de la guía.
@@ -58,12 +64,23 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     // Desde el historial ya hay resultado: no se recalcula (criterio 17).
     if (_controller.entry == null) _controller.analyze();
     widget.chartController?.load();
+    _controller.addListener(_configureCurrency);
+    _configureCurrency();
+  }
+
+  /// Indica la moneda del resultado en cuanto se conoce.
+  void _configureCurrency() {
+    final entry = _controller.entry;
+    if (entry == null) return;
+    widget.displayCurrency?.configure(entry.result.currency);
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_configureCurrency);
     _controller.dispose();
     widget.chartController?.dispose();
+    widget.displayCurrency?.dispose();
     super.dispose();
   }
 
@@ -72,6 +89,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   void _refreshAll() {
     _controller.refresh();
     widget.chartController?.load(forceRefresh: true);
+    widget.displayCurrency?.reload(forceRefresh: true);
   }
 
   @override
@@ -149,11 +167,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     padding: const EdgeInsets.all(16),
     children: [
       ..._notices(entry),
-      VerdictHeader(result: entry.result),
+      VerdictHeader(result: entry.result, display: widget.displayCurrency),
       const SizedBox(height: 16),
       PriceChartPanel(
         controller: chart,
         currency: entry.result.currency,
+        display: widget.displayCurrency,
         buildInfo: widget.buildInfo,
       ),
     ],
@@ -164,7 +183,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     padding: const EdgeInsets.all(16),
     children: [
       ..._notices(entry),
-      VerdictHeader(result: entry.result),
+      VerdictHeader(result: entry.result, display: widget.displayCurrency),
       _guideButton(),
       FlagsSection(flags: entry.result.flags),
       for (final block in entry.result.blocks)
