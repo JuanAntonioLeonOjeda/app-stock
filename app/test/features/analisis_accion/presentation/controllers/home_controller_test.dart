@@ -4,21 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
-import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 
 import '../../application/fake_ports.dart';
 import '../../domain/motor/synthetic_companies.dart';
-
-const _tesco = SymbolMatch(
-  symbol: 'TSCO.LON',
-  name: 'Tesco PLC',
-  region: 'United Kingdom',
-  currency: 'GBX',
-  matchScore: 0.73,
-);
+import '../../search_samples.dart';
 
 HomeController _controller(FakeMarketData marketData, {FakeHistory? history}) =>
     HomeController(
@@ -29,11 +21,12 @@ HomeController _controller(FakeMarketData marketData, {FakeHistory? history}) =>
 void main() {
   group('HomeController.search', () {
     test('muestra las coincidencias encontradas', () async {
-      final controller = _controller(FakeMarketData(matches: [_tesco]));
+      final controller = _controller(FakeMarketData(matches: [tescoLondon]));
 
       await controller.search('tesco');
 
-      expect(controller.matches, [_tesco]);
+      expect(controller.companies, hasLength(1));
+      expect(controller.companies!.single.defaultListing, tescoLondon);
       expect(controller.hasNoResults, isFalse);
       expect(controller.searchError, isNull);
     });
@@ -42,7 +35,7 @@ void main() {
         'resultados"', () {
       final controller = _controller(FakeMarketData());
 
-      expect(controller.matches, isNull);
+      expect(controller.companies, isNull);
       expect(controller.hasNoResults, isFalse);
     });
 
@@ -55,7 +48,7 @@ void main() {
     });
 
     test('está buscando mientras la petición está en curso', () async {
-      final marketData = FakeMarketData(matches: [_tesco])
+      final marketData = FakeMarketData(matches: [tescoLondon])
         ..gate = Completer<void>();
       final controller = _controller(marketData);
 
@@ -85,7 +78,7 @@ void main() {
       await controller.search('   ');
 
       expect(marketData.searchQueries, isEmpty);
-      expect(controller.matches, isNull);
+      expect(controller.companies, isNull);
     });
   });
 
@@ -125,4 +118,78 @@ void main() {
       await expectLater(search, completes);
     },
   );
+
+  group('HomeController certificados ADR', () {
+    HomeController withReceipts({bool onlyReceipts = false}) => _controller(
+      FakeMarketData(
+        matches: onlyReceipts
+            ? [tescoReceipt]
+            : [tescoLondon, tescoFrankfurt, tescoReceipt],
+      ),
+    );
+
+    test('no se ven por defecto y se cuentan (criterio 75)', () async {
+      final controller = withReceipts();
+
+      await controller.search('tesco');
+
+      expect(controller.companies!.map((c) => c.isDepositaryReceipt), [false]);
+      expect(controller.receiptCount, 1);
+      expect(controller.canToggleReceipts, isTrue);
+      expect(controller.showReceipts, isFalse);
+    });
+
+    test('mostrarlos los añade al final', () async {
+      final controller = withReceipts();
+      await controller.search('tesco');
+
+      controller.setShowReceipts(isVisible: true);
+
+      expect(controller.companies!.map((c) => c.isDepositaryReceipt), [
+        false,
+        true,
+      ]);
+      expect(controller.showReceipts, isTrue);
+    });
+
+    test('se pueden volver a ocultar', () async {
+      final controller = withReceipts();
+      await controller.search('tesco');
+      controller.setShowReceipts(isVisible: true);
+
+      controller.setShowReceipts(isVisible: false);
+
+      expect(controller.companies, hasLength(1));
+    });
+
+    test('una nueva búsqueda vuelve a ocultarlos', () async {
+      final controller = withReceipts();
+      await controller.search('tesco');
+      controller.setShowReceipts(isVisible: true);
+
+      await controller.search('tesco otra vez');
+
+      expect(controller.showReceipts, isFalse);
+    });
+
+    test('si solo hay certificados, se muestran sin pedirlo', () async {
+      final controller = withReceipts(onlyReceipts: true);
+
+      await controller.search('tesco');
+
+      expect(controller.companies, hasLength(1));
+      expect(controller.companies!.single.isDepositaryReceipt, isTrue);
+      expect(controller.canToggleReceipts, isFalse);
+      expect(controller.hasNoResults, isFalse);
+    });
+
+    test('sin certificados no se ofrece el botón', () async {
+      final controller = _controller(FakeMarketData(matches: [tescoLondon]));
+
+      await controller.search('tesco');
+
+      expect(controller.receiptCount, 0);
+      expect(controller.canToggleReceipts, isFalse);
+    });
+  });
 }

@@ -99,6 +99,9 @@ class AnalysisResult {
     required List<String> flags,
     required List<String> missingData,
     required this.motorVersion,
+    this.isin,
+    this.exchange,
+    this.isPrimaryListing,
   }) : blocks = List.unmodifiable(blocks),
        flags = List.unmodifiable(flags),
        missingData = List.unmodifiable(missingData);
@@ -128,4 +131,15 @@ class AnalysisResult {
 
   /// Versión del motor que produjo este resultado.
   final String motorVersion;
+
+  /// ISIN de la empresa; `null` en análisis guardados antes de que se
+  /// registrara (criterio 81).
+  final String? isin;
+
+  /// Bolsa de la cotización analizada (`TSE`, `BME`...).
+  final String? exchange;
+
+  /// La cotización analizada es la principal (`true`) u otra (`false`); `null`
+  /// si no se sabe.
+  final bool? isPrimaryListing;
 }

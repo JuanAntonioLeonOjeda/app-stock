@@ -1,6 +1,7 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). **Revisión 4 (gráfica del día y de la semana) cerrada el
+> Estado: cerrada (2026-09-30). **Revisión 5 (búsqueda sin versiones duplicadas, fase A)
+> cerrada el 2026-10-08**: sustituye el criterio 1. **Revisión 4 (gráfica del día y de la semana) cerrada el
 > 2026-10-08**: ver la sección "Revisión 4" al final. **Revisión 3 (histórico real y gráfica de precio, fase 1
 > del panel "Resumen") cerrada el 2026-10-08**: ver la sección "Revisión 3" al final; sustituye
 > el criterio 35. **Revisión 2 (proveedor TradingView) cerrada el 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
@@ -405,6 +406,81 @@ Esto sustituye la exclusión "Intradía: solo cierres diarios" de la Revisión 3
 - **En 1D y 1S el eje es el orden de las velas, no el tiempo**, para que las sesiones no
   dejen huecos (como hace la propia TradingView).
 - **Caché de 5 minutos** para el intradía (los datos llegan con retraso de 15-20 minutos).
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas (2026-10-08)
+
+Fase A de dos (la B es el conversor de divisas, con su propia revisión).
+
+### Qué cambia y por qué
+
+Una misma empresa aparece en la búsqueda muchas veces: Nintendo sale 14 veces (Tokio, Londres,
+Fráncfort, México, dos de LS Exchange, certificados ADR...). Comprobado el 2026-10-08:
+
+- Todas las versiones de las acciones ordinarias comparten el **ISIN**; los certificados de
+  depósito (ADR) tienen otro. El ISIN es además como Trade Republic identifica cada valor.
+- TradingView marca la **cotización principal** (`is_primary_listing`): la bolsa de origen de la
+  empresa (Nintendo = Tokio, Iberdrola = Madrid, Apple = Nasdaq). No depende del país del usuario.
+- La búsqueda por nombre puede devolver solo versiones secundarias: "Inditex" no trae su
+  cotización de Madrid (TradingView la llama "Industria de Diseno Textil"; sale por `ITX`, por
+  el nombre legal o por el ISIN).
+
+Se agrupa por empresa, se marca la principal y se completa el grupo con el ISIN cuando falta.
+Esto sustituye al criterio 1 (lista plana de coincidencias).
+
+### Fuera de alcance (añade a los de arriba)
+
+- Saber qué instrumento muestra Trade Republic: no tiene API pública. Se muestra el ISIN para
+  cotejarlo.
+- Convertir a euros (fase B).
+- Analizar por defecto una cotización distinta de la principal.
+- Fusionar un ADR con su acción ordinaria (tienen ISIN distinto).
+
+### Criterios de aceptación
+
+72. **Dado** que busco "Nintendo", **cuando** termina, **entonces** veo una fila por empresa
+    (agrupadas por ISIN) con su nombre, país, ISIN, la bolsa y la divisa de su cotización
+    principal y la etiqueta "Principal"; las demás versiones no son filas aparte.
+73. **Dado** una empresa con más cotizaciones, **cuando** veo su fila, **entonces** hay "Otras
+    cotizaciones (n)" plegado; al desplegarlo veo la bolsa, la divisa y el símbolo de cada una,
+    con las que cotizan en euros primero.
+74. **Dado** una fila de empresa, **cuando** la pulso, **entonces** se analiza su cotización
+    principal; si pulso otra cotización del desplegable, se analiza esa.
+75. **Dado** que entre los resultados hay certificados (ADR), **cuando** veo la lista,
+    **entonces** no aparecen por defecto y veo "Mostrar certificados ADR (n)"; al pulsarlo salen
+    al final marcados "ADR".
+76. **Dado** un resultado sin ISIN (instrumentos sintéticos, p. ej. "Pyth:AAPL"), **cuando** veo
+    la lista, **entonces** no aparece.
+77. **Dado** que busco por nombre y TradingView solo devuelve cotizaciones secundarias de una
+    empresa, **cuando** termina la búsqueda, **entonces** la app completa el grupo buscando por su
+    ISIN y aparece su cotización principal (p. ej. "Inditex" → `BME:ITX`).
+78. **Dado** que escribo un ISIN completo, **cuando** busco, **entonces** veo esa empresa con
+    todas sus cotizaciones agrupadas.
+79. **Dado** varios resultados, **cuando** veo la lista, **entonces** las empresas van por
+    relevancia y, dentro de cada una, la principal primero.
+80. **Dado** un resultado de análisis, **cuando** veo su cabecera, **entonces** aparecen la bolsa,
+    el ISIN y "Cotización principal" u "Otra cotización".
+81. **Dado** el historial, **cuando** abro un análisis guardado antes de esta revisión,
+    **entonces** se ve igual que siempre, sin esa línea.
+82. **Dado** que falla la búsqueda complementaria por ISIN, **cuando** termina, **entonces** veo
+    los resultados de la primera búsqueda, sin error.
+83. **Dado** que ya hice la misma búsqueda hace menos de 6 horas, **cuando** la repito,
+    **entonces** sale de la caché, incluida la complementaria.
+
+### Decisiones y riesgos
+
+- **Sin cotización marcada como principal** en un grupo (el proveedor no la marca): se abre la
+  mejor coincidencia, pero no se etiqueta "Principal".
+- **"Otras cotizaciones" con las de euros primero**: es lo más cercano a un inversor en euros.
+- **La búsqueda complementaria se limita a 3 empresas** por búsqueda para no multiplicar
+  peticiones.
+- **El ISIN y la bolsa de la cabecera salen del scanner**, no de la búsqueda, para que también
+  estén al abrir un análisis desde el historial.
 
 ### Preguntas abiertas
 

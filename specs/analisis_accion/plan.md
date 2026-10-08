@@ -456,3 +456,74 @@ conexión falsa, adapter (caché de 5 minutos, descargas unidas, fallo aislado),
 (carga bajo demanda, error propio, medias recordadas), gráfica (etiquetas, tooltip, marcadores)
 y panel (selector, medias ocultas, pie).
 
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas (2026-10-08)
+
+> Basada en la Revisión 5 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué da TradingView (comprobado 2026-10-08)
+
+- **Buscador:** cada resultado trae `isin`, `is_primary_listing`, `type` (`stock`/`dr`), `exchange`,
+  `source2.name` (nombre de la bolsa), `country` y `currency_code`. Una búsqueda devuelve hasta
+  ~50 resultados sin paginar. Buscar un ISIN completo devuelve todas sus cotizaciones
+  (`found_by_isin`).
+- **Scanner:** columnas `isin`, `exchange` e `is_primary` por símbolo.
+- **Huecos:** por nombre, "Inditex" solo trae versiones OTC; la principal (`BME:ITX`) sale por
+  ticker, nombre legal o ISIN.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/symbol_match.dart` | Añade `isin`, `exchange`, `exchangeName`, `isPrimaryListing` e `isDepositaryReceipt` |
+| `entities/company_listings.dart` | `CompanyListings`: una empresa con su `defaultListing`, si la principal está confirmada (`hasConfirmedPrimary`), `others` y si es ADR |
+| `search/group_listings.dart` | Funciones puras: `groupListings` (por ISIN, sin ISIN descartado, principal primero, otras con euros primero, grupos por relevancia y ADR al final) y `isinsMissingPrimary` (qué ISIN hay que completar) |
+| `entities/company_overview.dart` | Añade `isin`, `exchange` e `isPrimaryListing` |
+| `entities/analysis_result.dart` | `AnalysisResult` lleva `isin`, `exchange` e `isPrimaryListing` (opcionales) |
+| `motor/stock_analyzer.dart` | Copia esos datos del `overview` al resultado (sin cambiar ningún cálculo, así que el motor no sube de versión) |
+
+#### application
+
+| Archivo | Contenido |
+|---|---|
+| `use_cases/search_symbol_use_case.dart` | Devuelve `List<CompanyListings>` agrupadas con `groupListings`; la complementación por ISIN la hace el adapter |
+
+#### infrastructure
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_parser.dart` | La búsqueda rellena los campos nuevos de `SymbolMatch` y conserva ADR; el scanner rellena `isin`, `exchange` e `is_primary` |
+| `tradingview_fields.dart` | Tres columnas nuevas, **al final** de la lista |
+| `tradingview_adapter.dart` | `searchSymbol` completa los grupos sin principal buscando por su ISIN (máximo 3), tolera que falle y cachea cada búsqueda 6 h |
+| `analysis_result_json.dart` | Guarda y lee los campos nuevos; ausentes en entradas antiguas = `null` |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/home_controller.dart` | `companies` en lugar de `matches`; contador y estado de "Mostrar certificados ADR" |
+| `widgets/company_listings_tile.dart` | Sustituye a `symbol_match_tile.dart`: fila de la empresa con "Principal" y desplegable "Otras cotizaciones (n)" |
+| `screens/home_screen.dart` | Lista de empresas y el botón de ADR |
+| `widgets/verdict_header.dart` | Línea con bolsa, ISIN y "Cotización principal" / "Otra cotización" |
+
+### Decisiones técnicas no obvias
+
+1. **Agrupar en `domain/`, completar en `infrastructure/`:** agrupar y ordenar es regla de
+   presentación de resultados (pura y testeable); completar por ISIN es una estrategia propia
+   de TradingView, así que vive en su adapter.
+2. **Las columnas nuevas del scanner van al final de la lista** para poder ampliar las fixtures
+   reales ya guardadas sin recapturarlas (los tests dependen de sus precios y fechas).
+3. **El motor no sube de versión:** solo se copian tres datos de identificación.
+4. **`hasConfirmedPrimary`:** la etiqueta "Principal" solo sale si el proveedor la marcó.
+
+### Tests
+
+Agrupación (varias bolsas, sin ISIN, ADR, empates, sin principal, euros primero, orden de grupos),
+parser con la búsqueda real de "nintendo", "iberdrola" e "inditex", búsqueda complementaria
+(caso Inditex con transcripción real, fallo aislado, límite de 3, caché), `HomeController`
+(agrupa, ADR ocultos y mostrados), tile (principal, desplegable, tap), pantalla de inicio,
+cabecera del resultado, JSON con y sin los campos nuevos.
+

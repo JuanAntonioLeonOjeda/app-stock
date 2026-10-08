@@ -19,17 +19,39 @@ final _now = DateTime.utc(2026, 10, 6, 12);
 
 /// Servidor simulado: registra cada petición y responde con fixtures reales.
 class _FakeServer {
-  _FakeServer({this.override});
+  _FakeServer({
+    this.override,
+    this.searchFixtures = const {},
+    this.failingSearches = const {},
+  });
 
   final http.Response? override;
+
+  /// Fixture que responde cada búsqueda, por texto en minúsculas; el resto
+  /// responde con la de "nintendo".
+  final Map<String, String> searchFixtures;
+
+  /// Búsquedas (por texto en minúsculas) que fallan con HTTP 503.
+  final Set<String> failingSearches;
   final List<http.Request> requests = [];
+
+  /// Textos buscados, en orden.
+  List<String> get searchedTexts => [
+    for (final request in requests)
+      if (request.url.host == 'symbol-search.tradingview.com')
+        request.url.queryParameters['text']!,
+  ];
 
   late final client = MockClient((request) async {
     requests.add(request);
     final fixed = override;
     if (fixed != null) return fixed;
     if (request.url.host == 'symbol-search.tradingview.com') {
-      return _json(readTradingViewFixture('search_nintendo'));
+      final text = request.url.queryParameters['text']!.toLowerCase();
+      if (failingSearches.contains(text)) return http.Response('error', 503);
+      return _json(
+        readTradingViewFixture(searchFixtures[text] ?? 'search_nintendo'),
+      );
     }
     return _json(readTradingViewFixture('scan_tse_7974'));
   });
@@ -728,6 +750,121 @@ void main() {
         throwsA(isA<NotFoundException>()),
       );
       expect(chart.connections, isEmpty);
+    });
+  });
+
+  group('TradingViewAdapter.searchSymbol agrupable', () {
+    _FakeServer inditexServer() => _FakeServer(
+      searchFixtures: {
+        'inditex': 'search_inditex',
+        'es0148396007': 'search_isin_inditex',
+      },
+    );
+
+    test(
+      'si solo salen versiones secundarias, completa con el ISIN (criterio 77)',
+      () async {
+        final server = inditexServer();
+
+        final matches = await _adapter(
+          server,
+          FakeCache(),
+        ).searchSymbol('inditex');
+
+        expect(server.searchedTexts, ['inditex', 'ES0148396007']);
+        final main = matches.where((m) => m.symbol == 'BME:ITX').single;
+        expect(main.isPrimaryListing, isTrue);
+      },
+    );
+
+    test('no repite símbolos al unir las dos búsquedas', () async {
+      final matches = await _adapter(
+        inditexServer(),
+        FakeCache(),
+      ).searchSymbol('inditex');
+
+      final symbols = matches.map((m) => m.symbol).toList();
+      expect(symbols.toSet(), hasLength(symbols.length));
+    });
+
+    test('si ya viene la principal, no hace ninguna petición más', () async {
+      final server = _FakeServer();
+
+      await _adapter(server, FakeCache()).searchSymbol('nintendo');
+
+      expect(server.searchedTexts, ['nintendo']);
+    });
+
+    test('buscar por ISIN es una sola petición (criterio 78)', () async {
+      final server = _FakeServer(
+        searchFixtures: {'jp3756600007': 'search_isin_nintendo'},
+      );
+
+      final matches = await _adapter(
+        server,
+        FakeCache(),
+      ).searchSymbol('JP3756600007');
+
+      expect(server.searchedTexts, ['JP3756600007']);
+      expect(matches.first.symbol, 'TSE:7974');
+    });
+
+    test('si falla la búsqueda complementaria, devuelve la primera sin error (criterio 82)', () async {
+      final server = _FakeServer(
+        searchFixtures: {'inditex': 'search_inditex'},
+        failingSearches: {'es0148396007'},
+      );
+
+      final matches = await _adapter(
+        server,
+        FakeCache(),
+      ).searchSymbol('inditex');
+
+      expect(matches, isNotEmpty);
+      expect(matches.any((m) => m.symbol == 'BME:ITX'), isFalse);
+    });
+
+    test('si falla la búsqueda principal, el error sale', () async {
+      final server = _FakeServer(failingSearches: {'inditex'});
+
+      await expectLater(
+        _adapter(server, FakeCache()).searchSymbol('inditex'),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
+    test('la repetición de la misma búsqueda sale de la caché, complementaria incluida (criterio 83)', () async {
+      final server = inditexServer();
+      final adapter = _adapter(server, FakeCache());
+      await adapter.searchSymbol('inditex');
+
+      await adapter.searchSymbol('inditex');
+
+      expect(server.searchedTexts, ['inditex', 'ES0148396007']);
+    });
+
+    test('completa como máximo 3 empresas por búsqueda', () async {
+      // Cinco empresas distintas, ninguna con cotización principal.
+      final body = jsonEncode({
+        'symbols': [
+          for (var i = 1; i <= 5; i++)
+            {
+              'symbol': 'T$i',
+              'exchange': 'OTC',
+              'type': 'stock',
+              'description': 'Empresa $i',
+              'currency_code': 'USD',
+              'country': 'US',
+              'isin': 'US00000000$i',
+            },
+        ],
+      });
+      final server = _FakeServer(override: http.Response(body, 200));
+
+      await _adapter(server, FakeCache()).searchSymbol('empresa');
+
+      // La búsqueda original más 3 complementarias.
+      expect(server.searchedTexts, hasLength(4));
     });
   });
 }

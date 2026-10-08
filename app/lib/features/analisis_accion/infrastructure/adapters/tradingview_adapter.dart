@@ -15,6 +15,7 @@ import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart'
 import 'package:stock_app/features/analisis_accion/domain/ports/intraday_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/market_data_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/price_history_port.dart';
+import 'package:stock_app/features/analisis_accion/domain/search/group_listings.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_chart_connection.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_fields.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_history_cache.dart';
@@ -30,6 +31,10 @@ const _cacheTtl = Duration(hours: 6);
 const _intradayTtl = Duration(minutes: 5);
 
 const _requestTimeout = Duration(seconds: 30);
+
+/// Empresas como máximo a las que se les completa la cotización principal con
+/// una búsqueda por ISIN (criterio 77): limita las peticiones de una búsqueda.
+const _maxIsinCompletions = 3;
 
 const _searchHost = 'symbol-search.tradingview.com';
 const _scannerHost = 'scanner.tradingview.com';
@@ -72,6 +77,20 @@ class TradingViewAdapter
   Future<List<SymbolMatch>> searchSymbol(String query) async {
     final text = query.trim();
     if (text.isEmpty) return const [];
+    final found = await _searchText(text);
+    // Por nombre, TradingView puede devolver solo versiones secundarias de una
+    // empresa ("Inditex" trae las de OTC pero no la de Madrid). Se completa
+    // buscando por su ISIN, que sí las trae todas.
+    final missing = isinsMissingPrimary(found).take(_maxIsinCompletions);
+    if (missing.isEmpty) return found;
+    final extras = await Future.wait([
+      for (final isin in missing) _searchTextOrNothing(isin),
+    ]);
+    return _withoutRepeats([found, ...extras]);
+  }
+
+  /// Una búsqueda del buscador de TradingView, con caché.
+  Future<List<SymbolMatch>> _searchText(String text) {
     final uri = Uri.https(_searchHost, '/symbol_search/v3/', {
       'text': text,
       'search_type': 'stock',
@@ -83,6 +102,26 @@ class TradingViewAdapter
       forceRefresh: false,
       parse: parseTradingViewSearch,
     );
+  }
+
+  /// La búsqueda complementaria nunca estropea la principal: si falla, no
+  /// aporta nada (criterio 82).
+  Future<List<SymbolMatch>> _searchTextOrNothing(String text) async {
+    try {
+      return await _searchText(text);
+    } on MarketDataException {
+      return const [];
+    }
+  }
+
+  /// Une varias listas sin repetir símbolos, conservando el orden.
+  List<SymbolMatch> _withoutRepeats(List<List<SymbolMatch>> lists) {
+    final seen = <String>{};
+    return [
+      for (final list in lists)
+        for (final match in list)
+          if (seen.add(match.symbol)) match,
+    ];
   }
 
   @override

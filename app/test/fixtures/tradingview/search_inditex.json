@@ -1,0 +1,138 @@
+{
+ "symbols_remaining": 0,
+ "symbols": [
+  {
+   "symbol": "XS2680925281",
+   "description": "UBS AG. London Branch Reverse Convertible 2023-19.09.28 (Exp.12.09.28) on Inditex",
+   "type": "structured",
+   "exchange": "LUXSE",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "XS2680925281",
+   "provider_id": "ice",
+   "source_logoid": "source/LUXSE",
+   "source2": {
+    "id": "LUXSE",
+    "name": "Luxembourg Stock Exchange",
+    "description": "Luxembourg Stock Exchange"
+   },
+   "source_id": "LUXSE",
+   "country": "LU"
+  },
+  {
+   "symbol": "AVA_INDITEX_TRACKER",
+   "description": "Alphabeta Access Products Limited Structured Instrument 2019-open end on Inditex",
+   "type": "structured",
+   "exchange": "OMXSTO",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "JE00BKC93J41",
+   "currency_code": "SEK",
+   "currency-logoid": "country/SE",
+   "provider_id": "ice",
+   "source_logoid": "source/OMXSTO",
+   "source2": {
+    "id": "OMXSTO",
+    "name": "Nasdaq Stockholm",
+    "description": "Nasdaq Stockholm"
+   },
+   "source_id": "OMXSTO",
+   "country": "SE"
+  },
+  {
+   "symbol": "SB3VN4",
+   "description": "Societe Generale Effekten GMBH Underlying Tracker 2020-ohne festen Verfall auf Inditex",
+   "type": "structured",
+   "exchange": "BX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "DE000SB3VN42",
+   "currency_code": "CHF",
+   "currency-logoid": "country/CH",
+   "provider_id": "ice",
+   "source_logoid": "source/BX",
+   "source2": {
+    "id": "BX",
+    "name": "BX Swiss",
+    "description": "BX Swiss"
+   },
+   "source_id": "BX",
+   "country": "CH"
+  },
+  {
+   "symbol": "SG4LCA",
+   "description": "Societe Generale Effekten GMBH Underlying Tracker 2020-ohne festen Verfall auf Inditex",
+   "type": "structured",
+   "exchange": "BX",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "DE000SD1VTJ9",
+   "currency_code": "CHF",
+   "currency-logoid": "country/CH",
+   "provider_id": "ice",
+   "source_logoid": "source/BX",
+   "source2": {
+    "id": "BX",
+    "name": "BX Swiss",
+    "description": "BX Swiss"
+   },
+   "source_id": "BX",
+   "country": "CH"
+  },
+  {
+   "symbol": "IDEXY",
+   "description": "Industria de Diseno Textil, S.A. Unsponsored ADR",
+   "type": "dr",
+   "exchange": "OTC",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "cusip": "455793109",
+   "isin": "US4557931098",
+   "currency_code": "USD",
+   "currency-logoid": "country/US",
+   "logoid": "inditex",
+   "logo": {
+    "style": "single",
+    "logoid": "inditex"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/OTC",
+   "source2": {
+    "id": "OTC",
+    "name": "OTC Markets",
+    "description": "OTC Markets"
+   },
+   "source_id": "OTC",
+   "country": "US"
+  },
+  {
+   "symbol": "IDEXF",
+   "description": "Industria de Diseno Textil, S.A.",
+   "type": "stock",
+   "exchange": "OTC",
+   "found_by_isin": false,
+   "found_by_cusip": false,
+   "isin": "ES0148396007",
+   "cik_code": "0001438656",
+   "currency_code": "USD",
+   "currency-logoid": "country/US",
+   "logoid": "inditex",
+   "logo": {
+    "style": "single",
+    "logoid": "inditex"
+   },
+   "provider_id": "ice",
+   "source_logoid": "source/OTC",
+   "source2": {
+    "id": "OTC",
+    "name": "OTC Markets",
+    "description": "OTC Markets"
+   },
+   "source_id": "OTC",
+   "country": "US",
+   "typespecs": [
+    "common"
+   ]
+  }
+ ]
+}

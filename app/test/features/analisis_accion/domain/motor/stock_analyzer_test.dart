@@ -83,6 +83,35 @@ void main() {
       expect(_fingerprint(second), _fingerprint(first));
     });
 
+    test(
+      'copia al resultado el ISIN, la bolsa y si es la principal (criterio 80)',
+      () {
+        final data = buildCompany(
+          companyOverview: overview(
+            isin: 'ES0144580Y14',
+            exchange: 'BME',
+            isPrimaryListing: true,
+          ),
+        );
+
+        final result = _analyzer.analyze(data, referenceDate: referenceDate);
+
+        expect(result.isin, 'ES0144580Y14');
+        expect(result.exchange, 'BME');
+        expect(result.isPrimaryListing, isTrue);
+      },
+    );
+
+    test('sin esos datos el resultado los deja en null', () {
+      final result = _analyzer.analyze(
+        qualityCompany(),
+        referenceDate: referenceDate,
+      );
+
+      expect(result.isin, isNull);
+      expect(result.isPrimaryListing, isNull);
+    });
+
     test('rellena los datos de cabecera y la versión del motor', () {
       final data = qualityCompany();
 

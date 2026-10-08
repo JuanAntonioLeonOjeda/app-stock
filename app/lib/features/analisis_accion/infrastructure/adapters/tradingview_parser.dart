@@ -17,32 +17,26 @@ import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradi
 
 typedef _Json = Map<String, Object?>;
 
-/// Máximo de coincidencias que se muestran de una búsqueda.
-const _maxSearchResults = 15;
+/// Resta de relevancia por cada posición que el proveedor pone más abajo: la
+/// primera vale 1 y cada una siguiente, 0,01 menos (nunca por debajo de 0,01).
+const _positionPenalty = 0.01;
+const _minRelevance = 0.01;
 
-/// Puntuación por tipo de cotización: la bolsa de origen antes que las demás
-/// bolsas y los certificados de depositario (ADR).
-const _primaryListingScore = 1.0;
-const _secondaryListingScore = 0.8;
-const _depositaryReceiptScore = 0.5;
-
-/// Resta por posición, para conservar el orden que devuelve el proveedor.
-const _positionPenalty = 0.001;
-
-/// Coincidencias de la búsqueda de símbolos, de más a menos relevante. El
-/// símbolo es `BOLSA:TICKER` (p. ej. `TSE:7974`), que es lo que pide el
-/// scanner.
+/// Coincidencias de la búsqueda de símbolos, en el orden de relevancia del
+/// proveedor. El símbolo es `BOLSA:TICKER` (p. ej. `TSE:7974`), que es lo que
+/// pide el scanner. Solo acciones y certificados (ADR); agrupar por empresa y
+/// marcar la principal es cosa del dominio (`groupListings`).
 List<SymbolMatch> parseTradingViewSearch(String body) {
   final symbols = _list(_decodeObject(body), 'symbols');
   final matches = <SymbolMatch>[];
-  for (final item in symbols) {
-    final match = _symbolMatch(_asObject(item, 'symbols'), matches.length);
+  for (var position = 0; position < symbols.length; position++) {
+    final match = _symbolMatch(
+      _asObject(symbols[position], 'symbols'),
+      position,
+    );
     if (match != null) matches.add(match);
   }
-  // La penalización por posición hace únicas las puntuaciones: el orden es
-  // determinista aunque `sort` no sea estable.
-  matches.sort((a, b) => b.matchScore.compareTo(a.matchScore));
-  return matches.take(_maxSearchResults).toList();
+  return matches;
 }
 
 SymbolMatch? _symbolMatch(_Json item, int position) {
@@ -51,19 +45,24 @@ SymbolMatch? _symbolMatch(_Json item, int position) {
   final type = _text(item['type']);
   if (ticker == null || exchange == null) return null;
   if (type != 'stock' && type != 'dr') return null;
-  final score = type == 'dr'
-      ? _depositaryReceiptScore
-      : item['is_primary_listing'] == true
-      ? _primaryListingScore
-      : _secondaryListingScore;
+  final relevance = 1 - position * _positionPenalty;
   return SymbolMatch(
     symbol: '$exchange:$ticker',
     name: _stripHighlight(_text(item['description']) ?? ticker),
     region: _text(item['country']) ?? exchange,
     currency: _text(item['currency_code']) ?? '',
-    matchScore: score - position * _positionPenalty,
+    matchScore: relevance < _minRelevance ? _minRelevance : relevance,
+    isin: _text(item['isin']),
+    exchange: exchange,
+    exchangeName: _exchangeName(item['source2']) ?? '',
+    isPrimaryListing: item['is_primary_listing'] == true,
+    isDepositaryReceipt: type == 'dr',
   );
 }
+
+/// Nombre de la bolsa ("Tokyo Stock Exchange") del bloque `source2`.
+String? _exchangeName(Object? source) =>
+    source is _Json ? _text(source['name']) : null;
 
 /// El buscador marca las palabras encontradas con `<em>…</em>`.
 String _stripHighlight(String text) => text.replaceAll(RegExp('</?em>'), '');
@@ -174,6 +173,9 @@ CompanyOverview _overview(
   operatingMargin: row.fraction('operating_margin_ttm'),
   grossMargin: row.fraction('gross_margin_ttm'),
   rsi14: row.number('RSI'),
+  isin: row.text('isin'),
+  exchange: row.text('exchange'),
+  isPrimaryListing: row.flag('is_primary'),
 );
 
 /// Cociente solo con denominador > 0 (un EBITDA negativo no da un ratio).
@@ -360,6 +362,12 @@ class _Row {
   String? text(String field) => _text(_values[field]);
 
   double? number(String field) => _number(_values[field], field);
+
+  /// Un booleano del proveedor; `null` si no lo da.
+  bool? flag(String field) {
+    final value = _values[field];
+    return value is bool ? value : null;
+  }
 
   /// Un porcentaje del proveedor (17 = 17 %) como fracción (0,17).
   double? fraction(String field) {

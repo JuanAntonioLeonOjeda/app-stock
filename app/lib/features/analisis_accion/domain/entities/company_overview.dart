@@ -34,6 +34,9 @@ class CompanyOverview {
     this.operatingMargin,
     this.grossMargin,
     this.rsi14,
+    this.isin,
+    this.exchange,
+    this.isPrimaryListing,
   });
 
   final String symbol;
@@ -85,4 +88,14 @@ class CompanyOverview {
 
   /// RSI de 14 sesiones (0-100), cuando no hay histórico para calcularlo.
   final double? rsi14;
+
+  /// ISIN de la empresa: lo comparten todas sus cotizaciones ordinarias.
+  final String? isin;
+
+  /// Código de la bolsa de esta cotización (`TSE`, `BME`...).
+  final String? exchange;
+
+  /// Esta cotización es la principal de la empresa (su bolsa de origen);
+  /// `null` si el proveedor no lo dice.
+  final bool? isPrimaryListing;
 }

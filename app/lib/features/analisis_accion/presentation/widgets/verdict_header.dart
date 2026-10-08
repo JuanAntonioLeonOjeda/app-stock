@@ -11,6 +11,23 @@ class VerdictHeader extends StatelessWidget {
 
   final AnalysisResult result;
 
+  /// Bolsa, ISIN y si es la cotización principal u otra (criterio 80). No sale
+  /// en los análisis guardados antes de que se registrara (criterio 81).
+  List<Widget> _listingLines(TextTheme text) {
+    final isin = result.isin;
+    final exchange = result.exchange;
+    final isPrimary = result.isPrimaryListing;
+    final identity = [?exchange, if (isin != null) 'ISIN $isin'].join(' · ');
+    return [
+      if (identity.isNotEmpty) Text(identity, style: text.bodySmall),
+      if (isPrimary != null)
+        Text(
+          isPrimary ? primaryListingText : otherListingText,
+          style: text.bodySmall,
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -24,6 +41,7 @@ class VerdictHeader extends StatelessWidget {
           children: [
             Text(result.name, style: text.titleLarge),
             Text(result.symbol, style: text.bodyMedium),
+            ..._listingLines(text),
             const SizedBox(height: 8),
             Text(
               [

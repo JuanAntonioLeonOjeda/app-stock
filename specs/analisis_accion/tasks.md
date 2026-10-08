@@ -251,3 +251,20 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       Iberdrola y Apple; `flutter-reviewer`.
 - [ ] T89. En el móvil: 1D y 1S con mercado abierto y cerrado.
 
+---
+
+## Revisión 5: búsqueda sin versiones duplicadas
+
+- [x] T90. `SymbolMatch` ampliado, `CompanyListings` y `group_listings.dart` + tests.
+- [x] T91. Fixtures reales de la búsqueda ("nintendo", "iberdrola", "inditex" y su ISIN) y
+      parser de búsqueda con los campos nuevos + tests.
+- [x] T92. `searchSymbol` del adapter con complementación por ISIN, fallo aislado, límite y caché + tests.
+- [x] T93. `SearchSymbolUseCase` devuelve empresas agrupadas + test.
+- [x] T94. Scanner: columnas `isin`, `exchange`, `is_primary` (ampliar las fixtures existentes);
+      `CompanyOverview`, `AnalysisResult` y su JSON + tests.
+- [x] T95. `HomeController`, `company_listings_tile.dart` y `HomeScreen` + tests.
+- [x] T96. Cabecera del resultado con bolsa, ISIN y principal + test.
+- [x] T97. `dart format`, `flutter analyze`, `flutter test`; prueba en vivo ("nintendo",
+      "inditex", ISIN); `flutter-reviewer`; skill `datos-mercado`.
+- [ ] T98. En el móvil: buscar "Inditex", "Nintendo" y un ISIN.
+

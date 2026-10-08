@@ -41,6 +41,47 @@ void main() {
       expect(restored.blocks.first.metrics.first.value, isNull);
     });
 
+    test('guarda y recupera el ISIN, la bolsa y si es la principal', () {
+      final result = const StockAnalyzer().analyze(
+        buildCompany(
+          companyOverview: overview(
+            isin: 'JP3756600007',
+            exchange: 'TSE',
+            isPrimaryListing: false,
+          ),
+        ),
+        referenceDate: referenceDate,
+      );
+
+      final restored = analysisResultFromJson(
+        _throughText(analysisResultToJson(result)),
+      );
+
+      expect(restored.isin, 'JP3756600007');
+      expect(restored.exchange, 'TSE');
+      expect(restored.isPrimaryListing, isFalse);
+    });
+
+    test('un análisis guardado antes de esos campos se lee igual, con null (criterio 81)', () {
+      final json =
+          analysisResultToJson(
+              const StockAnalyzer().analyze(
+                qualityCompany(),
+                referenceDate: referenceDate,
+              ),
+            )
+            ..remove('isin')
+            ..remove('exchange')
+            ..remove('isPrimaryListing');
+
+      final restored = analysisResultFromJson(_throughText(json));
+
+      expect(restored.isin, isNull);
+      expect(restored.exchange, isNull);
+      expect(restored.isPrimaryListing, isNull);
+      expect(restored.name, 'Calidad S.A.');
+    });
+
     test('un valor de enum desconocido es FormatException', () {
       final json = analysisResultToJson(
         const StockAnalyzer().analyze(

@@ -32,6 +32,10 @@ String blockLabel(Block block) => switch (block) {
   Block.context => 'Contexto',
 };
 
+/// Qué cotización de la empresa es la analizada (criterio 80).
+const primaryListingText = 'Cotización principal';
+const otherListingText = 'Otra cotización';
+
 /// Texto del selector de periodo de la gráfica (criterio 46).
 String chartRangeLabel(ChartRange range) => switch (range) {
   ChartRange.day => '1D',

@@ -38,6 +38,9 @@ Map<String, Object?> analysisResultToJson(AnalysisResult result) => {
   'flags': result.flags,
   'missingData': result.missingData,
   'motorVersion': result.motorVersion,
+  'isin': result.isin,
+  'exchange': result.exchange,
+  'isPrimaryListing': result.isPrimaryListing,
 };
 
 /// Lanza [FormatException] si el JSON no tiene el formato esperado.
@@ -61,6 +64,12 @@ AnalysisResult analysisResultFromJson(Object? json) {
       for (final label in _list(map['missingData'])) _requiredString(label),
     ],
     motorVersion: _requiredString(map['motorVersion']),
+    // Ausentes en los análisis guardados antes de la Revisión 5.
+    isin: _string(map['isin']),
+    exchange: _string(map['exchange']),
+    isPrimaryListing: map['isPrimaryListing'] is bool
+        ? map['isPrimaryListing']! as bool
+        : null,
   );
 }
 

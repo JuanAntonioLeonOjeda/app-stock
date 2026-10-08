@@ -43,7 +43,17 @@ scans = {
 }
 for name, ticker in scans.items():
     json.dump(scan([ticker]), open(f"{out}/{name}.json", "w"), ensure_ascii=False, indent=1)
-for name, text in {"search_nintendo": "nintendo", "search_no_results": "zzzzqxj"}.items():
+searches = {
+    "search_nintendo": "nintendo",
+    "search_no_results": "zzzzqxj",
+    "search_iberdrola": "iberdrola",
+    # "inditex" solo trae versiones secundarias: la principal sale por su ISIN.
+    "search_inditex": "inditex",
+    "search_isin_inditex": "ES0148396007",
+    "search_isin_nintendo": "JP3756600007",
+    "search_apple": "apple",
+}
+for name, text in searches.items():
     json.dump(search(text), open(f"{out}/{name}.json", "w"), ensure_ascii=False, indent=1)
 print("Fixtures guardadas en", out)
 PY
