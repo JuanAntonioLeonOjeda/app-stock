@@ -21,7 +21,9 @@ Future<http.Response> sendRateRequest(
     return await send().timeout(_requestTimeout);
   } on http.ClientException {
     throw const NetworkException('Fallo de conexión');
-  } on SocketException {
+  } on IOException {
+    // Incluye fallos de TLS (`HandshakeException`), que `http` no envuelve y
+    // que en Android con certificados raíz antiguos dejaban la carga colgada.
     throw const NetworkException('Sin conexión');
   } on TimeoutException {
     throw const NetworkException('Tiempo de espera agotado');

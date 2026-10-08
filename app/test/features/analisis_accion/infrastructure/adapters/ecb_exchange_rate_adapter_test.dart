@@ -23,6 +23,17 @@ import '../../../../fixtures/exchange_rates_fixtures.dart';
 
 void main() {
   group('EcbExchangeRateAdapter', () {
+    test('un fallo de TLS es un NetworkException, no escapa', () async {
+      final client = MockClient(
+        (_) async => throw const HandshakeException('certificado no válido'),
+      );
+
+      expect(
+        () => EcbExchangeRateAdapter(client: client).fetchRates('JPY'),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
     test(
       'pide los tipos diarios de la moneda frente al euro desde 2001',
       () async {

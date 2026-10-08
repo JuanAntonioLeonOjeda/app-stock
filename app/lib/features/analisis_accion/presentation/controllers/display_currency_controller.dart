@@ -170,6 +170,11 @@ class DisplayCurrencyController extends ChangeNotifier {
     } on MarketDataException {
       if (request != _requestId) return;
       if (!hadRates) _status = CurrencyStatus.failed;
+    } on Exception {
+      // Un fallo no previsto no debe dejar la pantalla en "Convirtiendo a
+      // euros…" para siempre: se trata como cualquier otro fallo de carga.
+      if (request != _requestId) return;
+      if (!hadRates) _status = CurrencyStatus.failed;
     } finally {
       if (request == _requestId) {
         _isLoading = false;

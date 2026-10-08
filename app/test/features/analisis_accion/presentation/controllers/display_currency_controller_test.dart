@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_exchange_rates_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/exchange_rate_series.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
+import 'package:stock_app/features/analisis_accion/domain/ports/exchange_rate_port.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
 
 import '../../application/fake_ports.dart';
@@ -440,4 +441,22 @@ void main() {
       expect(rates.calls, hasLength(2));
     });
   });
+
+  test('una excepción inesperada no deja la carga colgada', () async {
+    final controller = DisplayCurrencyController(
+      getExchangeRates: GetExchangeRatesUseCase(_ExplodingRates()),
+    );
+
+    await controller.configure('JPY');
+
+    expect(controller.status, CurrencyStatus.failed);
+  });
+}
+
+class _ExplodingRates implements ExchangeRatePort {
+  @override
+  Future<ExchangeRateSeries> fetchRates(
+    String isoCode, {
+    bool forceRefresh = false,
+  }) async => throw const FormatException('inesperado');
 }
