@@ -24,6 +24,7 @@ class _FakeBundle extends AssetBundle {
     }
     final files = sampleFiles();
     if (key.endsWith('metricas.es.json')) return files.metrics;
+    if (key.endsWith('conceptos.es.json')) return files.concepts;
     if (key.endsWith('bloques.es.json')) return files.blocks;
     return files.guide;
   }
@@ -36,7 +37,7 @@ class _FakeBundle extends AssetBundle {
 
 void main() {
   group('AssetEducationalContentAdapter', () {
-    test('lee los tres archivos y devuelve el contenido', () async {
+    test('lee los cuatro archivos y devuelve el contenido', () async {
       final bundle = _FakeBundle();
 
       final content = await AssetEducationalContentAdapter(bundle: bundle)
@@ -45,6 +46,7 @@ void main() {
       expect(content.metrics, hasLength(3));
       expect(bundle.reads, [
         'assets/contenido/metricas.es.json',
+        'assets/contenido/conceptos.es.json',
         'assets/contenido/bloques.es.json',
         'assets/contenido/guia.es.json',
       ]);
@@ -58,7 +60,7 @@ void main() {
       final second = await adapter.load();
 
       expect(second, same(first));
-      expect(bundle.reads, hasLength(3));
+      expect(bundle.reads, hasLength(4));
     });
 
     test('un archivo que falta es InvalidContentException', () async {

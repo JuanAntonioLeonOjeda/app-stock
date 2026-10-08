@@ -48,8 +48,10 @@ Map<String, Object?> guideJson() => {
   },
 };
 
-/// Contenido válido: `per` y `peg` en valoración, `rsi` en técnico.
-({String metrics, String blocks, String guide}) sampleFiles() => (
+/// Contenido válido: `per` y `peg` en valoración, `rsi` en técnico, y los
+/// conceptos `media_50` y `grafico_precio`.
+({String metrics, String concepts, String blocks, String guide})
+sampleFiles() => (
   metrics: jsonEncode({
     'metricas': [
       metricJson(
@@ -71,6 +73,22 @@ Map<String, Object?> guideJson() => {
       ),
     ],
   }),
+  concepts: jsonEncode({
+    'conceptos': [
+      metricJson(
+        'media_50',
+        title: 'Media de 50 sesiones',
+        summary: 'El precio medio de los últimos 50 días.',
+        combinaCon: ['per'],
+      ),
+      metricJson(
+        'grafico_precio',
+        title: 'Cómo leer la gráfica',
+        summary: 'La evolución del precio de cierre.',
+        combinaCon: ['media_50', 'rsi'],
+      ),
+    ],
+  }),
   blocks: jsonEncode({
     'bloques': [
       blockJson('bloque_valoracion', ['per', 'peg']),
@@ -84,6 +102,7 @@ EducationalContent sampleContent() {
   final files = sampleFiles();
   return parseEducationalContent(
     metrics: files.metrics,
+    concepts: files.concepts,
     blocks: files.blocks,
     guide: files.guide,
   );

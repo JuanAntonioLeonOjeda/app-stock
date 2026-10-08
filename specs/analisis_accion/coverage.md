@@ -127,3 +127,26 @@ Sustituye al criterio 35 (sin histórico → aviso). Rutas relativas a `app/test
 Los tests del canal de gráficos usan una transcripción real guardada (`chart_tse_7974`,
 `chart_unknown_symbol`), no la red.
 
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+Rutas relativas a `app/test/features/analisis_accion/`.
+
+| # | Criterio | Tests | Dispositivo |
+|---|---|---|---|
+| 58 | Selector con 1D y 1S delante; 1A por defecto | `presentation/widgets/price_chart_panel_test.dart`; `presentation/formatters/labels_test.dart` | T89 |
+| 59 | 1D: última sesión en velas de 5 minutos, eje en horas de la bolsa | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `infrastructure/adapters/tradingview_adapter_test.dart` | **T89** |
+| 60 | 1S: 5 sesiones pegadas, con el día de cada una | `price_chart_panel_test.dart`; `price_chart_controller_test.dart`; `domain/chart/sessions_test.dart` | **T89** |
+| 61 | Máximo y mínimo con día y hora | `price_chart_panel_test.dart` | |
+| 62 | Tooltip con día, hora y precio | `price_chart_panel_test.dart` (contenido del tooltip) | T89 (el toque) |
+| 63 | Medias ocultas en 1D y 1S y recordadas | `price_chart_panel_test.dart`; `price_chart_controller_test.dart` | |
+| 64 | Pie con sesión, horas de la bolsa o del dispositivo, y retraso | `price_chart_panel_test.dart`; `domain/chart/exchange_clock_test.dart` (cambios de hora de la UE y de EE. UU.) | |
+| 65 | Caché de 5 minutos; "Actualizar datos" la vuelve a pedir | `tradingview_adapter_test.dart`; `price_chart_controller_test.dart` | |
+| 66 | Un fallo del intradía solo afecta a esa vista | `price_chart_panel_test.dart`; `price_chart_controller_test.dart` | |
+| 67 | Con menos sesiones de las pedidas, las que haya | `sessions_test.dart`; `price_chart_controller_test.dart` | |
+
+Los tests del canal usan transcripciones reales guardadas (`chart_intra5_bme_ibe`,
+`chart_intra30_tse_7974`). Comprobado además en vivo el 2026-10-08 con Nintendo, Fast Retailing,
+Iberdrola y Apple: sesiones bien cortadas y horas de cada bolsa correctas.
+

@@ -70,6 +70,29 @@ String formatChartAxisDate(DateTime date, ChartRange range) {
   return '$month ${(date.year % 100).toString().padLeft(2, '0')}';
 }
 
+const _weekdays = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+
+String _twoDigits(int n) => n.toString().padLeft(2, '0');
+
+/// Hora de la bolsa para el eje del día: "16:50". [wall] ya viene en la hora
+/// que se quiere mostrar (ver `exchangeWallClock`).
+String formatClock(DateTime wall) =>
+    '${_twoDigits(wall.hour)}:${_twoDigits(wall.minute)}';
+
+/// Día de la sesión para el eje de la semana: "jue 8".
+String formatWeekdayAndDay(DateTime wall) =>
+    '${_weekdays[wall.weekday - 1]} ${wall.day}';
+
+/// Día y hora para el tooltip y para el máximo y el mínimo: "8 oct 16:50".
+String formatMoment(DateTime wall) =>
+    '${wall.day} ${_months[wall.month - 1]} ${formatClock(wall)}';
+
+/// Retraso de los precios en palabras: "15 minutos" (criterio 64).
+String formatDelay(Duration delay) {
+  final minutes = delay.inMinutes < 1 ? 1 : delay.inMinutes;
+  return _plural(minutes, 'minuto', 'minutos');
+}
+
 /// Precio compacto para el eje de la gráfica: más decimales cuanto más
 /// pequeño es el valor.
 String formatChartAxisPrice(double price) {

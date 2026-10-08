@@ -1,6 +1,7 @@
 # Spec: analisis_accion
 
-> Estado: cerrada (2026-09-30). **Revisión 3 (histórico real y gráfica de precio, fase 1
+> Estado: cerrada (2026-09-30). **Revisión 4 (gráfica del día y de la semana) cerrada el
+> 2026-10-08**: ver la sección "Revisión 4" al final. **Revisión 3 (histórico real y gráfica de precio, fase 1
 > del panel "Resumen") cerrada el 2026-10-08**: ver la sección "Revisión 3" al final; sustituye
 > el criterio 35. **Revisión 2 (proveedor TradingView) cerrada el 2026-10-06**: ver la sección "Revisión 2" al final; sustituye a Alpha Vantage como
 > proveedor y modifica los criterios 5, 22, 27 y 31. Siguiente paso: actualizar `plan.md`.
@@ -339,6 +340,71 @@ Revisión 2: sin gráfica y con una sola barra de precio.
   transcripción real guardada para detectarlo, y el fallo se aísla del análisis (criterio 56).
 - **`motorVersion` pasa a 1.2.0**: cambian los datos de entrada de varias métricas.
 - **Dependencia nueva**: `fl_chart` (solo en `presentation/`).
+
+### Preguntas abiertas
+
+Ninguna.
+
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+### Qué cambia y por qué
+
+La gráfica de la Revisión 3 empieza en 1 mes y solo usa cierres diarios. Para ver cómo se ha
+movido la acción hoy y esta semana hacen falta velas intradía. El canal de gráficos de
+TradingView las da con la misma conexión (comprobado el 2026-10-08 con Nintendo, Iberdrola y
+Apple: velas de 5, 30 y 60 minutos, con la zona horaria de la bolsa y el retraso de los datos).
+Esto sustituye la exclusión "Intradía: solo cierres diarios" de la Revisión 3.
+
+### Fuera de alcance (añade a los de arriba)
+
+- Periodos intradía a medida, otras resoluciones, velas japonesas y volumen.
+- Mostrar en la hora de la bolsa las plazas cuya zona horaria no esté en la tabla de la app
+  (se muestra la hora del dispositivo y se avisa).
+- Antes y después de mercado, y datos en tiempo real: TradingView los da con retraso y así se
+  muestran.
+- Medias de 50 y 200 en 1D y 1S (son de sesiones diarias).
+
+### Criterios de aceptación
+
+58. **Dado** el selector de periodo, **cuando** lo veo, **entonces** empieza por **1D** y
+    **1S**, seguidos de 1M, 3M, 6M, 1A, 5A y Todo; el periodo por defecto sigue siendo 1A.
+59. **Dado** 1D, **cuando** lo elijo, **entonces** veo la línea de la última sesión de
+    negociación en tramos de 5 minutos, con el eje en horas de la bolsa ("09:00", "10:00"...).
+    Si hoy no hay mercado (fin de semana, festivo), es la última sesión que hubo, y el pie
+    dice su fecha.
+60. **Dado** 1S, **cuando** lo elijo, **entonces** veo las últimas 5 sesiones en tramos de
+    30 minutos, pegadas unas a otras sin huecos de noche ni de fin de semana, con el día de
+    cada sesión en el eje ("jue 8").
+61. **Dado** 1D o 1S, **cuando** miro la gráfica, **entonces** el máximo y el mínimo del
+    periodo aparecen marcados con su valor, su día y su hora.
+62. **Dado** 1D o 1S, **cuando** toco o arrastro, **entonces** veo el día, la hora y el precio
+    de ese punto con su divisa.
+63. **Dado** 1D o 1S, **cuando** los elijo, **entonces** los interruptores de las medias no se
+    muestran; al volver a un periodo largo, reaparecen como los dejé.
+64. **Dado** que TradingView informa de retraso, **cuando** veo 1D o 1S, **entonces** el pie
+    dice "Datos con 15 minutos de retraso" (los que indique). Las horas son las de la bolsa; si
+    su zona horaria no se conoce, son las del dispositivo y el pie lo dice.
+65. **Dado** que ya cargué 1D o 1S hace menos de 5 minutos, **cuando** los vuelvo a elegir,
+    **entonces** salen de la caché; "Actualizar datos" los vuelve a pedir.
+66. **Dado** que 1D o 1S no se pueden cargar, **cuando** los elijo, **entonces** veo "No se ha
+    podido cargar la gráfica" con "Reintentar" solo en esa vista; los periodos largos siguen
+    funcionando.
+67. **Dado** una acción con una sola sesión disponible (cotización muy reciente o poco
+    líquida), **cuando** elijo 1S, **entonces** veo las sesiones que haya, sin inventar las
+    que faltan.
+
+### Decisiones y riesgos
+
+- **Sesiones por huecos, no por fechas**: una sesión es una racha de velas sin un hueco de más
+  de 3 horas (la pausa de la comida de Tokio es de 1 hora). Así el corte no depende de la zona
+  horaria.
+- **Horas de la bolsa con una tabla de zonas** (Tokio, Madrid, Londres, Nueva York y las
+  principales) con sus reglas de cambio de hora; una zona desconocida usa la del dispositivo.
+- **En 1D y 1S el eje es el orden de las velas, no el tiempo**, para que las sesiones no
+  dejen huecos (como hace la propia TradingView).
+- **Caché de 5 minutos** para el intradía (los datos llegan con retraso de 15-20 minutos).
 
 ### Preguntas abiertas
 

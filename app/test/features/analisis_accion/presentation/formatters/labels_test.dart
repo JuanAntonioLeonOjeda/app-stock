@@ -18,7 +18,7 @@ void main() {
     test('cada periodo tiene su texto del selector', () {
       expect(
         [for (final range in ChartRange.values) chartRangeLabel(range)],
-        ['1M', '3M', '6M', '1A', '5A', 'Todo'],
+        ['1D', '1S', '1M', '3M', '6M', '1A', '5A', 'Todo'],
       );
     });
   });

@@ -103,3 +103,10 @@
 - [x] T35. Cableado en `app.dart`; `dart format`, `flutter analyze` y `flutter test` limpios.
 - [ ] T36. Probar en el móvil que la explicación se despliega bien en la lista.
 
+## Revisión: conceptos de la gráfica de precio
+
+- [x] T37. `conceptos.es.json` con `media_50`, `media_200` y `grafico_precio`.
+- [x] T38. Parser, entidad `concepts`/`explanationById`, adapter y vistas resuelven conceptos + tests.
+- [x] T39. Test de cobertura en `app/test/`: los conceptos que referencia `analisis_accion` existen,
+      sin frases de recomendación ni empresas reales.
+

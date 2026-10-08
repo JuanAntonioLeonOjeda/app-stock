@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/intraday_bar.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/intraday_series.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/stock_data.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/symbol_match.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart';
+import 'package:stock_app/features/analisis_accion/domain/ports/intraday_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/market_data_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/price_history_port.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_chart_connection.dart';
@@ -21,6 +25,10 @@ import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradi
 /// viene de una sola petición, así que no hay caducidades por endpoint.
 const _cacheTtl = Duration(hours: 6);
 
+/// Caducidad del intradía: los precios llegan con 15-20 minutos de retraso, así
+/// que pedirlos más a menudo no da datos nuevos (criterio 65).
+const _intradayTtl = Duration(minutes: 5);
+
 const _requestTimeout = Duration(seconds: 30);
 
 const _searchHost = 'symbol-search.tradingview.com';
@@ -32,13 +40,14 @@ const _headers = {
   'User-Agent': 'Mozilla/5.0',
 };
 
-/// [MarketDataPort] y [PriceHistoryPort] con el buscador, el scanner y el canal
+/// [MarketDataPort], [PriceHistoryPort] e [IntradayHistoryPort] con el buscador, el scanner y el canal
 /// de gráficos de TradingView.
 ///
 /// Fuente **no oficial**: puede cambiar o cortarse sin aviso. No necesita
 /// clave. Guarda en caché el JSON en crudo de cada respuesta ya validada
 /// (el parser se ejecuta siempre al leer) y nunca una respuesta de error.
-class TradingViewAdapter implements MarketDataPort, PriceHistoryPort {
+class TradingViewAdapter
+    implements MarketDataPort, PriceHistoryPort, IntradayHistoryPort {
   TradingViewAdapter({
     required this._client,
     required this._cache,
@@ -55,6 +64,9 @@ class TradingViewAdapter implements MarketDataPort, PriceHistoryPort {
   /// Descargas del histórico en curso, por símbolo: al abrir un análisis nuevo
   /// el motor y la gráfica lo piden a la vez y comparten una sola petición.
   final Map<String, Future<List<DailyBar>>> _historyDownloads = {};
+
+  /// Lo mismo para el intradía, por resolución y símbolo.
+  final Map<String, Future<IntradaySeries>> _intradayDownloads = {};
 
   @override
   Future<List<SymbolMatch>> searchSymbol(String query) async {
@@ -134,6 +146,63 @@ class TradingViewAdapter implements MarketDataPort, PriceHistoryPort {
         _historyDownloads.remove(ticker);
       }),
     );
+  }
+
+  @override
+  Future<IntradaySeries> fetchIntraday(
+    String symbol,
+    IntradayResolution resolution, {
+    bool forceRefresh = false,
+  }) async {
+    final ticker = symbol.trim().toUpperCase();
+    if (ticker.isEmpty) {
+      throw const NotFoundException('Símbolo vacío');
+    }
+    final key = 'tv:v1:intraday:${resolution.minutes}:$ticker';
+    if (!forceRefresh) {
+      final cached = await _readCachedIntraday(key);
+      if (cached != null) return cached;
+    }
+    return _intradayDownloads.putIfAbsent(
+      key,
+      () => _downloadIntraday(ticker, resolution, key).whenComplete(() {
+        // Con cuerpo y sin devolver nada (ver `fetchPriceHistory`).
+        _intradayDownloads.remove(key);
+      }),
+    );
+  }
+
+  Future<IntradaySeries> _downloadIntraday(
+    String ticker,
+    IntradayResolution resolution,
+    String key,
+  ) async {
+    final series = await _historyClient.fetchSeries(
+      ticker,
+      resolution: '${resolution.minutes}',
+      bars: resolution.barsToRequest,
+    );
+    final result = IntradaySeries(
+      bars: [
+        for (final candle in series.candles)
+          IntradayBar(time: candle.time, close: candle.close),
+      ],
+      timezone: series.timezone,
+      delay: series.delay,
+    );
+    await _cache.write(key, encodeIntraday(result), _intradayTtl);
+    return result;
+  }
+
+  /// Lo guardado, o `null` si no hay o ya no se puede interpretar.
+  Future<IntradaySeries?> _readCachedIntraday(String key) async {
+    final cached = await _cache.read(key);
+    if (cached == null) return null;
+    try {
+      return decodeIntraday(cached);
+    } on MarketDataException {
+      return null;
+    }
   }
 
   Future<List<DailyBar>> _downloadHistory(String ticker) async {

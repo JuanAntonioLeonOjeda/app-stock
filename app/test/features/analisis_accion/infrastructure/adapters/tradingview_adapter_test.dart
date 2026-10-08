@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_chart_connection.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/tradingview_adapter.dart';
@@ -567,5 +568,166 @@ void main() {
         );
       },
     );
+  });
+
+  group('TradingViewAdapter.fetchIntraday', () {
+    _FakeChart intraday5() => _FakeChart(
+      script: readChartTranscript('chart_intra5_bme_ibe').received,
+    );
+
+    test('devuelve las velas con la zona horaria y el retraso', () async {
+      final series = await _adapter(
+        _FakeServer(),
+        FakeCache(),
+        chart: intraday5(),
+      ).fetchIntraday('bme:ibe', IntradayResolution.minutes5);
+
+      expect(series.bars.length, greaterThan(40));
+      expect(series.timezone, 'Europe/Madrid');
+      expect(series.delay, const Duration(minutes: 15));
+      expect(series.bars.first.time.isBefore(series.bars.last.time), isTrue);
+    });
+
+    test('pide la resolución y el número de velas de la resolución', () async {
+      final chart = intraday5();
+
+      await _adapter(
+        _FakeServer(),
+        FakeCache(),
+        chart: chart,
+      ).fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      final request = chart.connections.single.sent[3];
+      expect(request, contains('"5"'));
+      expect(request, contains('400'));
+    });
+
+    test('la de 30 minutos pide su propia resolución', () async {
+      final chart = _FakeChart(
+        script: readChartTranscript('chart_intra30_tse_7974').received,
+      );
+
+      await _adapter(
+        _FakeServer(),
+        FakeCache(),
+        chart: chart,
+      ).fetchIntraday('TSE:7974', IntradayResolution.minutes30);
+
+      expect(chart.connections.single.sent[3], contains('"30"'));
+      expect(chart.connections.single.sent[3], contains('200'));
+    });
+
+    test('guarda en caché 5 minutos (criterio 65)', () async {
+      final cache = FakeCache();
+
+      await _adapter(
+        _FakeServer(),
+        cache,
+        chart: intraday5(),
+      ).fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      expect(cache.values.keys, ['tv:v1:intraday:5:BME:IBE']);
+      expect(
+        cache.ttls['tv:v1:intraday:5:BME:IBE'],
+        const Duration(minutes: 5),
+      );
+    });
+
+    test('con la caché vigente no abre ninguna conexión', () async {
+      final chart = intraday5();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+      await adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      final series = await adapter.fetchIntraday(
+        'BME:IBE',
+        IntradayResolution.minutes5,
+      );
+
+      expect(chart.connections, hasLength(1));
+      expect(series.timezone, 'Europe/Madrid');
+    });
+
+    test('forceRefresh y la caché caducada vuelven a pedir', () async {
+      final cache = FakeCache();
+      final chart = intraday5();
+      final adapter = _adapter(_FakeServer(), cache, chart: chart);
+      await adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      await adapter.fetchIntraday(
+        'BME:IBE',
+        IntradayResolution.minutes5,
+        forceRefresh: true,
+      );
+      cache.expire('tv:v1:intraday:5:BME:IBE');
+      await adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      expect(chart.connections, hasLength(3));
+    });
+
+    test('cada resolución tiene su propia caché', () async {
+      final chart = intraday5();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+
+      await adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+      await adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes30);
+
+      expect(chart.connections, hasLength(2));
+    });
+
+    test('una entrada de caché ilegible se ignora y se sustituye', () async {
+      final cache = FakeCache()
+        ..values['tv:v1:intraday:5:BME:IBE'] = '{"formato":"antiguo"}';
+      final chart = intraday5();
+
+      final series = await _adapter(
+        _FakeServer(),
+        cache,
+        chart: chart,
+      ).fetchIntraday('BME:IBE', IntradayResolution.minutes5);
+
+      expect(series.bars, isNotEmpty);
+      expect(chart.connections, hasLength(1));
+    });
+
+    test('dos peticiones simultáneas comparten una sola conexión', () async {
+      final chart = intraday5();
+      final adapter = _adapter(_FakeServer(), FakeCache(), chart: chart);
+
+      await Future.wait([
+        adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5),
+        adapter.fetchIntraday('BME:IBE', IntradayResolution.minutes5),
+      ]);
+
+      expect(chart.connections, hasLength(1));
+    });
+
+    test('un fallo no se guarda y es NetworkException', () async {
+      final cache = FakeCache();
+      final chart = _FakeChart(error: const SocketException('sin red'));
+
+      await expectLater(
+        _adapter(
+          _FakeServer(),
+          cache,
+          chart: chart,
+        ).fetchIntraday('BME:IBE', IntradayResolution.minutes5),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(cache.values, isEmpty);
+    });
+
+    test('un símbolo vacío es NotFound sin abrir conexiones', () async {
+      final chart = intraday5();
+
+      await expectLater(
+        _adapter(
+          _FakeServer(),
+          FakeCache(),
+          chart: chart,
+        ).fetchIntraday(' ', IntradayResolution.minutes5),
+        throwsA(isA<NotFoundException>()),
+      );
+      expect(chart.connections, isEmpty);
+    });
   });
 }

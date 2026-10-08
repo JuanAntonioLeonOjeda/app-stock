@@ -12,8 +12,22 @@ const maxHistoryBars = 6000;
 
 const _defaultTimeout = Duration(seconds: 20);
 
-/// Menos sesiones que esto no es un histórico (criterio 57).
-const _minSessions = 2;
+/// Menos sesiones diarias que esto no es un histórico (criterio 57).
+const _minDailySessions = 2;
+
+/// Velas recibidas con lo que el servidor dijo del símbolo.
+class ChartSeries {
+  const ChartSeries({required this.candles, this.timezone, this.delay});
+
+  /// De la más antigua a la más reciente, sin instantes repetidos.
+  final List<Candle> candles;
+
+  /// Zona horaria de la bolsa (nombre IANA), si el servidor la dio.
+  final String? timezone;
+
+  /// Retraso de los precios, si el servidor lo indicó.
+  final Duration? delay;
+}
 
 /// Pide a TradingView el histórico diario de una acción por su canal de
 /// gráficos (WebSocket no oficial) y lo traduce a velas.
@@ -34,6 +48,23 @@ class TradingViewHistoryClient {
   /// Velas diarias de [ticker] (`BOLSA:TICKER`), de la más antigua a la más
   /// reciente.
   Future<List<DailyBar>> fetch(String ticker) async {
+    final series = await fetchSeries(
+      ticker,
+      resolution: dailyResolution,
+      bars: maxHistoryBars,
+      minCandles: _minDailySessions,
+    );
+    return [for (final candle in series.candles) toDailyBar(candle)];
+  }
+
+  /// [bars] velas de [ticker] con la [resolution] del protocolo (`"D"`, `"5"`,
+  /// `"30"`...). Con menos de [minCandles] velas es una respuesta inválida.
+  Future<ChartSeries> fetchSeries(
+    String ticker, {
+    required String resolution,
+    required int bars,
+    int minCandles = 1,
+  }) async {
     final ChartConnection connection;
     final connecting = _connector();
     try {
@@ -51,7 +82,13 @@ class TradingViewHistoryClient {
       throw const NetworkException('Tiempo de espera agotado al conectar');
     }
     try {
-      return await _download(connection, ticker).timeout(_timeout);
+      return await _download(
+        connection,
+        ticker: ticker,
+        resolution: resolution,
+        bars: bars,
+        minCandles: minCandles,
+      ).timeout(_timeout);
     } on TimeoutException {
       throw const NetworkException('Tiempo de espera agotado');
     } finally {
@@ -59,12 +96,17 @@ class TradingViewHistoryClient {
     }
   }
 
-  Future<List<DailyBar>> _download(
-    ChartConnection connection,
-    String ticker,
-  ) async {
-    final done = Completer<List<DailyBar>>();
-    final chunks = <List<DailyBar>>[];
+  Future<ChartSeries> _download(
+    ChartConnection connection, {
+    required String ticker,
+    required String resolution,
+    required int bars,
+    required int minCandles,
+  }) async {
+    final done = Completer<ChartSeries>();
+    final chunks = <List<Candle>>[];
+    String? timezone;
+    Duration? delay;
 
     void fail(MarketDataException error) {
       if (!done.isCompleted) done.completeError(error);
@@ -89,15 +131,24 @@ class TradingViewHistoryClient {
             switch (parseChartMessage(message)) {
               case Heartbeat(:final text):
                 sendSafely(frameMessage(text));
-              case BarsReceived(:final bars):
-                chunks.add(bars);
+              case BarsReceived(:final candles):
+                chunks.add(candles);
+              case SymbolResolved(timezone: final zone, delay: final lag):
+                timezone = zone;
+                delay = lag;
               case SeriesCompleted():
                 if (done.isCompleted) break;
-                final bars = mergeBars(chunks);
-                if (bars.length < _minSessions) {
+                final candles = mergeCandles(chunks);
+                if (candles.length < minCandles) {
                   fail(const InvalidResponseException('Histórico vacío'));
                 } else {
-                  done.complete(bars);
+                  done.complete(
+                    ChartSeries(
+                      candles: candles,
+                      timezone: timezone,
+                      delay: delay,
+                    ),
+                  );
                 }
               case SymbolNotFound():
                 fail(const NotFoundException('Símbolo desconocido'));
@@ -120,7 +171,8 @@ class TradingViewHistoryClient {
       for (final message in buildHistoryRequest(
         session: _newSessionId(),
         ticker: ticker,
-        bars: maxHistoryBars,
+        bars: bars,
+        resolution: resolution,
       )) {
         sendSafely(message);
       }
@@ -135,6 +187,8 @@ class TradingViewHistoryClient {
       await connection.close();
     } on IOException {
       // Cerrar un canal ya roto no aporta nada: el resultado ya está decidido.
+    } on StateError {
+      // Igual si ya estaba cerrado: no debe ocultar el resultado ni el error.
     }
   }
 

@@ -126,12 +126,12 @@ void main() {
           for (final m in splitFrames(p)) parseChartMessage(m),
       ];
 
-      final bars = events.whereType<BarsReceived>().single.bars;
+      final bars = events.whereType<BarsReceived>().single.candles;
 
       expect(bars, hasLength(30));
-      expect(bars.last.date, DateTime.utc(2026, 10, 8));
+      expect(bars.last.time, DateTime.utc(2026, 10, 8));
       expect(bars.last.close, 7851);
-      expect(bars.first.date.isBefore(bars.last.date), isTrue);
+      expect(bars.first.time.isBefore(bars.last.time), isTrue);
     });
 
     test('la transcripción real termina con series_completed', () {
@@ -195,7 +195,7 @@ void main() {
           ]),
         );
 
-        final bars = (event as BarsReceived).bars;
+        final bars = (event as BarsReceived).candles;
 
         expect(bars.map((b) => b.close), [11, 12]);
       },
@@ -208,7 +208,7 @@ void main() {
         ]),
       );
 
-      expect((event as BarsReceived).bars.single.volume, 0);
+      expect((event as BarsReceived).candles.single.volume, 0);
     });
 
     test('tolera un cierre que sobrepasa el máximo por redondeo', () {
@@ -218,7 +218,7 @@ void main() {
         ]),
       );
 
-      expect((event as BarsReceived).bars, hasLength(1));
+      expect((event as BarsReceived).candles, hasLength(1));
     });
 
     test('la fecha de la vela es el día UTC', () {
@@ -229,33 +229,168 @@ void main() {
       );
 
       expect(
-        (event as BarsReceived).bars.single.date,
+        (event as BarsReceived).candles.single.time,
         DateTime.utc(2026, 10, 7),
+      );
+    });
+
+    test('una vela intradía conserva su hora exacta', () {
+      final event = parseChartMessage(
+        _timescale([
+          [_day + 13 * 3600 + 30 * 60, 10, 12, 9, 11, 5],
+        ]),
+      );
+
+      expect(
+        (event as BarsReceived).candles.single.time,
+        DateTime.utc(2026, 10, 7, 13, 30),
       );
     });
   });
 
-  group('mergeBars', () {
-    test('une los trozos sin fechas repetidas y en orden', () {
+  group('symbol_resolved', () {
+    SymbolResolved resolved(String fixture) {
+      final transcript = readChartTranscript(fixture);
+      final events = [
+        for (final p in transcript.received)
+          for (final m in splitFrames(p)) parseChartMessage(m),
+      ];
+      return events.whereType<SymbolResolved>().single;
+    }
+
+    test('da la zona horaria y el retraso de Tokio', () {
+      final event = resolved('chart_intra30_tse_7974');
+
+      expect(event.timezone, 'Asia/Tokyo');
+      expect(event.delay, const Duration(minutes: 20));
+    });
+
+    test('da la zona horaria y el retraso de Madrid', () {
+      final event = resolved('chart_intra5_bme_ibe');
+
+      expect(event.timezone, 'Europe/Madrid');
+      expect(event.delay, const Duration(minutes: 15));
+    });
+
+    test('sin zona ni retraso, ambos quedan en null', () {
+      final event = parseChartMessage(
+        '{"m":"symbol_resolved","p":["cs","s",{"name":"X"}]}',
+      );
+
+      expect((event as SymbolResolved).timezone, isNull);
+      expect(event.delay, isNull);
+    });
+
+    test('un retraso de 0 no cuenta como retraso', () {
+      final event = parseChartMessage(
+        '{"m":"symbol_resolved","p":["cs","s",{"timezone":"Asia/Tokyo","delay":0}]}',
+      );
+
+      expect((event as SymbolResolved).delay, isNull);
+    });
+  });
+
+  group('velas intradía reales', () {
+    List<Candle> candles(String fixture) {
+      final transcript = readChartTranscript(fixture);
+      final events = [
+        for (final p in transcript.received)
+          for (final m in splitFrames(p)) parseChartMessage(m),
+      ];
+      return events.whereType<BarsReceived>().expand((e) => e.candles).toList();
+    }
+
+    test(
+      'las de 5 minutos van separadas por 5 minutos dentro de la sesión',
+      () {
+        final list = candles('chart_intra5_bme_ibe');
+
+        expect(list.length, greaterThan(40));
+        final steps = <int>{
+          for (var i = 1; i < list.length; i++)
+            list[i].time.difference(list[i - 1].time).inMinutes,
+        };
+        expect(steps, contains(5));
+      },
+    );
+
+    test('las de 30 minutos van de 30 en 30 dentro de la sesión', () {
+      final list = candles('chart_intra30_tse_7974');
+
+      final steps = <int>{
+        for (var i = 1; i < list.length; i++)
+          list[i].time.difference(list[i - 1].time).inMinutes,
+      };
+      expect(steps, contains(30));
+    });
+
+    test('están en orden ascendente y con cierres positivos', () {
+      final list = candles('chart_intra5_bme_ibe');
+
+      for (var i = 1; i < list.length; i++) {
+        expect(list[i].time.isAfter(list[i - 1].time), isTrue);
+      }
+      expect(list.every((c) => c.close > 0), isTrue);
+    });
+  });
+
+  group('buildHistoryRequest con resolución', () {
+    test('pide la resolución indicada', () {
+      final request = buildHistoryRequest(
+        session: 'cs_abc',
+        ticker: 'BME:IBE',
+        bars: 400,
+        resolution: '5',
+      );
+      final params =
+          (jsonDecode(splitFrames(request.last).single)
+                  as Map<String, Object?>)['p']!
+              as List<Object?>;
+
+      expect(params, contains('5'));
+      expect(params, contains(400));
+      expect(params, isNot(contains('D')));
+    });
+  });
+
+  group('toDailyBar', () {
+    test('la fecha es el día en UTC, sin hora', () {
+      final bar = toDailyBar(
+        Candle(
+          time: DateTime.utc(2026, 10, 7, 13, 30),
+          open: 1,
+          high: 2,
+          low: 1,
+          close: 2,
+          volume: 3,
+        ),
+      );
+
+      expect(bar.date, DateTime.utc(2026, 10, 7));
+      expect(bar.volume, 3);
+    });
+  });
+
+  group('mergeCandles', () {
+    test('une los trozos sin instantes repetidos y en orden', () {
       final first = (parseChartMessage(
         _timescale([
           [_day + 86400, 10, 12, 9, 11, 5],
           [_day, 10, 12, 9, 10, 5],
         ]),
-      ) as BarsReceived).bars;
+      ) as BarsReceived).candles;
       final second = (parseChartMessage(
         _timescale([
           [_day + 86400, 10, 100, 9, 99.0, 5],
           [_day + 2 * 86400, 10, 12, 9, 12, 5],
         ]),
-      ) as BarsReceived).bars;
+      ) as BarsReceived).candles;
 
-      final merged = mergeBars([first, second]);
+      final merged = mergeCandles([first, second]);
 
-      // Con fecha repetida gana el último trozo recibido.
-      expect(merged.map((b) => b.close), [10, 99, 12]);
-      expect(merged, hasLength(3));
-      expect(merged.map((b) => b.date).toList(), [
+      // Con instante repetido gana el último trozo recibido.
+      expect(merged.map((c) => c.close), [10, 99, 12]);
+      expect(merged.map((c) => c.time).toList(), [
         DateTime.utc(2026, 10, 7),
         DateTime.utc(2026, 10, 8),
         DateTime.utc(2026, 10, 9),

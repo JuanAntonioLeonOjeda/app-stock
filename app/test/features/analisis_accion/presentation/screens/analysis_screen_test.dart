@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/motor_version.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
@@ -65,6 +66,7 @@ Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
 
 PriceChartController _chart(FakePriceHistory history) => PriceChartController(
   getPriceHistory: GetPriceHistoryUseCase(history),
+  getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
   symbol: 'CALI',
 );
 
@@ -169,6 +171,31 @@ void main() {
         await tester.tap(find.text('Detalle'));
         await tester.pumpAndSettle();
         expect(find.text('Valoración'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'con buildInfo, Resumen ofrece la explicación de las medias y de la gráfica (criterios 68-69)',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 3000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await _pumpScreen(
+          tester,
+          FakeMarketData(),
+          entry: _qualityEntry(),
+          chartController: _chart(
+            FakePriceHistory(bars: priceHistory(sessions: 400)),
+          ),
+          buildInfo: (_, topicId) => Text('Explicación de $topicId'),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Qué es la media de 200 sesiones'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Explicación de media_200'), findsOneWidget);
+        expect(find.byTooltip('Qué es cómo leer la gráfica'), findsOneWidget);
       },
     );
 

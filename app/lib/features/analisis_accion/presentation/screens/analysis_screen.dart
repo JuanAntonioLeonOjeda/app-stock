@@ -151,7 +151,11 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       ..._notices(entry),
       VerdictHeader(result: entry.result),
       const SizedBox(height: 16),
-      PriceChartPanel(controller: chart, currency: entry.result.currency),
+      PriceChartPanel(
+        controller: chart,
+        currency: entry.result.currency,
+        buildInfo: widget.buildInfo,
+      ),
     ],
   );
 

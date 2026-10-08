@@ -380,3 +380,79 @@ con datos reales, y `references/metricas.md` lo refleja.
 - `references/metricas.md`: con histórico real, las métricas técnicas se calculan.
 - Dependencia `fl_chart` en `app/pubspec.yaml`.
 
+---
+
+## Revisión 4: gráfica del día y de la última semana (2026-10-08)
+
+> Basada en la Revisión 4 de `spec.md`. Rutas relativas a `app/lib/features/analisis_accion/`.
+
+### Qué da el canal de gráficos (comprobado 2026-10-08)
+
+- La misma petición `create_series`, cambiando la resolución: `"5"` y `"30"` (minutos) en vez
+  de `"D"`. Cada vela es `[t, o, h, l, c, v]` con `t` en segundos.
+- `symbol_resolved` trae `timezone` (IANA: `Asia/Tokyo`, `Europe/Madrid`, `America/New_York`) y,
+  según la bolsa, `delay` en segundos (Tokio 1200, Madrid 900).
+- Solo sesión regular: 09:00-17:38 en Madrid, 09:30-16:00 en Nueva York, 09:00-15:31 en Tokio
+  con pausa de la comida.
+
+### Elementos por capa
+
+#### domain
+
+| Archivo | Contenido |
+|---|---|
+| `entities/intraday_bar.dart` | `IntradayBar`: instante (UTC) y cierre |
+| `entities/intraday_series.dart` | `IntradaySeries`: velas ascendentes, zona horaria de la bolsa y retraso |
+| `ports/intraday_history_port.dart` | `IntradayHistoryPort`: `fetchIntraday(symbol, resolution, {forceRefresh})` |
+| `chart/intraday_resolution.dart` | `IntradayResolution` (`minutes5`, `minutes30`) con su número de velas pedidas |
+| `chart/chart_range.dart` | Añade `day` y `week`, con `isIntraday` |
+| `chart/sessions.dart` | `splitSessions` (rachas sin hueco de más de 3 h) y `lastSessions(n)` |
+| `chart/exchange_clock.dart` | `exchangeWallClock(instante, zona)`: la hora local de la bolsa con una tabla de zonas y las reglas de cambio de hora de la UE y de EE. UU.; `null` si la zona no se conoce |
+
+#### application/use_cases
+
+| Archivo | Contenido |
+|---|---|
+| `get_intraday_history_use_case.dart` | `GetIntradayHistoryUseCase` |
+
+#### infrastructure/adapters
+
+| Archivo | Contenido |
+|---|---|
+| `tradingview_chart_protocol.dart` | Pasa a leer velas con su instante (`Candle`) y reconoce `symbol_resolved` (zona y retraso); `buildHistoryRequest` recibe la resolución. Las velas diarias se convierten a `DailyBar` como hasta ahora |
+| `tradingview_history_client.dart` | `fetchCandles(ticker, resolution, bars)` devuelve velas + zona + retraso; `fetch` (diario) se apoya en él |
+| `tradingview_history_cache.dart` | Formato compacto del intradía `{tz, delay, bars:[[t, cierre]]}` |
+| `tradingview_adapter.dart` | Implementa también `IntradayHistoryPort`: caché de 5 minutos, descargas simultáneas unidas por resolución |
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/price_chart_controller.dart` | Carga el intradía bajo demanda al elegir 1D o 1S (estado y error propios); `PriceChartView` añade `isIntraday`, el `ExchangeClock` y el retraso; las medias no aplican |
+| `widgets/price_line_chart.dart` | En intradía el eje X es el orden de las velas, con etiquetas de hora (1D) o de día (1S) en la hora de la bolsa; tooltip con día y hora |
+| `widgets/price_chart_panel.dart` | Selector con 1D y 1S; oculta las medias en intradía; pie con la sesión, el retraso y la zona horaria; error propio del intradía |
+| `formatters/` | Etiquetas de hora y de día de la semana en español |
+
+### Decisiones técnicas no obvias
+
+1. **Sesiones por huecos de más de 3 horas**, no por fecha: no depende de la zona horaria y
+   resiste la pausa de la comida de Tokio (1 h).
+2. **Eje por orden de velas** en 1D y 1S: sin huecos de noche y de fin de semana.
+3. **Tabla de zonas con reglas de cambio de hora en vez de un paquete de zonas horarias**: unas
+   15 zonas cubren las bolsas habituales y, si la zona no está, se usa la del dispositivo y se
+   avisa. Evita meter la base de datos completa de zonas.
+4. **El intradía no entra en `StockData` ni en el motor**: solo alimenta la gráfica.
+5. **Caché de 5 minutos**: los datos llegan con 15-20 min de retraso; pedirlos más a menudo no
+   da datos nuevos.
+6. **Conceptos educativos (`contenido_educativo`)**: `analisis_accion` ya recibe un
+   `InfoBuilder`; el panel de la gráfica lo usa también para las medias y el título de la
+   gráfica con los ids `media_50`, `media_200` y `grafico_precio`.
+
+### Tests
+
+Recorte de sesiones (con la pausa de Tokio y fines de semana), reglas de cambio de hora en las
+fechas de cambio de la UE y de EE. UU., transcripciones reales de 5 y 30 minutos, cliente con
+conexión falsa, adapter (caché de 5 minutos, descargas unidas, fallo aislado), controller
+(carga bajo demanda, error propio, medias recordadas), gráfica (etiquetas, tooltip, marcadores)
+y panel (selector, medias ocultas, pie).
+

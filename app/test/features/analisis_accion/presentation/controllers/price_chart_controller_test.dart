@@ -1,18 +1,33 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/chart/chart_range.dart';
+import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 
 import '../../application/fake_ports.dart';
+import '../intraday_samples.dart';
 import '../../domain/motor/synthetic_companies.dart';
 
 PriceChartController _controller(FakePriceHistory port) => PriceChartController(
   getPriceHistory: GetPriceHistoryUseCase(port),
+  getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
   symbol: 'TSE:7974',
+);
+
+PriceChartController _withIntraday(
+  FakeIntradayHistory intraday, {
+  FakePriceHistory? history,
+}) => PriceChartController(
+  getPriceHistory: GetPriceHistoryUseCase(
+    history ?? FakePriceHistory(bars: priceHistory(sessions: 400)),
+  ),
+  getIntradayHistory: GetIntradayHistoryUseCase(intraday),
+  symbol: 'BME:IBE',
 );
 
 /// 800 sesiones diarias consecutivas, con un pico y un valle conocidos.
@@ -91,6 +106,7 @@ void main() {
       final flaky = _FlakyHistory(_bars());
       final controller = PriceChartController(
         getPriceHistory: GetPriceHistoryUseCase(flaky),
+        getIntradayHistory: GetIntradayHistoryUseCase(FakeIntradayHistory()),
         symbol: 'TSE:7974',
       );
       await controller.load();
@@ -282,6 +298,226 @@ void main() {
       controller.setShortAverage(isVisible: false);
 
       expect(controller.view!.shortAverage, isEmpty);
+    });
+  });
+
+  group('PriceChartController día y semana', () {
+    test('elegir 1D carga las velas de 5 minutos y muestra la última sesión (criterio 59)', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      );
+      final controller = _withIntraday(intraday);
+      await controller.load();
+
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(intraday.calls.single.resolution, IntradayResolution.minutes5);
+      final view = controller.view!;
+      expect(view.isIntraday, isTrue);
+      expect(view.closes, hasLength(12));
+      expect(view.sessionStarts, [0]);
+    });
+
+    test('elegir 1S carga las de 30 minutos y muestra 5 sesiones pegadas (criterio 60)', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes30: intradaySeries()},
+      );
+      final controller = _withIntraday(intraday);
+      await controller.load();
+
+      controller.selectRange(ChartRange.week);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(intraday.calls.single.resolution, IntradayResolution.minutes30);
+      final view = controller.view!;
+      expect(view.closes, hasLength(60));
+      expect(view.sessionStarts, [0, 12, 24, 36, 48]);
+    });
+
+    test(
+      'con menos de 5 sesiones muestra las que haya (criterio 67)',
+      () async {
+        final intraday = FakeIntradayHistory(
+          byResolution: {
+            IntradayResolution.minutes30: intradaySeries(sessions: 2),
+          },
+        );
+        final controller = _withIntraday(intraday);
+        controller.selectRange(ChartRange.week);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(controller.view!.closes, hasLength(24));
+        expect(controller.view!.sessionStarts, [0, 12]);
+      },
+    );
+
+    test(
+      'lleva la zona horaria y el retraso del proveedor (criterio 64)',
+      () async {
+        final intraday = FakeIntradayHistory(
+          byResolution: {IntradayResolution.minutes5: intradaySeries()},
+        );
+        final controller = _withIntraday(intraday);
+        controller.selectRange(ChartRange.day);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(controller.view!.timezone, 'Europe/Madrid');
+        expect(controller.view!.delay, const Duration(minutes: 15));
+      },
+    );
+
+    test(
+      'el máximo y el mínimo son los de la sesión mostrada (criterio 61)',
+      () async {
+        final intraday = FakeIntradayHistory(
+          byResolution: {IntradayResolution.minutes5: intradaySeries()},
+        );
+        final controller = _withIntraday(intraday);
+        controller.selectRange(ChartRange.day);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(controller.view!.extremes!.high.value, 500);
+        expect(controller.view!.extremes!.low.value, lessThan(110));
+      },
+    );
+
+    test('las medias no se dibujan en intradía y se recuerdan al volver (criterio 63)', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      );
+      final controller = _withIntraday(intraday);
+      await controller.load();
+      controller.setShortAverage(isVisible: true);
+
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.view!.shortAverage, isEmpty);
+      expect(controller.showShortAverage, isTrue);
+
+      controller.selectRange(ChartRange.year1);
+      expect(controller.view!.shortAverage, isNotEmpty);
+    });
+
+    test('mientras carga no hay vista y isLoading es true', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      )..gate = Completer<void>();
+      final controller = _withIntraday(intraday);
+      await controller.load();
+
+      controller.selectRange(ChartRange.day);
+
+      expect(controller.isLoading, isTrue);
+      expect(controller.view, isNull);
+      intraday.gate!.complete();
+      await Future<void>.delayed(Duration.zero);
+      expect(controller.isLoading, isFalse);
+      expect(controller.view, isNotNull);
+    });
+
+    test('un fallo del intradía es solo de esa vista (criterio 66)', () async {
+      final intraday = FakeIntradayHistory(error: const NetworkException());
+      final controller = _withIntraday(intraday);
+      await controller.load();
+
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.view, isNull);
+      expect(controller.error, isA<NetworkException>());
+      controller.selectRange(ChartRange.year1);
+      expect(controller.error, isNull);
+      expect(controller.view, isNotNull);
+    });
+
+    test('Reintentar en intradía repite el intradía y no el diario', () async {
+      final intraday = FakeIntradayHistory(error: const NetworkException());
+      final history = FakePriceHistory(bars: priceHistory(sessions: 400));
+      final controller = _withIntraday(intraday, history: history);
+      await controller.load();
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.retry();
+
+      expect(intraday.calls, hasLength(2));
+      expect(history.calls, hasLength(1));
+    });
+
+    test('Reintentar en un periodo diario repite el diario', () async {
+      final history = FakePriceHistory(error: const NetworkException());
+      final controller = _withIntraday(FakeIntradayHistory(), history: history);
+      await controller.load();
+
+      await controller.retry();
+
+      expect(history.calls, hasLength(2));
+    });
+
+    test('el día funciona aunque el histórico diario falle', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      );
+      final controller = _withIntraday(
+        intraday,
+        history: FakePriceHistory(error: const NetworkException()),
+      );
+      await controller.load();
+
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.bars, isNull);
+      expect(controller.view, isNotNull);
+      expect(controller.error, isNull);
+    });
+
+    test('volver a 1D muestra lo que ya había mientras se refresca', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      );
+      final controller = _withIntraday(intraday);
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+      controller.selectRange(ChartRange.year1);
+      intraday.gate = Completer<void>();
+
+      controller.selectRange(ChartRange.day);
+
+      expect(controller.view, isNotNull);
+      expect(controller.view!.isIntraday, isTrue);
+      expect(intraday.calls, hasLength(2));
+      intraday.gate!.complete();
+    });
+
+    test('"Actualizar datos" pide de nuevo el intradía si se está mirando (criterio 65)', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      );
+      final controller = _withIntraday(intraday);
+      await controller.load();
+      controller.selectRange(ChartRange.day);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.load(forceRefresh: true);
+
+      expect(intraday.calls.last.forceRefresh, isTrue);
+      expect(intraday.calls, hasLength(2));
+    });
+
+    test('elegir 1D dos veces seguidas no abre dos cargas', () async {
+      final intraday = FakeIntradayHistory(
+        byResolution: {IntradayResolution.minutes5: intradaySeries()},
+      )..gate = Completer<void>();
+      final controller = _withIntraday(intraday);
+
+      controller.selectRange(ChartRange.day);
+      await controller.loadIntraday();
+      intraday.gate!.complete();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(intraday.calls, hasLength(1));
     });
   });
 }

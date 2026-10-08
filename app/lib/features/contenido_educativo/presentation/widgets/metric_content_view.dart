@@ -30,7 +30,7 @@ class MetricContentView extends StatelessWidget {
     final theme = Theme.of(context);
     final related = {
       for (final id in metric.combinesWith)
-        if (content.metricById(id) case final other?) id: other.title,
+        if (content.explanationById(id) case final other?) id: other.title,
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

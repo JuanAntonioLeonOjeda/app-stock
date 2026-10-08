@@ -54,6 +54,18 @@ void main() {
       expect(failing.loadCalls, 2);
     });
 
+    test('un concepto de la gráfica se resuelve como explicación', () async {
+      final controller = _controller(
+        FakeEducationalContent(),
+        topic: 'media_50',
+      );
+
+      await controller.load();
+
+      expect(controller.currentMetric?.id, 'media_50');
+      expect(controller.currentBlock, isNull);
+    });
+
     test('un tema de bloque se resuelve como bloque', () async {
       final controller = _controller(
         FakeEducationalContent(),

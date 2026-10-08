@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:stock_app/core/theme/app_theme.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
@@ -46,6 +47,7 @@ class _StockAppState extends State<StockApp> {
   late final AnalyzeStockUseCase _analyzeStock;
   late final HomeController _homeController;
   late final GetPriceHistoryUseCase _getPriceHistory;
+  late final GetIntradayHistoryUseCase _getIntradayHistory;
   late final LoadEducationalContentUseCase _loadEducationalContent;
 
   @override
@@ -65,6 +67,7 @@ class _StockAppState extends State<StockApp> {
       history: history,
     );
     _getPriceHistory = GetPriceHistoryUseCase(marketData);
+    _getIntradayHistory = GetIntradayHistoryUseCase(marketData);
     _loadEducationalContent = LoadEducationalContentUseCase(
       AssetEducationalContentAdapter(bundle: rootBundle),
     );
@@ -123,6 +126,7 @@ class _StockAppState extends State<StockApp> {
         buildInfo: _buildInfo,
         chartController: PriceChartController(
           getPriceHistory: _getPriceHistory,
+          getIntradayHistory: _getIntradayHistory,
           symbol: symbol,
         ),
       );

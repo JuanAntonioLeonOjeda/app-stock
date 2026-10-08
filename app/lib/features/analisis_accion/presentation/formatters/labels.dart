@@ -34,6 +34,8 @@ String blockLabel(Block block) => switch (block) {
 
 /// Texto del selector de periodo de la gráfica (criterio 46).
 String chartRangeLabel(ChartRange range) => switch (range) {
+  ChartRange.day => '1D',
+  ChartRange.week => '1S',
   ChartRange.month1 => '1M',
   ChartRange.months3 => '3M',
   ChartRange.months6 => '6M',
@@ -52,6 +54,13 @@ String blockTopicId(Block block) => switch (block) {
   Block.technical => 'bloque_tecnico',
   Block.context => 'bloque_contexto',
 };
+
+/// Ids de los temas educativos de la gráfica de precio (criterios 68-69 de
+/// `contenido_educativo`). Igual que los de bloque, son un contrato de strings
+/// con esa feature, comprobado por un test en `app/test/`.
+const priceChartTopicId = 'grafico_precio';
+const shortAverageTopicId = 'media_50';
+const longAverageTopicId = 'media_200';
 
 /// Id del tema educativo de la guía del diagnóstico.
 const diagnosisGuideTopicId = 'guia_diagnostico';

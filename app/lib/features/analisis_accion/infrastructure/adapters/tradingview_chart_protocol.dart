@@ -47,12 +47,47 @@ List<String> splitFrames(String payload) {
   return messages;
 }
 
-/// Mensajes (ya enmarcados) que piden [bars] velas diarias de [ticker], con
-/// precios ajustados por splits.
+/// Resolución de las velas diarias en el protocolo.
+const dailyResolution = 'D';
+
+/// Una vela tal como llega, con el instante exacto en que empieza.
+class Candle {
+  const Candle({
+    required this.time,
+    required this.open,
+    required this.high,
+    required this.low,
+    required this.close,
+    required this.volume,
+  });
+
+  /// Instante de inicio, en UTC.
+  final DateTime time;
+  final double open;
+  final double high;
+  final double low;
+  final double close;
+  final int volume;
+}
+
+/// La vela como diaria: su fecha es el día en UTC (medianoche).
+DailyBar toDailyBar(Candle candle) => DailyBar(
+  date: DateTime.utc(candle.time.year, candle.time.month, candle.time.day),
+  open: candle.open,
+  high: candle.high,
+  low: candle.low,
+  close: candle.close,
+  volume: candle.volume,
+);
+
+/// Mensajes (ya enmarcados) que piden [bars] velas de [ticker] con la
+/// [resolution] dada (`"D"` diaria, `"5"` o `"30"` minutos), con precios
+/// ajustados por splits.
 List<String> buildHistoryRequest({
   required String session,
   required String ticker,
   required int bars,
+  String resolution = dailyResolution,
 }) {
   String call(String method, List<Object> params) =>
       frameMessage(jsonEncode({'m': method, 'p': params}));
@@ -61,7 +96,15 @@ List<String> buildHistoryRequest({
     call('set_auth_token', ['unauthorized_user_token']),
     call('chart_create_session', [session, '']),
     call('resolve_symbol', [session, _symbolId, '=$symbol']),
-    call('create_series', [session, _seriesId, 's1', _symbolId, 'D', bars, '']),
+    call('create_series', [
+      session,
+      _seriesId,
+      's1',
+      _symbolId,
+      resolution,
+      bars,
+      '',
+    ]),
   ];
 }
 
@@ -79,9 +122,18 @@ final class Heartbeat extends ChartEvent {
 
 /// Un trozo de la serie de velas (puede haber varios).
 final class BarsReceived extends ChartEvent {
-  const BarsReceived(this.bars);
+  const BarsReceived(this.candles);
 
-  final List<DailyBar> bars;
+  final List<Candle> candles;
+}
+
+/// El servidor ha resuelto el símbolo: da la zona horaria de la bolsa y, según
+/// la bolsa, el retraso de los precios.
+final class SymbolResolved extends ChartEvent {
+  const SymbolResolved({this.timezone, this.delay});
+
+  final String? timezone;
+  final Duration? delay;
 }
 
 /// El servidor ha terminado de enviar la serie.
@@ -121,7 +173,8 @@ ChartEvent parseChartMessage(String message) {
   if (decoded is! Map<String, Object?>) return const IgnoredMessage();
   final method = decoded['m'];
   return switch (method) {
-    'timescale_update' => BarsReceived(_bars(decoded)),
+    'timescale_update' => BarsReceived(_candles(decoded)),
+    'symbol_resolved' => _symbolResolved(decoded),
     'series_completed' => const SeriesCompleted(),
     'symbol_error' => const SymbolNotFound(),
     'series_error' || 'critical_error' => ServerError(method as String),
@@ -129,7 +182,19 @@ ChartEvent parseChartMessage(String message) {
   };
 }
 
-List<DailyBar> _bars(Map<String, Object?> message) {
+SymbolResolved _symbolResolved(Map<String, Object?> message) {
+  final params = message['p'];
+  final info = params is List<Object?> && params.length > 2 ? params[2] : null;
+  if (info is! Map<String, Object?>) return const SymbolResolved();
+  final timezone = info['timezone'];
+  final delay = info['delay'];
+  return SymbolResolved(
+    timezone: timezone is String && timezone.isNotEmpty ? timezone : null,
+    delay: delay is num && delay > 0 ? Duration(seconds: delay.round()) : null,
+  );
+}
+
+List<Candle> _candles(Map<String, Object?> message) {
   final params = message['p'];
   final series = params is List<Object?> && params.length > 1
       ? params[1]
@@ -139,11 +204,11 @@ List<DailyBar> _bars(Map<String, Object?> message) {
   if (entries is! List<Object?>) {
     throw const InvalidResponseException('timescale_update sin serie');
   }
-  return [for (final entry in entries) ?_bar(entry)];
+  return [for (final entry in entries) ?_candle(entry)];
 }
 
 /// Una vela, o `null` si es incoherente y hay que descartarla (criterio 57).
-DailyBar? _bar(Object? entry) {
+Candle? _candle(Object? entry) {
   final values = entry is Map<String, Object?> ? entry['v'] : null;
   if (values is! List<Object?> || values.length < 5) return null;
   final numbers = [
@@ -169,8 +234,8 @@ DailyBar? _bar(Object? entry) {
     (seconds * 1000).round(),
     isUtc: true,
   );
-  return DailyBar(
-    date: DateTime.utc(moment.year, moment.month, moment.day),
+  return Candle(
+    time: moment,
     open: open,
     high: high,
     low: low,
@@ -179,14 +244,14 @@ DailyBar? _bar(Object? entry) {
   );
 }
 
-/// Une los trozos recibidos: sin fechas repetidas (gana la última), de la
-/// más antigua a la más reciente.
-List<DailyBar> mergeBars(Iterable<List<DailyBar>> chunks) {
-  final byDate = <DateTime, DailyBar>{};
+/// Une los trozos de velas recibidos: sin instantes repetidos (gana el último)
+/// y de la más antigua a la más reciente.
+List<Candle> mergeCandles(Iterable<List<Candle>> chunks) {
+  final byTime = <DateTime, Candle>{};
   for (final chunk in chunks) {
-    for (final bar in chunk) {
-      byDate[bar.date] = bar;
+    for (final candle in chunk) {
+      byTime[candle.time] = candle;
     }
   }
-  return byDate.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+  return byTime.values.toList()..sort((a, b) => a.time.compareTo(b.time));
 }

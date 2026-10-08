@@ -228,6 +228,20 @@ void main() {
     );
 
     test(
+      'cerrar un canal ya cerrado (StateError) no oculta el resultado',
+      () async {
+        final connection = _ThrowOnCloseConnection(
+          readChartTranscript('chart_tse_7974').received,
+        );
+
+        final bars = await _client(connection).fetch('TSE:7974');
+
+        expect(bars, isNotEmpty);
+        expect(connection.closeAttempted, isTrue);
+      },
+    );
+
+    test(
       'una conexión que se abre tarde, tras el tiempo agotado, se cierra',
       () async {
         final late = FakeChartConnection(const []);
@@ -263,5 +277,18 @@ class _FailAfterRequestConnection extends FakeChartConnection {
     // Las 4 primeras son la petición; la siguiente es el latido de vuelta.
     if (_sends > 4) throw const WebSocketException('roto');
     super.send(text);
+  }
+}
+
+/// Conexión cuyo `close` falla como un canal que ya estaba cerrado.
+class _ThrowOnCloseConnection extends FakeChartConnection {
+  _ThrowOnCloseConnection(super.script);
+
+  bool closeAttempted = false;
+
+  @override
+  Future<void> close() async {
+    closeAttempted = true;
+    throw StateError('WebSocket is closed');
   }
 }

@@ -1,6 +1,8 @@
 // Captura transcripciones reales del canal de gráficos de TradingView como
 // fixtures de test (Node 22+). Uso (desde app/):
 //   node tool/capture_tradingview_chart.mjs
+// Las de 5 y 30 minutos dependen de la hora a la que se capturen; los tests no
+// asumen fechas concretas, solo la forma.
 // Guarda en test/fixtures/tradingview/: la secuencia de mensajes enviados y
 // todos los recibidos, sin interpretar.
 import { writeFileSync } from 'node:fs';
@@ -9,14 +11,14 @@ const OUT = 'test/fixtures/tradingview';
 const frame = (s) => `~m~${s.length}~m~${s}`;
 const msg = (m, p) => frame(JSON.stringify({ m, p }));
 
-function capture(symbol, bars, name) {
+function capture(symbol, bars, name, resolution = 'D') {
   return new Promise((resolve) => {
     const session = 'cs_fixture0001';
     const sent = [
       msg('set_auth_token', ['unauthorized_user_token']),
       msg('chart_create_session', [session, '']),
       msg('resolve_symbol', [session, 'sds_sym_1', `={"symbol":"${symbol}","adjustment":"splits"}`]),
-      msg('create_series', [session, 'sds_1', 's1', 'sds_sym_1', 'D', bars, '']),
+      msg('create_series', [session, 'sds_1', 's1', 'sds_sym_1', resolution, bars, '']),
     ];
     const received = [];
     const ws = new WebSocket('wss://data.tradingview.com/socket.io/websocket', {
@@ -44,4 +46,7 @@ function capture(symbol, bars, name) {
 
 await capture('TSE:7974', 30, 'chart_tse_7974');
 await capture('NASDAQ:ZZZZZZQ', 30, 'chart_unknown_symbol');
+// Velas intradía: 5 y 30 minutos (el día y la semana de la gráfica).
+await capture('BME:IBE', 80, 'chart_intra5_bme_ibe', '5');
+await capture('TSE:7974', 60, 'chart_intra30_tse_7974', '30');
 process.exit(0);

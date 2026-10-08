@@ -24,6 +24,7 @@ class AssetEducationalContentAdapter implements EducationalContentPort {
     try {
       return parseEducationalContent(
         metrics: await _bundle.loadString('$_basePath/metricas.es.json'),
+        concepts: await _bundle.loadString('$_basePath/conceptos.es.json'),
         blocks: await _bundle.loadString('$_basePath/bloques.es.json'),
         guide: await _bundle.loadString('$_basePath/guia.es.json'),
       );

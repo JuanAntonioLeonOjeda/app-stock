@@ -232,3 +232,22 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [ ] T80. En el móvil: pestañas, periodos, medias, toque sobre la gráfica y fallo sin conexión.
 - [x] T81. `flutter-reviewer`.
 
+---
+
+## Revisión 4: gráfica del día y de la última semana
+
+- [x] T82. Dominio: `IntradayBar`, `IntradaySeries`, `IntradayResolution`, `ChartRange.day/week`,
+      `sessions.dart`, `exchange_clock.dart` + tests (pausa de Tokio, fin de semana, cambio de
+      hora de la UE y de EE. UU.).
+- [x] T83. `IntradayHistoryPort` y `GetIntradayHistoryUseCase` + test.
+- [x] T84. Capturar transcripciones reales de 5 y 30 minutos; protocolo con `Candle`,
+      `symbol_resolved` y resolución + tests.
+- [x] T85. Cliente (`fetchCandles`), caché compacta del intradía y adapter (5 minutos, descargas
+      unidas) + tests.
+- [x] T86. `PriceChartController` con intradía bajo demanda + tests.
+- [x] T87. Gráfica (eje por orden, etiquetas de hora y día, tooltip) y panel (1D/1S, medias
+      ocultas, pie, error propio) + tests.
+- [x] T88. `dart format`, `flutter analyze` y `flutter test`; prueba en vivo con Nintendo,
+      Iberdrola y Apple; `flutter-reviewer`.
+- [ ] T89. En el móvil: 1D y 1S con mercado abierto y cerrado.
+
