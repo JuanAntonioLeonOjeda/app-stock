@@ -10,7 +10,7 @@ El idioma de los identificadores (inglés, salvo los ids de métricas) está def
 ## Archivos
 
 - Siempre `snake_case.dart`, aunque la clase que contenga sea `PascalCase`. Ej.:
-  `analysis_screen.dart`, `alpha_vantage_adapter.dart`.
+  `analysis_screen.dart`, `tradingview_adapter.dart`.
 - El nombre del archivo describe su contenido principal, no su tipo genérico:
   `stock_data.dart`, no `models.dart`.
 - Un archivo, una responsabilidad principal. Si un archivo empieza a acumular clases no

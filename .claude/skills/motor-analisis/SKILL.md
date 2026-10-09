@@ -50,7 +50,7 @@ El horizonte por defecto es largo plazo (la app es para aprender a invertir, no 
 - Cada regla define una **escala por tramos**: lista de puntos `(valor, nota)` ordenados por valor. Entre puntos se interpola linealmente; fuera del rango, se satura en el extremo. Nota final 0–10, redondeada a 1 decimal.
 - "Menor es mejor" (PER, deuda) → notas descendentes. Óptimo intermedio (RSI, distancia a la media de 200) → notas que suben y bajan.
 - Casos que no encajan en una escala (p. ej. MACD, que depende del signo y la tendencia del histograma) usan una función de puntuación propia, declarada igualmente en el módulo de reglas.
-- **Nota de bloque** = media ponderada de las métricas con dato. **Cobertura** = peso con dato / peso total del bloque.
+- **Nota de bloque** = media ponderada de las métricas con dato. **Cobertura** = peso con dato / peso de las métricas aplicables del bloque. Una métrica que "no aplica" (p. ej. PER con beneficios negativos) no resta cobertura ni aparece en datos faltantes: no es un dato que falte.
 - Cada regla puede llevar una **nota explicativa** cuando el valor es null por un motivo conocido (p. ej. "PER no aplica: beneficios negativos").
 
 ## Perfiles de empresa
@@ -75,7 +75,7 @@ Textos listos para mostrar: señales de alarma de `references/metricas.md`, dato
 
 ## Resultado (`AnalysisResult`)
 
-Símbolo, nombre, fecha del último cierre, último periodo fiscal, precio, perfil, horizonte, veredicto, nota global, confianza, bloques (cada uno con nota, peso, cobertura y sus métricas: `id`, etiqueta, valor, valor formateado, nota, peso, nota explicativa), avisos, datos faltantes y **versión del motor**.
+Símbolo, nombre, fecha del último cierre, último periodo fiscal, precio, perfil, horizonte, veredicto, nota global, confianza, bloques (cada uno con nota, peso, cobertura y sus métricas: `id`, etiqueta, valor, formato (tipo: porcentaje, ratio, múltiplo...; el formateo lo hace la capa de presentación), nota, peso, nota explicativa), avisos, datos faltantes y **versión del motor**.
 
 El `id` de cada métrica es estable (snake_case: `per`, `roic`, `rsi`...) porque la app lo usa para mostrar la explicación educativa.
 

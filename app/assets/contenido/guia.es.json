@@ -1,0 +1,55 @@
+{
+  "secciones": [
+    {
+      "titulo": "Qué es este diagnóstico",
+      "texto": "Lo calcula un motor con reglas fijas: con los mismos datos, siempre da el mismo resultado. No hay inteligencia artificial ni opiniones personales. Es una forma ordenada de mirar una empresa con fin educativo. No te dice qué hacer con tu dinero."
+    },
+    {
+      "titulo": "El veredicto",
+      "texto": "Hay cuatro posibles: Favorable, Neutral, Desfavorable y Datos insuficientes. Favorable significa que la nota global es de 7 o más; Neutral, de 5 a 7; Desfavorable, menos de 5. Datos insuficientes aparece cuando hay menos de 3 bloques con nota: no hay base para opinar. Además, si la salud financiera tiene una nota inferior a 4, el veredicto no pasa de Neutral. Ningún veredicto es una recomendación de comprar ni de vender."
+    },
+    {
+      "titulo": "La nota global",
+      "texto": "Es un número de 0 a 10 que resume los bloques, dando más peso a unos que a otros. Sirve para comparar de un vistazo, no para decidir. Un 7 no significa «buena inversión»: significa que, en lo que mide el motor, la empresa puntúa bien."
+    },
+    {
+      "titulo": "Los cinco bloques",
+      "texto": "Valoración, salud financiera, crecimiento y rentabilidad, técnico y contexto. Cada uno responde a una pregunta distinta: pulsa el icono de información de cada bloque para leerla. Un buen diagnóstico los mira todos, no solo el que más te gusta."
+    },
+    {
+      "titulo": "La cobertura",
+      "texto": "Cada bloque indica qué porcentaje de sus métricas tenía datos. Una nota alta con una cobertura baja se apoya en pocos datos y es menos fiable."
+    },
+    {
+      "titulo": "La confianza",
+      "texto": "Puede ser alta, media o baja y dice cuánto apoyarte en la lectura. Es alta si se han podido puntuar los cinco bloques y la cobertura es del 80 % o más; media a partir del 60 %; y baja si hay menos datos o si el último precio tiene más de 7 días. Una confianza baja es una invitación a mirar con más cuidado."
+    },
+    {
+      "titulo": "Los avisos",
+      "texto": "Son señales concretas que detecta el motor, como una deuda alta, una dilución fuerte, resultados que llegan pronto o datos antiguos. Un aviso no es un veredicto: es una pregunta que conviene resolver."
+    },
+    {
+      "titulo": "Datos que faltan",
+      "texto": "Hay métricas que no se pueden calcular con los datos disponibles. Se muestran como «sin dato» y nunca como un cero. Que falten datos no hace buena ni mala a una empresa: reduce la cobertura y la confianza."
+    },
+    {
+      "titulo": "Lo que el diagnóstico no puede decirte",
+      "texto": "No sabe cómo se moverá el precio mañana, si es el mejor momento para entrar ni si encaja con tu situación personal: tus ahorros, tus plazos, tu tolerancia al riesgo. Tampoco recoge cosas como la calidad de la directiva, un pleito en curso o un cambio de regulación. Para eso hay que leer la información de la empresa y las noticias recientes."
+    }
+  ],
+  "queMirar": {
+    "titulo": "Qué mirar antes de invertir",
+    "introduccion": "Ninguna de estas preguntas tiene una única respuesta. Sirven para pensar y para no decidir solo por un número.",
+    "preguntas": [
+      "¿Entiendo cómo gana dinero esta empresa, con mis propias palabras?",
+      "¿Sus ventas y sus beneficios llevan años creciendo o manteniéndose, o dependen de un solo año bueno?",
+      "¿Aguantaría una mala racha: tiene una deuda manejable y caja suficiente?",
+      "¿Lo que se pide por ella es razonable frente a lo que gana, o estaría pagando por una promesa?",
+      "¿Qué dicen las noticias más recientes? ¿Hay algo que el análisis aún no recoge, como un cambio de directiva, un pleito o un cambio de regulación?",
+      "¿Es dinero que no necesitaré en los próximos años?",
+      "¿Qué parte de todo mi dinero sería esto? ¿Qué pasaría si perdiera una parte importante?",
+      "¿Me estoy dejando llevar por la prisa o por lo que hacen los demás?",
+      "¿He escrito por qué razón reconsideraría mi decisión? Decidirlo antes, con calma, ayuda a no improvisar después."
+    ]
+  }
+}

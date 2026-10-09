@@ -1,6 +1,6 @@
 ---
 name: datos-mercado
-description: Cómo obtener datos bursátiles de forma programática para el motor de análisis: elección de API, endpoints necesarios, particularidades de las respuestas, normalización a StockData, caché, límites de peticiones, errores, gestión de la clave y paso futuro a un backend propio. Úsala SIEMPRE que la tarea implique llamar a una API financiera, buscar un ticker, parsear respuestas, faltan datos en un análisis, falla una petición, se quiere cambiar de proveedor o se plantea añadir un backend.
+description: Cómo obtener datos bursátiles de forma programática para el motor de análisis: elección de proveedor, endpoints necesarios, particularidades de las respuestas, normalización a StockData, caché, límites de peticiones, errores y paso futuro a un backend propio. Úsala SIEMPRE que la tarea implique llamar a una API financiera, buscar un ticker, parsear respuestas, faltan datos en un análisis, falla una petición, se quiere cambiar de proveedor o se plantea añadir un backend.
 ---
 
 # Datos de mercado
@@ -11,16 +11,16 @@ Los datos se piden con **peticiones HTTP directas a la API REST del proveedor, e
 
 Aunque en tu sesión de desarrollo tengas herramientas MCP de datos financieros disponibles, no las uses para implementar la funcionalidad. Como mucho, sirven para inspeccionar a mano una respuesta real y guardarla como fixture de test.
 
-Origen de cada dato:
+Origen de cada dato con el proveedor actual (TradingView):
 
 | Origen | Métricas |
 |---|---|
-| Vienen ya calculadas en `OVERVIEW` | PER, PER adelantado, PEG, P/VC, P/Ventas, EV/EBITDA, beta, rentabilidad por dividendo, precio objetivo de analistas, medias 50/200 y máx./mín. 52 semanas (estas últimas solo como respaldo) |
-| Las calcula el código a partir del histórico (`TIME_SERIES_DAILY`) | SMA, RSI, MACD, pendiente de la media, rentabilidades, volatilidad, caída máxima, distancia al máximo |
-| Las calcula el código a partir de los estados financieros | ROIC, ROE, deuda neta/EBITDA, deuda/patrimonio, liquidez, cobertura de intereses, márgenes, crecimiento (CAGR), FCF, precio/FCF, dilución, dividendo/FCF |
-| Las calcula el código a partir de `EARNINGS` | Trimestres que baten estimaciones |
+| Vienen ya calculadas por el proveedor | PER, PEG, P/VC, P/Ventas, EV/EBITDA, P/FCF, beta, rentabilidad por dividendo, ROE, ROIC, márgenes, deuda/patrimonio, liquidez, RSI, SMA50/200 y máx./mín. 52 semanas |
+| Las calcula el código a partir de las series anuales y trimestrales | Crecimiento (CAGR), FCF positivo, margen operativo y bruto (si hay serie), TTM |
+| Las calcula el código a partir del histórico diario (canal de gráficos) | SMA, RSI, MACD, pendiente de la SMA200, distancia al máximo y caída máxima |
+| No llegan (sin dato) | Cobertura de intereses, sorpresas de BPA, dilución, tendencia del margen |
 
-Regla práctica: si el proveedor da el ratio ya calculado y su definición es fiable, úsalo; si no, calcúlalo tú para controlar la fórmula y poder testearla.
+Regla práctica: si el proveedor da el ratio ya calculado y su definición es fiable, úsalo; si no, calcúlalo tú para controlar la fórmula y poder testearla. Con TradingView es obligatorio usar su ratio donde el cálculo propio mezclaría monedas (ver "Particularidades").
 
 ## Interfaz de proveedor
 
@@ -30,35 +30,49 @@ Todo acceso a datos pasa por un único port, `MarketDataPort`, con dos operacion
 
 Errores tipados como excepciones de `domain/` (ver `.claude/rules/code-style.md`): `RateLimitException`, `NotFoundException`, `InvalidResponseException`, `NetworkException`. Cambiar de proveedor no debe tocar nada fuera de su adapter.
 
-## Proveedor inicial: Alpha Vantage
+## Proveedor actual: TradingView
 
-Elegido por ofrecer fundamentales, precios y resultados en una sola API con plan gratuito. Límite diario del plan gratuito muy bajo (unas 25 peticiones; verificar el actual en su web). Límites y precios cambian: confirma siempre en la documentación oficial.
+Elegido el 2026-10-06 porque cubre bolsas de todo el mundo (Tokio, Madrid...), da fundamentales y series, y no necesita clave ni tiene un cupo diario conocido. **Es no oficial**: son los endpoints de su propio buscador y screener. Pueden cambiar o cortarse sin aviso y sus condiciones de uso no amparan un producto público: vale para uso personal; antes de publicar en una tienda hace falta un proveedor con licencia (ver "Proveedores alternativos").
 
-Endpoints para un análisis (6 peticiones sin caché):
-
-| Endpoint | Aporta |
+| Qué | Petición |
 |---|---|
-| `OVERVIEW` | Perfil y ratios: sector, capitalización, PER, PEG, P/VC, P/Ventas, EV/EBITDA, beta, dividendo, precio objetivo, medias 50/200, máx./mín. 52 semanas |
-| `TIME_SERIES_DAILY` | Histórico diario |
-| `INCOME_STATEMENT` | Cuenta de resultados anual y trimestral |
-| `BALANCE_SHEET` | Balance anual y trimestral |
-| `CASH_FLOW` | Flujo de caja anual y trimestral |
-| `EARNINGS` | BPA real vs estimado y fecha de publicación |
-| `SYMBOL_SEARCH` | Solo para resolver un nombre a ticker |
+| Buscar | `GET https://symbol-search.tradingview.com/symbol_search/v3/?text=…&search_type=stock&start=0`, con la cabecera `Origin: https://www.tradingview.com` |
+| Datos | `POST https://scanner.tradingview.com/global/scan` con `{"symbols":{"tickers":["TSE:7974"]},"columns":[…]}`: una sola petición devuelve todo |
 
-No pidas cotización aparte: el último cierre del histórico basta. Haz las peticiones en secuencia con una pausa configurable (el plan gratuito también limita por minuto).
+La lista de campos pedidos está en `infrastructure/adapters/tradingview_fields.dart`. El símbolo completo es `BOLSA:TICKER` (`TSE:7974`, `BME:IBE`, `NASDAQ:AAPL`).
 
 ## Particularidades (causa habitual de bugs)
 
-- **Errores con HTTP 200.** Los errores llegan en el cuerpo JSON en campos `Error Message`, `Note` o `Information`. Detecta el límite de peticiones por el texto y conviértelo en `RateLimitException`. Nunca guardes en caché una respuesta de error.
-- **Números como texto** y `"None"`, `"-"` o vacío para ausentes → convertir a `null`.
-- **Signos:** CAPEX, dividendos y recompras pueden venir negativos o positivos según el campo → normalizar a positivo.
-- **Deuda total:** usar `shortLongTermDebtTotal`; si falta, sumar `shortTermDebt` + `longTermDebt`.
-- **Caja:** `cashAndShortTermInvestments`, o `cashAndCashEquivalentsAtCarryingValue` si falta.
-- **Gastos financieros:** normalizar a positivo.
-- **Histórico completo** (`outputsize=full`) puede ser función de pago. Si la respuesta indica que es premium, reintenta con `compact` (~100 sesiones) y **recuerda en caché** que el plan no lo permite, para no gastar una petición en cada análisis. El motor usará las medias precalculadas del `OVERVIEW` como respaldo.
-- **Orden:** el histórico viene como objeto por fechas → ordenar ascendente. Los informes financieros → ordenar del más reciente al más antiguo.
-- **Tickers no estadounidenses** llevan sufijo de bolsa; resolverlos con `SYMBOL_SEARCH`. La cobertura de fundamentales fuera de EE. UU. es limitada: marcar datos faltantes, no inventarlos.
+- **La búsqueda devuelve una fila por cotización, no por empresa.** Cada resultado de `symbol_search/v3` trae `isin`, `is_primary_listing` (la bolsa de origen: Nintendo = `TSE:7974`, Iberdrola = `BME:IBE`; no depende del país del usuario), `type` (`stock`, `dr` para ADR, y otros que se descartan), `exchange`, `source2.name` y `currency_code`. Todas las acciones ordinarias de una empresa comparten ISIN; los ADR tienen otro. La app agrupa por ISIN (`groupListings`, en `domain/search/`), marca la principal, pone las cotizaciones en euros primero entre "otras", descarta lo que no tiene ISIN (p. ej. `Pyth:AAPL`) y deja los ADR al final y ocultos.
+- **Buscar por nombre puede dejar fuera la cotización principal.** "inditex" solo trae versiones OTC: TradingView la llama "Industria de Diseno Textil" (sale por `ITX`, por el nombre legal o por el ISIN). El adapter completa buscando por el ISIN de las empresas sin principal (máximo 3 por búsqueda; si falla, no pasa nada). Buscar un ISIN completo funciona y trae todas sus cotizaciones (`found_by_isin`).
+- **Trade Republic no tiene API pública:** no se puede saber qué cotización muestra. Su identificador es el ISIN, que la app enseña en el resultado para cotejarlo. Las cotizaciones en euros de Alemania (`GETTEX`, `XETR`, `LS`) tienen los mismos fundamentales, pero poco volumen, y `LS:*` no funciona en el canal de gráficos.
+- **El scanner da `isin`, `exchange` e `is_primary`** de cualquier símbolo, así que el resultado los muestra también al abrir un análisis desde el historial.
+- **Un campo desconocido llega como `null` sin error.** Un nombre mal escrito no falla: sale "sin dato" para siempre. Los nombres se validan contra una respuesta real guardada (`tradingview_parser_test.dart`), no contra la API.
+- **Escalares en USD, series en la moneda de reporte.** Capitalización, deuda neta, EBITDA TTM, patrimonio... (`*_ttm`, `*_fq`, `market_cap_basic`) vienen **convertidos a USD** (`fundamental_currency_code`), aunque el precio esté en JPY o EUR. Las series `*_fy_h` (20 años) y `*_fq_h` (32 trimestres) vienen en la moneda de reporte de la empresa. Nunca dividas un escalar entre una serie ni precio entre un importe: usa los ratios del proveedor, que no tienen unidad. Por eso la capitalización no se pasa al motor.
+- **Porcentajes en %**, no en fracción: `return_on_equity = 16,9`. El parser divide entre 100 (`dividends_yield`, `operating_margin_ttm`...). `debt_to_equity_fq`, `current_ratio_fq` y el resto de ratios ya son cocientes.
+- **Las series no traen fechas.** Se fechan restando 12 (anual) o 3 (trimestral) meses a `fiscal_period_end_fy` y `fiscal_period_end_current`, que son epoch en segundos. Las series vienen del más reciente al más antiguo y pueden contener `null` sueltos.
+- **El histórico diario NO viene del scanner, sino del canal de gráficos** (WebSocket no oficial `wss://data.tradingview.com/socket.io/websocket`, cabecera `Origin: https://www.tradingview.com`, sin clave). Comprobado el 2026-10-08: Nintendo 5.878 velas desde 2001 en 4 s; Iberdrola 6.000 desde 2003 en 1 s. Los precios vienen ajustados por splits (no por dividendos).
+  - **Marcos:** cada mensaje es `~m~<longitud>~m~<json>` y un paquete puede traer varios. El servidor manda latidos `~h~<n>` que hay que devolver tal cual, enmarcados.
+  - **Secuencia:** `set_auth_token ["unauthorized_user_token"]` → `chart_create_session` → `resolve_symbol` (`={"symbol":"TSE:7974","adjustment":"splits"}`) → `create_series` (`"D"`, 6000 velas). Responde con `series_loading`, `symbol_resolved`, `timescale_update` (velas `[t, o, h, l, c, v]`, `t` en segundos) y `series_completed`. Un símbolo inexistente da `symbol_error` + `series_error`.
+  - **Código:** `tradingview_chart_protocol.dart` (funciones puras), `tradingview_chart_connection.dart` (`ChartConnection`, `IoChartConnection`) y `tradingview_history_client.dart`. Las velas incoherentes (máximo < mínimo, cierre fuera de rango, precio ≤ 0) se descartan; con menos de 2 sesiones es respuesta inválida.
+  - **Intradía (día y semana de la gráfica):** la misma petición con otra resolución: `"5"` (velas de 5 minutos, 400) para 1D y `"30"` (200) para 1S. `symbol_resolved` trae `timezone` (IANA) y, según la bolsa, `delay` en segundos (Tokio 1200, Madrid 900). Solo sesión regular. La sesión se corta por huecos de más de 3 horas (la pausa de la comida de Tokio es de 1 h). Las horas se muestran en la de la bolsa con una tabla de zonas y las reglas de cambio de hora de la UE y EE. UU. (`exchange_clock.dart`); una zona desconocida usa la del dispositivo. Caché de **5 minutos** (`tv:v1:intraday:<minutos>:<símbolo>`).
+  - **Fragilidad:** es más frágil que el scanner. Un fallo del histórico **nunca impide analizar**: `fetchStockData` cae a una única `DailyBar` (cierre del scanner) y el motor usa los ratios ya calculados como respaldo. La gráfica, en cambio, muestra el error.
+  - **Fixtures:** `app/tool/capture_tradingview_chart.mjs` (Node 22+) guarda la transcripción real en `app/test/fixtures/tradingview/chart_*.json`.
+- **FCF vacío en algunas empresas** (comprobado con Nintendo e Iberdrola). El proveedor solo da el FCF ya restado: se guarda como flujo operativo con CAPEX 0.
+- **No llegan** resultado operativo, EBIT, intereses ni impuestos por periodo, patrimonio ni caja por periodo, precio objetivo de analistas, PER a futuro ni BPA estimado.
+- **ADR (`type = dr`):** la moneda de reporte de las series es desconocida, así que el adapter no la declara (`reportedCurrency = null`). Una cotización local (`type = stock`) usa la del precio. La búsqueda pone primero la cotización de origen y los ADR detrás.
+- **Errores:** HTTP 429 o 403 → `RateLimitException`; 5xx y fallos de conexión → `NetworkException`; sin fila en `data` o sin precio → `NotFoundException`; JSON que no es el esperado o un campo con otro tipo → `InvalidResponseException`. Nunca guardes en caché una respuesta de error.
+- **Comprobado con respuestas reales (2026-10-06, fixtures en `app/test/fixtures/tradingview/`):** Nintendo (`TSE:7974`), Fast Retailing (`TSE:9983`), Iberdrola (`BME:IBE`) y Apple devuelven datos completos salvo lo listado arriba. Capturar fixtures nuevas: `app/tool/capture_tradingview_fixtures.sh`.
+
+## Tipos de cambio (conversor a euros)
+
+- Port `ExchangeRatePort`; adapters: BCE (SDMX JSON) como principal y CSV del Banco de España
+  (latin-1) como respaldo; la API REST del BdE solo da 36 meses, por eso se usa el CSV.
+- Los tipos son "unidades de divisa por euro" y se publican en días hábiles: el fin de semana
+  se arrastra el último publicado. Monedas sin tipo (p. ej. SAR) → `NotFoundException`.
+- Subunidades: GBX, ZAC e ILA se dividen entre 100 antes de convertir.
+- Caché 6 h (`fx:v1:<MONEDA>`). La conversión es solo de presentación: el motor y el
+  historial guardado siguen en la divisa original.
 
 ## Validación tras normalizar
 
@@ -66,24 +80,19 @@ Avisar (no fallar) si: último cierre > 5 días hábiles; último trimestre > 6 
 
 ## Caché
 
-Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Con el límite diario del plan gratuito, la caché persistente es imprescindible. Caducidades orientativas:
-- Histórico diario: 6 horas.
-- Perfil: 24 horas.
-- Estados financieros y resultados: 7 días.
-- Búsqueda de símbolos: 30 días.
-- Resultado final del análisis: unas horas.
+Port de caché clave-valor con caducidad (`CachePort`), implementable en memoria (tests) o persistente en el dispositivo (app), y en un almacén compartido si algún día hay backend. Se guarda el JSON en crudo ya validado, nunca un error. Con TradingView todo viene en una sola petición, así que hay una sola caducidad: **6 horas** para búsquedas, datos e histórico (`tv:v1:search:<texto>`, `tv:v1:scan:<símbolo>`, `tv:v1:history:<símbolo>`; el histórico se guarda en formato compacto `[t,o,h,l,c,v]` por vela y las descargas simultáneas del mismo símbolo se unen en una; subir la versión de la clave si cambia el formato guardado). Una entrada que ya no se puede interpretar se ignora y se vuelve a pedir.
 
 ## Arquitectura para la app
 
 **Fase actual (uso personal, sin backend):**
 
 ```
-App (presentation → use case → motor) → MarketDataPort → AlphaVantageAdapter → API
+App (presentation → use case → motor) → MarketDataPort → TradingViewAdapter → TradingView
                                          └── CachePort (persistente en el dispositivo)
 ```
 
-- La clave se inyecta al compilar con `--dart-define-from-file=config/secrets.json` (no versionado) y se lee con `String.fromEnvironment`. Nunca en el código.
-- Una clave compilada en la app **se puede extraer del binario**: solo es aceptable mientras la app no se publique.
+- No hay clave de API. Si un proveedor futuro la necesita, se inyecta al compilar con `--dart-define-from-file` (archivo no versionado) y se lee con `String.fromEnvironment`; nunca en el código.
+- La fuente actual no es oficial: solo es aceptable mientras la app no se publique.
 
 **Antes de publicar la app, backend obligatorio:**
 
@@ -92,13 +101,15 @@ App → Backend propio (p. ej. GET /analisis/{ticker}) → Motor → Proveedor �
               └── caché compartida + análisis guardados
 ```
 
-- La app deja de contener la clave; esta pasa a variables de entorno del backend.
-- En la app solo cambia el adapter: un `BackendAnalysisAdapter` sustituye al de Alpha Vantage. El motor es Dart puro (`domain/`) y un backend en Dart puede reutilizarlo tal cual.
+- Las credenciales del proveedor pasan a variables de entorno del backend.
+- En la app solo cambia el adapter: un `BackendAnalysisAdapter` sustituye al de TradingView. El motor es Dart puro (`domain/`) y un backend en Dart puede reutilizarlo tal cual.
 - Caché compartida: el límite de peticiones se reparte entre todos los usuarios en vez de multiplicarse.
 - Traducir errores: `rate_limit` → 503 con reintento; `not_found` → 404.
 - Revisar términos de uso: muchos planes gratuitos prohíben uso comercial o mostrar datos a terceros.
 
 ## Proveedores alternativos
+
+Ya probados y descartados: **Yahoo Finance y otras fuentes gratuitas no oficiales** (mala calidad) y **Alpha Vantage gratuito** (25 peticiones al día, y sin fundamentales de Tokio ni Madrid: `OVERVIEW` vacío para `7974`, `9983` e `IBE`; comprobado 2026-10-06). Alpha Vantage sigue siendo una opción para acciones de EE. UU.
 
 | Proveedor | Fuerte en | Uso sugerido |
 |---|---|---|
@@ -107,4 +118,4 @@ App → Backend propio (p. ej. GET /analisis/{ticker}) → Motor → Proveedor �
 | Massive (antes Polygon.io) | Precios de EE. UU. en tiempo real | Solo si hace falta tiempo real |
 | Twelve Data / EODHD | Bolsas internacionales | Acciones europeas |
 
-Para añadir uno: implementar la misma interfaz, mismas convenciones de normalización, tests con respuestas reales guardadas como fixtures, y comparar métricas clave con Alpha Vantage sobre la misma empresa (diferencias > 5 % suelen ser definiciones distintas, p. ej. qué cuenta como deuda).
+Para añadir uno: implementar la misma interfaz, mismas convenciones de normalización, tests con respuestas reales guardadas como fixtures, y comparar métricas clave con TradingView sobre la misma empresa (diferencias > 5 % suelen ser definiciones distintas, p. ej. qué cuenta como deuda).

@@ -25,9 +25,9 @@ Antes de revisar, lee (si no lo tienes ya en contexto):
    `app/lib/features/<b>/`. Lo compartido va en `app/lib/core/`. Cualquier import cruzado
    entre features es de alta prioridad.
 
-3. **Secretos y fuentes de datos.** La clave de la API solo se lee con
-   `String.fromEnvironment`; una clave escrita en el código o en un archivo versionado es
-   crítica. Solo el adapter de `infrastructure/adapters/` llama a la API de datos:
+3. **Secretos y fuentes de datos.** Ninguna clave de API escrita en el
+   código o en un archivo versionado (si hay alguna, se lee con
+   `String.fromEnvironment`); es crítico. Solo el adapter de `infrastructure/adapters/` llama a la API de datos:
    cualquier llamada HTTP al proveedor desde otra capa es de alta prioridad (ver skill
    `datos-mercado`).
 

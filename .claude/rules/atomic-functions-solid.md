@@ -21,16 +21,16 @@ description: Funciones/métodos atómicos y aplicación práctica de SOLID en es
 ## SOLID aplicado a este proyecto (no toda la teoría, solo lo accionable aquí)
 
 **S: responsabilidad única.** Cada clase tiene un solo motivo para cambiar. Ej.: el
-adapter de Alpha Vantage solo obtiene y normaliza datos; no puntúa ni decide veredictos.
+adapter de TradingView solo obtiene y normaliza datos; no puntúa ni decide veredictos.
 Los cálculos no contienen umbrales: toda la opinión del motor vive en el módulo de reglas.
 
 **O: abierto/cerrado.** Añadir una métrica o un proveedor no debería obligar a modificar
-el código existente con `if (provider == 'alpha_vantage')` repartidos por todo el código:
+el código existente con `if (provider == 'tradingview')` repartidos por todo el código:
 una métrica nueva es una entrada más en el módulo de reglas y un proveedor nuevo es otro
 adapter del mismo port.
 
-**L: sustitución de Liskov.** Cualquier implementación de `MarketDataPort` (Alpha
-Vantage, FMP o un fake de test) debe respetar el mismo contrato: `StockData` normalizado,
+**L: sustitución de Liskov.** Cualquier implementación de `MarketDataPort` (TradingView,
+FMP o un fake de test) debe respetar el mismo contrato: `StockData` normalizado,
 `null` para lo ausente y los mismos errores tipados.
 
 **I: segregación de interfaces.** No obligar a una clase a depender de métodos que no usa.
