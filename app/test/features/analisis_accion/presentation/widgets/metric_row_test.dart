@@ -93,4 +93,33 @@ void main() {
       expect(find.text('PER 12 meses'), findsOneWidget);
     });
   });
+
+  group('MetricRow etiquetas de orientación', () {
+    testWidgets(
+      'el PER es esencial y está en Trade Republic (criterios 103-104)',
+      (tester) async {
+        await _pump(tester);
+
+        expect(find.text('Esencial'), findsOneWidget);
+        expect(find.text('Trade Republic'), findsOneWidget);
+      },
+    );
+
+    testWidgets('una métrica que no está en ninguna lista no lleva etiquetas', (
+      tester,
+    ) async {
+      final result = const StockAnalyzer().analyze(
+        qualityCompany(),
+        referenceDate: referenceDate,
+      );
+      final rsi = result.blocks
+          .expand((b) => b.metrics)
+          .firstWhere((m) => m.id == 'rsi');
+
+      await _pump(tester, metrics: [rsi]);
+
+      expect(find.text('Esencial'), findsNothing);
+      expect(find.text('Trade Republic'), findsNothing);
+    });
+  });
 }

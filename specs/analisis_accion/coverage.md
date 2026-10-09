@@ -188,3 +188,12 @@ Comprobado además en vivo el 2026-10-08: "nintendo" (1 empresa principal + ADR 
 
 Comprobado en vivo el 2026-10-08: BCE JPY (177,05) y GBP; SAR sin tipo (NotFound); BdE JPY (176,85 del día 7).
 
+## Revisión 7: orientación didáctica (criterios 98-105)
+
+| Criterios | Tests |
+|---|---|
+| 98-102 Tarjeta "Lo esencial", semáforo, apertura de la explicación y casos sin métricas | `presentation/widgets/essentials_card_test.dart` |
+| 100 Cortes del semáforo | `essentials_card_test.dart` (`signalForScore`) |
+| 103-104 Etiquetas "Trade Republic" y "Esencial" | `essentials_card_test.dart`; `metric_row_test.dart` |
+| 105 No recomienda | texto fijo de la tarjeta (revisión) |
+

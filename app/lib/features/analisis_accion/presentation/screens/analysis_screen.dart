@@ -11,6 +11,7 @@ import 'package:stock_app/features/analisis_accion/presentation/widgets/analysis
 import 'package:stock_app/features/analisis_accion/presentation/widgets/block_tile.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/educational_disclaimer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/essentials_card.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/flags_section.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/missing_data_section.dart';
@@ -168,6 +169,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     children: [
       ..._notices(entry),
       VerdictHeader(result: entry.result, display: widget.displayCurrency),
+      EssentialsCard(result: entry.result, showInfo: widget.showInfo),
       const SizedBox(height: 16),
       PriceChartPanel(
         controller: chart,

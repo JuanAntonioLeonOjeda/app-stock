@@ -73,3 +73,11 @@ const diagnosisGuideTopicId = 'guia_diagnostico';
 String fetchProgressLabel(FetchStep step) => switch (step) {
   FetchStep.fetching => 'Obteniendo datos de la empresa',
 };
+
+/// Palabra del semáforo de una métrica.
+String signalLabel(Verdict signal) => switch (signal) {
+  Verdict.favorable => 'Favorable',
+  Verdict.neutral => 'Neutral',
+  Verdict.unfavorable => 'Desfavorable',
+  Verdict.insufficientData => 'Sin dato',
+};

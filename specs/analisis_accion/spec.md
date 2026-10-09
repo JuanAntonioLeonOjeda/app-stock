@@ -576,3 +576,36 @@ siempre en euros (la elección no se recuerda); el Banco de España es el respal
 
 Ninguna.
 
+## Revisión 7: orientación didáctica, lo esencial y Trade Republic (2026-10-09)
+
+**Problema.** Con 29 métricas del mismo tamaño, un principiante no sabe por dónde empezar ni cuáles
+puede comprobar en Trade Republic, donde gestiona la acción. (El tutorial paso a paso queda fuera:
+decisión del usuario, por su coste.)
+
+**Qué se añade**
+- Tarjeta **"Lo esencial"** en la pestaña Resumen, bajo la cabecera, con 6 métricas clave, cada
+  una respondiendo una pregunta: ¿gana dinero? (margen operativo), ¿crece? (crecimiento de
+  ingresos a 3 años), ¿genera caja? (flujo de caja libre), ¿aguanta sus deudas? (deuda/EBITDA),
+  ¿está cara? (PER) y ¿cómo va el precio? (precio frente a la media de 200 sesiones).
+  Elegidas por ser las que repiten las guías para principiantes en rentabilidad, deuda y
+  valoración, una por área.
+- **Semáforo** por métrica con los mismos cortes que el veredicto (nota ≥ 7 favorable, ≥ 5
+  neutral, menor desfavorable, sin nota "sin dato"), siempre con texto además del color.
+- La etiqueta **"Trade Republic"** en las métricas que esa app también muestra. Solo se etiqueta:
+  nada se oculta ni se atenúa. Confirmado en su ayuda oficial: capitalización, PER y rentabilidad
+  por dividendo; de ellas, solo el PER es una métrica del motor. El resto de la lista se amplía en
+  un único sitio cuando el usuario confirme qué ve en su app.
+
+**Criterios de aceptación**
+98. La pestaña Resumen muestra "Lo esencial" con las métricas del motor presentes en el
+    resultado, en el orden de las preguntas.
+99. Cada fila muestra el valor, un semáforo con color y texto, y la pregunta que responde.
+100. El semáforo usa los mismos cortes que el veredicto; una métrica sin nota sale "Sin dato".
+101. Pulsar una fila abre la explicación de esa métrica.
+102. Una métrica esencial que falte en el resultado no aparece en la tarjeta; sin ninguna, no hay
+     tarjeta.
+103. Las métricas de la lista de Trade Republic llevan la etiqueta "Trade Republic" en el Detalle
+     y en "Lo esencial"; la tarjeta explica qué significa.
+104. Las métricas esenciales llevan también la marca "Esencial" en el Detalle.
+105. Ni la tarjeta ni las etiquetas recomiendan comprar o vender.
+
