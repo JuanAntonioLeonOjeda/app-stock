@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
+import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_guidance.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/guidance_tags.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/info_builder.dart';
 
 /// Una métrica: etiqueta, valor, nota y nota explicativa (criterios 11-12), con
@@ -29,7 +31,17 @@ class _MetricRowState extends State<MetricRow> {
         ListTile(
           dense: true,
           leading: buildInfo == null ? null : _infoButton(metric),
-          title: Text(metric.label),
+          title: Wrap(
+            spacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(metric.label),
+              if (isEssential(metric.id))
+                const GuidanceTag(text: essentialTagText, icon: Icons.star),
+              if (isInTradeRepublic(metric.id))
+                const GuidanceTag(text: tradeRepublicTagText),
+            ],
+          ),
           subtitle: Text(
             [
               formatMetricValue(metric.value, metric.format),

@@ -611,3 +611,14 @@ no), caché (6 h, entrada ilegible), controller de moneda (estados, selector, eu
 sin selector en euros, moneda sin tipo), controller de la gráfica (diarios con el tipo de cada
 día, intradía con el último, medias convertidas), cabecera y panel.
 
+## Revisión 7: orientación didáctica
+
+Solo presentación, sin tocar el motor ni su versión.
+
+- `presentation/formatters/metric_guidance.dart`: `essentialMetrics` (id + pregunta, en orden),
+  `tradeRepublicMetricIds` y `signalForScore` (reutiliza `favorableMinScore`/`neutralMinScore`).
+  Es lo único que se edita para cambiar la selección o la lista de Trade Republic.
+- `presentation/widgets/essentials_card.dart`: la tarjeta; recibe el `AnalysisResult` y `showInfo`.
+- `MetricRow`: etiquetas "Esencial" y "Trade Republic". `AnalysisScreen`: la tarjeta en Resumen.
+- Tests: guidance, tarjeta, fila de métrica y pantalla.
+

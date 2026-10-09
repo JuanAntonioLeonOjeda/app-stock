@@ -286,3 +286,14 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
       Tesco (GBX) y una moneda sin tipo; `flutter-reviewer`; skill `datos-mercado`.
 - [ ] T109. En el móvil: selector, gráficas en euros y sin conexión.
 
+---
+
+## Revisión 7: orientación didáctica
+
+- [x] T110. `metric_guidance.dart` (esenciales, Trade Republic, semáforo) + tests.
+- [x] T111. `EssentialsCard` + tests.
+- [x] T112. Etiquetas en `MetricRow`; tarjeta en Resumen + tests.
+- [x] T113. `dart format`, `flutter analyze`, `flutter test`; `flutter-reviewer`; `coverage.md`.
+- [ ] T114. En el móvil: la tarjeta, los colores y las etiquetas.
+- [x] T115. Lista de Trade Republic tomada de su ayuda oficial (PER, P/VC y beta).
+
