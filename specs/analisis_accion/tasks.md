@@ -295,5 +295,5 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [x] T112. Etiquetas en `MetricRow`; tarjeta en Resumen + tests.
 - [x] T113. `dart format`, `flutter analyze`, `flutter test`; `flutter-reviewer`; `coverage.md`.
 - [ ] T114. En el móvil: la tarjeta, los colores y las etiquetas.
-- [ ] T115. El usuario confirma qué métricas ve en Trade Republic y se amplía la lista.
+- [x] T115. Lista de Trade Republic tomada de su ayuda oficial (PER, P/VC y beta).
 

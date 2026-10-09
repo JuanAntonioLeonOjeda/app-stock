@@ -33,11 +33,12 @@ const essentialMetrics = [
   ),
 ];
 
-/// Métricas del motor que Trade Republic también muestra. Confirmado en su
-/// ayuda oficial: capitalización, PER y rentabilidad por dividendo; de ellas,
-/// solo el PER es una métrica del motor. Se amplía cuando se compruebe qué
-/// enseña la app.
-const tradeRepublicMetricIds = {'per'};
+/// Métricas del motor que Trade Republic también muestra en el perfil de un
+/// valor: PER (KGV), precio/valor contable (KBV) y beta (52W Beta). Según su
+/// ayuda oficial (support.traderepublic.com, "Welche Kennzahlen zeigt das
+/// Wertpapierprofil?") enseña además capitalización, rentabilidad por
+/// dividendo y dividendo por acción, que no son métricas del motor.
+const tradeRepublicMetricIds = {'per', 'p_vc', 'beta'};
 
 bool isEssential(String metricId) =>
     essentialMetrics.any((metric) => metric.id == metricId);

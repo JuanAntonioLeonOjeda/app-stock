@@ -592,9 +592,10 @@ decisión del usuario, por su coste.)
 - **Semáforo** por métrica con los mismos cortes que el veredicto (nota ≥ 7 favorable, ≥ 5
   neutral, menor desfavorable, sin nota "sin dato"), siempre con texto además del color.
 - La etiqueta **"Trade Republic"** en las métricas que esa app también muestra. Solo se etiqueta:
-  nada se oculta ni se atenúa. Confirmado en su ayuda oficial: capitalización, PER y rentabilidad
-  por dividendo; de ellas, solo el PER es una métrica del motor. El resto de la lista se amplía en
-  un único sitio cuando el usuario confirme qué ve en su app.
+  nada se oculta ni se atenúa. Según su ayuda oficial, el perfil de un valor muestra
+  capitalización, PER (KGV), rentabilidad por dividendo, dividendo por acción, beta (52W Beta) y
+  precio/valor contable (KBV). De ellas son métricas del motor `per`, `p_vc` y `beta`; la lista
+  vive en un único sitio y se amplía si el usuario ve más en su app.
 
 **Criterios de aceptación**
 98. La pestaña Resumen muestra "Lo esencial" con las métricas del motor presentes en el

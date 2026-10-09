@@ -53,8 +53,10 @@ void main() {
       expect(essentialMetrics.map((m) => m.id), everyElement(isIn(ids)));
     });
 
-    test('el PER está en Trade Republic y el RSI no', () {
+    test('PER, P/VC y beta están en Trade Republic y el RSI no', () {
       expect(isInTradeRepublic('per'), isTrue);
+      expect(isInTradeRepublic('p_vc'), isTrue);
+      expect(isInTradeRepublic('beta'), isTrue);
       expect(isInTradeRepublic('rsi'), isFalse);
     });
   });
