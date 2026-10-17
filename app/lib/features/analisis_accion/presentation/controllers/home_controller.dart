@@ -1,22 +1,36 @@
 import 'package:flutter/foundation.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/clear_history_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/load_favorites_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/set_favorite_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/company_listings.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 
-/// Estado de la pantalla de inicio: búsqueda e historial.
+/// Estado de la pantalla de inicio: búsqueda, favoritos y últimas consultas.
 class HomeController extends ChangeNotifier {
-  HomeController({required this._searchSymbol, required this._loadHistory});
+  HomeController({
+    required this._searchSymbol,
+    required this._loadHistory,
+    required this._clearHistory,
+    required this._loadFavorites,
+    required this._setFavorite,
+  });
 
   final SearchSymbolUseCase _searchSymbol;
   final LoadHistoryUseCase _loadHistory;
+  final ClearHistoryUseCase _clearHistory;
+  final LoadFavoritesUseCase _loadFavorites;
+  final SetFavoriteUseCase _setFavorite;
 
   bool _isSearching = false;
   List<CompanyListings>? _companies;
   bool _showReceipts = false;
   MarketDataException? _searchError;
   List<HistoryEntry> _history = const [];
+  List<Favorite> _favorites = const [];
   bool _isDisposed = false;
 
   bool get isSearching => _isSearching;
@@ -59,7 +73,11 @@ class HomeController extends ChangeNotifier {
     return companies != null && companies.isEmpty;
   }
 
+  /// Últimas consultas, la más reciente primero.
   List<HistoryEntry> get history => _history;
+
+  /// Acciones favoritas, la última añadida primero.
+  List<Favorite> get favorites => _favorites;
 
   bool get canSearch => !_isSearching;
 
@@ -72,6 +90,23 @@ class HomeController extends ChangeNotifier {
   Future<void> refreshHistory() async {
     _history = List.unmodifiable(await _loadHistory());
     _notify();
+  }
+
+  Future<void> refreshFavorites() async {
+    _favorites = List.unmodifiable(await _loadFavorites());
+    _notify();
+  }
+
+  /// Vacía la lista de últimas consultas.
+  Future<void> clearHistory() async {
+    await _clearHistory();
+    await refreshHistory();
+  }
+
+  /// Quita [favorite] de los favoritos.
+  Future<void> removeFavorite(Favorite favorite) async {
+    await _setFavorite(favorite, isFavorite: false);
+    await refreshFavorites();
   }
 
   /// Busca [query]. No hace nada con un texto vacío o si ya hay una búsqueda

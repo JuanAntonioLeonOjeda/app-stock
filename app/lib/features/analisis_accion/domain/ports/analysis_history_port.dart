@@ -8,4 +8,7 @@ abstract interface class AnalysisHistoryPort {
   /// Guarda [entry] al principio. Si ya había una entrada del mismo símbolo,
   /// la sustituye; si se supera el máximo, descarta la más antigua.
   Future<void> save(HistoryEntry entry);
+
+  /// Borra todo el historial.
+  Future<void> clear();
 }

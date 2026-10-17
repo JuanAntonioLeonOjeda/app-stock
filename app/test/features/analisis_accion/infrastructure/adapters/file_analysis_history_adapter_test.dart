@@ -101,4 +101,30 @@ void main() {
       expect(await history.load(), isEmpty);
     });
   });
+
+  group('FileAnalysisHistoryAdapter.clear', () {
+    test('vacía el historial guardado', () async {
+      await history.save(_entry('AAA'));
+      await history.save(_entry('BBB', minute: 1));
+
+      await history.clear();
+
+      expect(await history.load(), isEmpty);
+    });
+
+    test('limpiar un historial que no existe no falla', () async {
+      await history.clear();
+
+      expect(await history.load(), isEmpty);
+    });
+
+    test('se puede guardar de nuevo después de limpiar', () async {
+      await history.save(_entry('AAA'));
+      await history.clear();
+
+      await history.save(_entry('BBB'));
+
+      expect(_symbols(await history.load()), ['BBB']);
+    });
+  });
 }
