@@ -8,10 +8,14 @@ import 'package:stock_app/features/analisis_accion/application/use_cases/analyze
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_intraday_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_price_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/open_news_use_case.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/load_favorites_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/set_favorite_use_case.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/favorite_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
@@ -40,12 +44,14 @@ Future<void> _pumpScreen(
   ShowInfo? showInfo,
   InfoBuilder? buildInfo,
   PriceChartController? chartController,
+  FavoriteController? favoriteController,
 }) => tester.pumpWidget(
   MaterialApp(
     home: AnalysisScreen(
       showInfo: showInfo,
       buildInfo: buildInfo,
       chartController: chartController,
+      favoriteController: favoriteController,
       controller: AnalysisController(
         openNews: OpenNewsUseCase(linkOpener ?? FakeLinkOpener()),
         analyzeStock: AnalyzeStockUseCase(
@@ -61,8 +67,17 @@ Future<void> _pumpScreen(
   ),
 );
 
-Future<void> _scrollTo(WidgetTester tester, Finder finder) => tester
-    .scrollUntilVisible(finder, 200, scrollable: find.byType(Scrollable).first);
+Future<void> _scrollTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
+  // scrollUntilVisible se detiene al asomar el borde: el centro, donde
+  // pulsa tap(), puede quedar aún fuera de pantalla.
+  await tester.ensureVisible(finder);
+  await tester.pump();
+}
 
 PriceChartController _chart(FakePriceHistory history) => PriceChartController(
   getPriceHistory: GetPriceHistoryUseCase(history),
@@ -326,11 +341,9 @@ void main() {
       await _pumpScreen(tester, FakeMarketData(), entry: entry);
 
       expect(find.text('CALI'), findsWidgets);
+      expect(find.text(formatPrice(result.price, 'USD')), findsOneWidget);
       expect(
-        find.text(
-          '${formatPrice(result.price, 'USD')} · cierre del '
-          '${formatDate(result.lastCloseDate!)}',
-        ),
+        find.text('Cierre del ${formatDate(result.lastCloseDate!)}'),
         findsOneWidget,
       );
       expect(find.text('Perfil: General'), findsOneWidget);
@@ -469,6 +482,58 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Calidad S.A.'), findsOneWidget);
+    });
+  });
+
+  group('AnalysisScreen favoritas', () {
+    FavoriteController favoriteController(FakeFavorites favorites) =>
+        FavoriteController(
+          loadFavorites: LoadFavoritesUseCase(favorites),
+          setFavorite: SetFavoriteUseCase(favorites),
+          symbol: 'CALI',
+        );
+
+    testWidgets('la estrella marca la acción como favorita', (tester) async {
+      final favorites = FakeFavorites();
+      await _pumpScreen(
+        tester,
+        FakeMarketData(),
+        entry: _qualityEntry(),
+        favoriteController: favoriteController(favorites),
+      );
+
+      await tester.tap(find.byTooltip('Añadir a favoritos'));
+      await tester.pumpAndSettle();
+
+      expect(favorites.items.single.symbol, 'CALI');
+      expect(favorites.items.single.name, 'Calidad S.A.');
+      expect(find.byTooltip('Quitar de favoritos'), findsOneWidget);
+    });
+
+    testWidgets('una favorita ya guardada sale marcada y se puede quitar', (
+      tester,
+    ) async {
+      final favorites = FakeFavorites([
+        const Favorite(symbol: 'CALI', name: 'Calidad S.A.'),
+      ]);
+      await _pumpScreen(
+        tester,
+        FakeMarketData(),
+        entry: _qualityEntry(),
+        favoriteController: favoriteController(favorites),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Quitar de favoritos'));
+      await tester.pumpAndSettle();
+
+      expect(favorites.items, isEmpty);
+    });
+
+    testWidgets('sin controlador de favoritas no hay estrella', (tester) async {
+      await _pumpScreen(tester, FakeMarketData(), entry: _qualityEntry());
+
+      expect(find.byTooltip('Añadir a favoritos'), findsNothing);
     });
   });
 }

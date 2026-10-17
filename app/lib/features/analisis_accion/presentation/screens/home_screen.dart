@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/company_listings.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/error_notice.dart';
-import 'package:stock_app/features/analisis_accion/presentation/widgets/history_list.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/favorites_list.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/recent_queries_section.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/search_bar_section.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/company_listings_tile.dart';
 
@@ -16,7 +18,8 @@ typedef AnalysisScreenBuilder = Widget Function(
   HistoryEntry? entry,
 });
 
-/// Pantalla de inicio: buscador arriba e historial debajo (criterio 0).
+/// Pantalla de inicio: buscador, favoritas y, plegadas, las últimas consultas
+/// (criterio 0).
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
@@ -42,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _controller.refreshHistory();
+    _controller.refreshFavorites();
   }
 
   Future<void> _openAnalysis(String symbol, {HistoryEntry? entry}) async {
@@ -50,8 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => widget.buildAnalysisScreen(symbol, entry: entry),
       ),
     );
-    // El análisis puede haber añadido o actualizado una entrada.
+    // El análisis puede haber añadido una entrada o cambiado una favorita.
     await _controller.refreshHistory();
+    await _controller.refreshFavorites();
   }
 
   @override
@@ -80,11 +85,18 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
             ..._searchResults(),
             const SizedBox(height: 24),
-            Text('Historial', style: Theme.of(context).textTheme.titleMedium),
-            HistoryList(
+            Text('Favoritas', style: Theme.of(context).textTheme.titleMedium),
+            FavoritesList(
+              favorites: _controller.favorites,
+              onOpen: (Favorite favorite) => _openAnalysis(favorite.symbol),
+              onRemove: _controller.removeFavorite,
+            ),
+            const SizedBox(height: 16),
+            RecentQueriesSection(
               entries: _controller.history,
               onTap: (entry) =>
                   _openAnalysis(entry.result.symbol, entry: entry),
+              onClear: _controller.clearHistory,
             ),
           ],
         ),

@@ -610,3 +610,29 @@ decisión del usuario, por su coste.)
 104. Las métricas esenciales llevan también la marca "Esencial" en el Detalle.
 105. Ni la tarjeta ni las etiquetas recomiendan comprar o vender.
 
+## Revisión 8: aspecto moderno, favoritas y últimas consultas (2026-10-15)
+
+**Qué se añade**
+- **Aspecto:** tema propio claro y oscuro (tinta verdosa sobre papel, petróleo como único color de
+  marca), IBM Plex Sans para la interfaz y los números (cifras de ancho fijo) e IBM Plex Serif
+  para el texto educativo. Fuentes empaquetadas en la app (sin red). Semáforo propio con contraste
+  de texto de al menos 4,5:1 en los dos modos. La cabecera destaca el precio y muestra la nota
+  como escala de 10 tramos; el color nunca va sin texto.
+- **Favoritas:** una estrella en la pantalla de resultado marca o desmarca la acción. Las favoritas
+  son lo que se ve en la pantalla principal, bajo el buscador.
+- **Últimas consultas:** el historial pasa a una sección desplegable (cerrada al empezar) con un
+  botón "Limpiar lista" que pide confirmación y no toca las favoritas.
+
+**Criterios de aceptación**
+106. La app usa el tema nuevo en claro y oscuro; los textos tienen contraste suficiente.
+107. La cabecera muestra el precio destacado y la nota como escala de 10 tramos con su número.
+108. La pantalla de resultado tiene una estrella que añade o quita la acción de las favoritas.
+109. Las favoritas se guardan entre sesiones, sin duplicados, la última añadida primero.
+110. La pantalla principal muestra las favoritas bajo el buscador; pulsar una abre su análisis.
+111. Cada favorita se puede quitar desde la principal con su estrella.
+112. Sin favoritas, la principal explica cómo añadir una.
+113. "Últimas consultas" es una sección plegada al empezar que, al abrirla, muestra el historial.
+114. "Limpiar lista" pide confirmación; al confirmar vacía el historial y no toca las favoritas;
+     al cancelar no cambia nada.
+115. Un archivo de favoritas ausente, corrupto o de otra versión da una lista vacía.
+

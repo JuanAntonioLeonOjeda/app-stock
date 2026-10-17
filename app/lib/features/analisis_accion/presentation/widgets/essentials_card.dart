@@ -69,7 +69,7 @@ class EssentialsCard extends StatelessWidget {
     MetricResult metric,
   ) {
     final signal = signalForScore(metric.score);
-    final color = verdictColor(signal, Theme.of(context).colorScheme);
+    final color = verdictColor(signal, Theme.of(context));
     final open = showInfo;
     return ListTile(
       dense: true,

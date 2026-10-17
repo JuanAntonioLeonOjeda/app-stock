@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/clear_history_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/load_favorites_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/set_favorite_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/home_controller.dart';
@@ -20,11 +24,17 @@ Future<void> _pumpHome(
   WidgetTester tester,
   FakeMarketData marketData, {
   FakeHistory? history,
+  FakeFavorites? favorites,
   void Function(BuildContext context)? onOpenLearn,
 }) async {
+  final fakeHistory = history ?? FakeHistory();
+  final fakeFavorites = favorites ?? FakeFavorites();
   final controller = HomeController(
     searchSymbol: SearchSymbolUseCase(marketData),
-    loadHistory: LoadHistoryUseCase(history ?? FakeHistory()),
+    loadHistory: LoadHistoryUseCase(fakeHistory),
+    clearHistory: ClearHistoryUseCase(fakeHistory),
+    loadFavorites: LoadFavoritesUseCase(fakeFavorites),
+    setFavorite: SetFavoriteUseCase(fakeFavorites),
   );
   addTearDown(controller.dispose);
   await tester.pumpWidget(
@@ -36,6 +46,11 @@ Future<void> _pumpHome(
       ),
     ),
   );
+  await tester.pumpAndSettle();
+}
+
+Future<void> _openRecentQueries(WidgetTester tester) async {
+  await tester.tap(find.text('Últimas consultas'));
   await tester.pumpAndSettle();
 }
 
@@ -197,6 +212,7 @@ void main() {
         analyzedAt: referenceDate,
       );
       await _pumpHome(tester, FakeMarketData(), history: FakeHistory([entry]));
+      await _openRecentQueries(tester);
 
       expect(find.text('Calidad S.A.'), findsOneWidget);
       expect(find.text('Favorable'), findsOneWidget);
@@ -209,8 +225,106 @@ void main() {
 
     testWidgets('con historial vacío lo indica', (tester) async {
       await _pumpHome(tester, FakeMarketData());
+      await _openRecentQueries(tester);
 
       expect(find.text('Aún no has analizado ninguna acción.'), findsOneWidget);
+    });
+  });
+
+  group('HomeScreen favoritas y últimas consultas', () {
+    HistoryEntry qualityEntry() => HistoryEntry(
+      result: const StockAnalyzer().analyze(
+        qualityCompany(),
+        referenceDate: referenceDate,
+      ),
+      analyzedAt: referenceDate,
+    );
+
+    testWidgets('las favoritas se ven en la principal sin desplegar nada', (
+      tester,
+    ) async {
+      await _pumpHome(
+        tester,
+        FakeMarketData(),
+        favorites: FakeFavorites([
+          const Favorite(symbol: 'TSE:7974', name: 'Nintendo'),
+        ]),
+      );
+
+      expect(find.text('Nintendo'), findsOneWidget);
+      expect(find.text('TSE:7974'), findsOneWidget);
+    });
+
+    testWidgets('pulsar una favorita abre su análisis', (tester) async {
+      await _pumpHome(
+        tester,
+        FakeMarketData(),
+        favorites: FakeFavorites([
+          const Favorite(symbol: 'TSE:7974', name: 'Nintendo'),
+        ]),
+      );
+
+      await tester.tap(find.text('Nintendo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Análisis de TSE:7974'), findsOneWidget);
+    });
+
+    testWidgets('la estrella quita la favorita', (tester) async {
+      await _pumpHome(
+        tester,
+        FakeMarketData(),
+        favorites: FakeFavorites([
+          const Favorite(symbol: 'TSE:7974', name: 'Nintendo'),
+        ]),
+      );
+
+      await tester.tap(find.byTooltip('Quitar Nintendo de favoritos'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nintendo'), findsNothing);
+      expect(find.textContaining('Aún no tienes favoritas'), findsOneWidget);
+    });
+
+    testWidgets('las últimas consultas empiezan plegadas', (tester) async {
+      await _pumpHome(
+        tester,
+        FakeMarketData(),
+        history: FakeHistory([qualityEntry()]),
+      );
+
+      expect(find.text('Últimas consultas'), findsOneWidget);
+      expect(find.text('Calidad S.A.'), findsNothing);
+    });
+
+    testWidgets('limpiar la lista pide confirmación y la vacía', (
+      tester,
+    ) async {
+      final history = FakeHistory([qualityEntry()]);
+      await _pumpHome(tester, FakeMarketData(), history: history);
+      await _openRecentQueries(tester);
+
+      await tester.tap(find.text('Limpiar lista'));
+      await tester.pumpAndSettle();
+      expect(find.text('¿Limpiar las últimas consultas?'), findsOneWidget);
+      await tester.tap(find.text('Limpiar'));
+      await tester.pumpAndSettle();
+
+      expect(history.entries, isEmpty);
+      expect(find.text('Aún no has analizado ninguna acción.'), findsOneWidget);
+    });
+
+    testWidgets('cancelar no borra nada', (tester) async {
+      final history = FakeHistory([qualityEntry()]);
+      await _pumpHome(tester, FakeMarketData(), history: history);
+      await _openRecentQueries(tester);
+
+      await tester.tap(find.text('Limpiar lista'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(history.entries, hasLength(1));
     });
   });
 }

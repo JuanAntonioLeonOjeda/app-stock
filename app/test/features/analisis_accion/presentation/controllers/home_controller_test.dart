@@ -1,8 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/clear_history_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/load_favorites_use_case.dart';
+import 'package:stock_app/features/analisis_accion/application/use_cases/set_favorite_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/load_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/search_symbol_use_case.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/stock_analyzer.dart';
@@ -12,11 +16,21 @@ import '../../application/fake_ports.dart';
 import '../../domain/motor/synthetic_companies.dart';
 import '../../search_samples.dart';
 
-HomeController _controller(FakeMarketData marketData, {FakeHistory? history}) =>
-    HomeController(
-      searchSymbol: SearchSymbolUseCase(marketData),
-      loadHistory: LoadHistoryUseCase(history ?? FakeHistory()),
-    );
+HomeController _controller(
+  FakeMarketData marketData, {
+  FakeHistory? history,
+  FakeFavorites? favorites,
+}) {
+  final fakeHistory = history ?? FakeHistory();
+  final fakeFavorites = favorites ?? FakeFavorites();
+  return HomeController(
+    searchSymbol: SearchSymbolUseCase(marketData),
+    loadHistory: LoadHistoryUseCase(fakeHistory),
+    clearHistory: ClearHistoryUseCase(fakeHistory),
+    loadFavorites: LoadFavoritesUseCase(fakeFavorites),
+    setFavorite: SetFavoriteUseCase(fakeFavorites),
+  );
+}
 
 void main() {
   group('HomeController.search', () {
@@ -191,5 +205,66 @@ void main() {
       expect(controller.receiptCount, 0);
       expect(controller.canToggleReceipts, isFalse);
     });
+  });
+
+  group('HomeController favoritos y últimas consultas', () {
+    const nintendo = Favorite(symbol: 'TSE:7974', name: 'Nintendo');
+    const iberdrola = Favorite(symbol: 'BME:IBE', name: 'Iberdrola');
+
+    test('refreshFavorites carga las favoritas guardadas', () async {
+      final controller = _controller(
+        FakeMarketData(),
+        favorites: FakeFavorites([nintendo, iberdrola]),
+      );
+      addTearDown(controller.dispose);
+
+      await controller.refreshFavorites();
+
+      expect(controller.favorites, [nintendo, iberdrola]);
+    });
+
+    test('removeFavorite quita la favorita y avisa', () async {
+      final controller = _controller(
+        FakeMarketData(),
+        favorites: FakeFavorites([nintendo, iberdrola]),
+      );
+      addTearDown(controller.dispose);
+      await controller.refreshFavorites();
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+
+      await controller.removeFavorite(nintendo);
+
+      expect(controller.favorites, [iberdrola]);
+      expect(notifications, greaterThan(0));
+    });
+
+    test(
+      'clearHistory vacía las últimas consultas y no toca las favoritas',
+      () async {
+        final entry = HistoryEntry(
+          result: const StockAnalyzer().analyze(
+            qualityCompany(),
+            referenceDate: referenceDate,
+          ),
+          analyzedAt: referenceDate,
+        );
+        final history = FakeHistory([entry]);
+        final controller = _controller(
+          FakeMarketData(),
+          history: history,
+          favorites: FakeFavorites([nintendo]),
+        );
+        addTearDown(controller.dispose);
+        await controller.refreshHistory();
+        await controller.refreshFavorites();
+
+        await controller.clearHistory();
+
+        expect(controller.history, isEmpty);
+        expect(history.entries, isEmpty);
+        expect(controller.favorites, [nintendo]);
+      },
+    );
   });
 }

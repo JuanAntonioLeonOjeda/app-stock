@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:stock_app/features/analisis_accion/domain/chart/intraday_resolution.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/daily_bar.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/exchange_rate_series.dart';
+import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/fetch_step.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/entities/intraday_series.dart';
@@ -16,6 +17,7 @@ import 'package:stock_app/features/analisis_accion/domain/ports/analysis_history
 import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/link_opener_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/exchange_rate_port.dart';
+import 'package:stock_app/features/analisis_accion/domain/ports/favorites_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/intraday_history_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/market_data_port.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/price_history_port.dart';
@@ -198,5 +200,30 @@ class FakeHistory implements AnalysisHistoryPort {
     entries
       ..removeWhere((e) => e.result.symbol == entry.result.symbol)
       ..insert(0, entry);
+  }
+
+  @override
+  Future<void> clear() async => entries.clear();
+}
+
+/// Favoritos en memoria, el último añadido primero.
+class FakeFavorites implements FavoritesPort {
+  FakeFavorites([List<Favorite> initial = const []]) : items = [...initial];
+
+  final List<Favorite> items;
+
+  @override
+  Future<List<Favorite>> load() async => [...items];
+
+  @override
+  Future<void> add(Favorite favorite) async {
+    items
+      ..remove(favorite)
+      ..insert(0, favorite);
+  }
+
+  @override
+  Future<void> remove(String symbol) async {
+    items.remove(Favorite(symbol: symbol, name: ''));
   }
 }

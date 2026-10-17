@@ -297,3 +297,15 @@ Motor (seguir la skill `motor-analisis` y `references/metricas.md`):
 - [ ] T114. En el móvil: la tarjeta, los colores y las etiquetas.
 - [x] T115. Lista de Trade Republic tomada de su ayuda oficial (PER, P/VC y beta).
 
+---
+
+## Revisión 8: aspecto, favoritas y últimas consultas
+
+- [x] T116. Fuentes empaquetadas, `app_theme.dart` y `signal_colors.dart`; semáforo del tema.
+- [x] T117. Cabecera rediseñada y `ScoreScale`.
+- [x] T118. `Favorite`, `FavoritesPort`, casos de uso, `FileFavoritesAdapter` y `clear()` del historial + tests.
+- [x] T119. `FavoriteController`, estrella en `AnalysisScreen` + tests.
+- [x] T120. `HomeController`, `FavoritesList`, `RecentQueriesSection` y pantalla principal + tests.
+- [ ] T121. `dart format`, `flutter analyze`, `flutter test` (el usuario; lo escrito aún no se ha compilado).
+- [ ] T122. Revisión con `flutter-reviewer` y prueba en el móvil (claro y oscuro).
+
