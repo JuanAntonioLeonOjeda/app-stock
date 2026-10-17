@@ -54,4 +54,7 @@ class FileAnalysisHistoryAdapter implements AnalysisHistoryPort {
       // Historial sin actualizar; el análisis no se ve afectado.
     }
   }
+
+  @override
+  Future<void> clear() => _file.delete();
 }

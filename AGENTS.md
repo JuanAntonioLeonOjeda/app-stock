@@ -22,6 +22,7 @@ Contexto del proyecto, arquitectura por features, comandos y despliegue viven en
 | `.claude/agents/flutter-reviewer.md` | Subagente revisor de la app Flutter (`app/`) |
 | `.claude/agents/code-reviewer.md` | Subagente revisor genérico (seguridad, corrección, mantenibilidad) |
 | `.claude/commands/create-pr.md` | Comando para crear PR con conventional commits |
+| `.claude/commands/build.md` | Comando `/build [apk\|appbundle\|ios]`: comprobaciones y compilación |
 | `.claude/workflows/spec-driven-feature.md` | Proceso spec → plan → tasks → implementación → tests → revisión |
 | `.claude/workflows/git-workflow.md` | Convención de ramas |
 | `specs/analisis_accion/spec.md` | Spec de la feature `analisis_accion` |

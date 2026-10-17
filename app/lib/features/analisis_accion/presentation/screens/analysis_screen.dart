@@ -3,6 +3,7 @@ import 'package:stock_app/features/analisis_accion/domain/entities/history_entry
 import 'package:stock_app/features/analisis_accion/domain/exceptions/market_data_exception.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/analysis_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/display_currency_controller.dart';
+import 'package:stock_app/features/analisis_accion/presentation/controllers/favorite_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/error_messages.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
@@ -33,6 +34,7 @@ class AnalysisScreen extends StatefulWidget {
     this.buildInfo,
     this.chartController,
     this.displayCurrency,
+    this.favoriteController,
   });
 
   final AnalysisController controller;
@@ -43,6 +45,10 @@ class AnalysisScreen extends StatefulWidget {
   /// Moneda en la que se ven los precios (euros por defecto). La pantalla la
   /// configura con la moneda del resultado y la libera al cerrarse.
   final DisplayCurrencyController? displayCurrency;
+
+  /// Marca de favorita; sin él no hay estrella. La pantalla lo libera al
+  /// cerrarse.
+  final FavoriteController? favoriteController;
 
   /// Abre una explicación educativa aparte (la guía del diagnóstico); sin ella
   /// no hay botón de la guía.
@@ -65,6 +71,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     // Desde el historial ya hay resultado: no se recalcula (criterio 17).
     if (_controller.entry == null) _controller.analyze();
     widget.chartController?.load();
+    widget.favoriteController?.load();
     _controller.addListener(_configureCurrency);
     _configureCurrency();
   }
@@ -82,6 +89,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     _controller.dispose();
     widget.chartController?.dispose();
     widget.displayCurrency?.dispose();
+    widget.favoriteController?.dispose();
     super.dispose();
   }
 
@@ -100,6 +108,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       appBar: AppBar(
         title: Text(_controller.symbol),
         actions: [
+          ?_favoriteButton(),
           IconButton(
             tooltip: 'Actualizar datos',
             icon: const Icon(Icons.refresh),
@@ -110,6 +119,25 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       body: SafeArea(child: _body()),
     ),
   );
+
+  /// La estrella de favoritos, cuando ya hay resultado con el que nombrarla.
+  Widget? _favoriteButton() {
+    final favorite = widget.favoriteController;
+    final entry = _controller.entry;
+    if (favorite == null || entry == null) return null;
+    return ListenableBuilder(
+      listenable: favorite,
+      builder: (context, _) => IconButton(
+        tooltip: favorite.isFavorite
+            ? 'Quitar de favoritos'
+            : 'Añadir a favoritos',
+        icon: Icon(favorite.isFavorite ? Icons.star : Icons.star_border),
+        onPressed: favorite.isBusy
+            ? null
+            : () => favorite.toggle(entry.result.name),
+      ),
+    );
+  }
 
   Widget _body() {
     final entry = _controller.entry;

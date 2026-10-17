@@ -4,6 +4,7 @@ import 'package:stock_app/features/analisis_accion/presentation/controllers/disp
 import 'package:stock_app/features/analisis_accion/presentation/formatters/labels.dart';
 import 'package:stock_app/features/analisis_accion/presentation/formatters/metric_value_formatter.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/currency_switch.dart';
+import 'package:stock_app/features/analisis_accion/presentation/widgets/score_scale.dart';
 import 'package:stock_app/features/analisis_accion/presentation/widgets/verdict_badge.dart';
 
 /// Cabecera del resultado (criterio 9): empresa, precio, veredicto, nota,
@@ -58,43 +59,61 @@ class VerdictHeader extends StatelessWidget {
   }
 
   Widget _card(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final text = theme.textTheme;
     final lastClose = result.lastCloseDate;
     final score = result.globalScore;
+    final color = verdictColor(result.verdict, theme);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(result.name, style: text.titleLarge),
-            Text(result.symbol, style: text.bodyMedium),
+            Text(result.symbol, style: text.bodySmall),
             ..._listingLines(text),
-            const SizedBox(height: 8),
-            Text(
-              [
-                _priceText(),
-                if (lastClose != null) 'cierre del ${formatDate(lastClose)}',
-              ].join(' · '),
-            ),
+            const SizedBox(height: 16),
+            Text(_priceText(), style: text.displaySmall),
+            if (lastClose != null)
+              Text(
+                'Cierre del ${formatDate(lastClose)}',
+                style: text.bodySmall,
+              ),
             if (display case final controller?)
               CurrencySwitch(
                 controller: controller,
                 originalPrice: result.price,
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               children: [
                 VerdictBadge(verdict: result.verdict),
                 const Spacer(),
                 if (score != null)
-                  Text('${formatScore(score)} / 10', style: text.headlineSmall),
+                  Text('${formatScore(score)} / 10', style: text.titleLarge),
               ],
             ),
-            const SizedBox(height: 12),
-            Text('Confianza: ${confidenceLabel(result.confidence)}'),
-            Text('Perfil: ${profileLabel(result.profile)}'),
-            const SizedBox(height: 8),
+            if (score != null) ...[
+              const SizedBox(height: 10),
+              ScoreScale(score: score, color: color),
+            ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 16,
+              runSpacing: 2,
+              children: [
+                Text(
+                  'Confianza: ${confidenceLabel(result.confidence)}',
+                  style: text.bodyMedium,
+                ),
+                Text(
+                  'Perfil: ${profileLabel(result.profile)}',
+                  style: text.bodyMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
             Text('Motor v${result.motorVersion}', style: text.bodySmall),
           ],
         ),

@@ -622,3 +622,17 @@ Solo presentación, sin tocar el motor ni su versión.
 - `MetricRow`: etiquetas "Esencial" y "Trade Republic". `AnalysisScreen`: la tarjeta en Resumen.
 - Tests: guidance, tarjeta, fila de métrica y pantalla.
 
+## Revisión 8: aspecto, favoritas y últimas consultas
+
+- **Tema** (`app/lib/core/theme/`): `app_theme.dart` (paleta, escala tipográfica, temas de
+  componentes) y `signal_colors.dart` (`ThemeExtension` del semáforo). Fuentes en
+  `app/assets/fonts/` (licencia OFL incluida). `bodyLarge` es la tipografía con serifa porque solo
+  la usa el texto educativo.
+- **Dominio:** `Favorite`, `FavoritesPort` y `AnalysisHistoryPort.clear()`.
+- **Aplicación:** `LoadFavoritesUseCase`, `SetFavoriteUseCase`, `ClearHistoryUseCase`.
+- **Infraestructura:** `FileFavoritesAdapter` (`favorites.json`, versionado) y `clear()` en el
+  adapter del historial.
+- **Presentación:** `FavoriteController` (uno por resultado), `HomeController` con favoritas y
+  limpieza; `FavoritesList`, `RecentQueriesSection`, `ScoreScale`; estrella en `AnalysisScreen`;
+  cabecera rediseñada. Composición en `app.dart`.
+
