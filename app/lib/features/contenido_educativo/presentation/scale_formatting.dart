@@ -16,9 +16,14 @@ String formatScaleValue(double value, ScaleUnit unit) => switch (unit) {
   ScaleUnit.decimal => formatNumber(value),
 };
 
-/// Un dato de una fórmula con su unidad (`30 €`); sin unidad, solo el número.
-String formatPieceValue(double value, String unit) =>
-    unit.isEmpty ? formatNumber(value) : '${formatNumber(value)} $unit';
+/// Un dato de una fórmula con su unidad (`30 €`, `20x`); sin unidad, solo el
+/// número. A diferencia del resultado, un `%` aquí es el número tal cual
+/// (20 → «20 %»), no una fracción.
+String formatPieceValue(double value, String unit) => switch (unit) {
+  '' => formatNumber(value),
+  'x' => '${formatNumber(value)}x',
+  _ => '${formatNumber(value)} $unit',
+};
 
 /// El resultado de una fórmula. Con unidad `%` el valor es una fracción;
 /// `x` se pega al número y cualquier otra unidad va separada.

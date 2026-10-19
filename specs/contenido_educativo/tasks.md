@@ -138,7 +138,7 @@
 
 ### Contenido (por bloques; revisión del usuario al final de cada uno)
 
-- [ ] T47. Valoración (6): JSON nuevo e ilustraciones.
+- [x] T47. Valoración (6): JSON nuevo e ilustraciones. Pendiente de tu revisión (T31).
 - [ ] T48. Salud financiera (6).
 - [ ] T49. Crecimiento y rentabilidad (9).
 - [ ] T50. Técnico (5), incluida la leyenda de MACD.

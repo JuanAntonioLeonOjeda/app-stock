@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:stock_app/core/theme/signal_colors.dart';
 
+/// Construye la ilustración de una métrica o concepto.
+typedef IllustrationBuilder = Widget Function();
+
 /// Colores de las ilustraciones, del tema para que sigan el modo claro y el
 /// oscuro (criterio 75).
 class IllustrationPalette {
