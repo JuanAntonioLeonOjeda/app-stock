@@ -64,6 +64,15 @@ construyen en un composition root (`app/lib/app.dart`) y se pasan por constructo
 case; los use cases, a su vez, se pasan al controller de la pantalla. Si el número de
 dependencias crece y esto se vuelve incómodo, se valora añadir `get_it`, pero no antes.
 
+## Código que conecta dos features: `app/lib/composition/`
+
+Una feature nunca importa de otra. Cuando una necesita algo que solo sabe la otra, lo
+pide con un port propio y el adapter que lo implementa vive en `app/lib/composition/`,
+la única carpeta (junto con `app/lib/app.dart`) que puede importar de varias features. Ej.:
+`contenido_educativo` define `MetricScalePort` para dibujar la escala de una métrica, y
+`MotorMetricScaleAdapter` lee las escalas reales de `analisis_accion`. Sus tests viven en
+`app/test/composition/`. No es un cajón de sastre: solo adapters que unen features.
+
 ## Dónde va cada cosa
 
 | Concepto | Capa |

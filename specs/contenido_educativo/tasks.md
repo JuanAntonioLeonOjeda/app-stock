@@ -151,7 +151,8 @@
 
 ### Cierre
 
-- [ ] T54. Skill `contenido-educativo` y `AGENTS.md` con el formato nuevo.
+- [x] T54. Skill `contenido-educativo` y `AGENTS.md` con el formato nuevo; además, `composition/`
+      documentada en `hexagonal-architecture.md` y `project-policies.md`.
 - [ ] T55. `dart format`, `flutter analyze` y `flutter test` limpios.
 - [ ] T56. `flutter-reviewer` (atención a `app/lib/composition/` y a que ninguna feature
       importe de la otra).
