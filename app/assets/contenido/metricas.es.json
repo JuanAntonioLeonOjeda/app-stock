@@ -541,8 +541,12 @@
       "intuicion": "Si debes 20.000 € de hipoteca y ganas 10.000 € al año, tardarías 2 años en pagarla si dedicaras todo. Es la misma idea con la deuda de una empresa.",
       "formula": "Deuda total menos caja e inversiones a corto plazo (balance), dividida entre el EBITDA de los últimos 12 meses (cuenta de resultados). Solo se calcula con EBITDA positivo.",
       "ejemplo": "Una empresa debe 500 M€, tiene 100 M€ en caja y su EBITDA es 200 M€: (500 − 100) / 200 = 2 años.",
-      "comoLeerla": "El motor da buena nota por debajo de 2 (la máxima con caja neta, o sea, valores negativos), nota media hacia 3 y mala por encima de 4-6. Más de 4 genera además un aviso. Los sectores estables (energía, servicios públicos) soportan más deuda que los cíclicos. No se usa en bancos.",
-      "cuandoEngana": "Un EBITDA de un buen año hace parecer la deuda pequeña: si el negocio es cíclico y el beneficio cae, el ratio se dispara. Tampoco dice cuándo vence la deuda ni a qué interés. Un valor negativo no es raro: significa más caja que deuda.",
+      "comoLeerla": "Cuanto más bajo, menos años de beneficio operativo harían falta para saldar la deuda, y mejor lo puntúa el motor; un valor negativo significa más caja que deuda. Los sectores estables soportan más deuda que los cíclicos. Un valor muy alto genera además un aviso. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un EBITDA de un buen año hace parecer la deuda pequeña: si el negocio es cíclico y el beneficio cae, el ratio se dispara.",
+        "Tampoco dice cuándo vence la deuda ni a qué interés.",
+        "Un valor negativo no es raro: significa más caja que deuda."
+      ],
       "combinaCon": [
         "cobertura_intereses",
         "deuda_patrimonio",
@@ -557,7 +561,70 @@
         ],
         "correcta": 1,
         "explicacion": "Deuda neta = deuda − caja. Si la caja supera a la deuda, la deuda neta es negativa y el ratio también. Es la situación más holgada."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "deuda_neta",
+          "nombre": "Deuda neta (deuda − caja)",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": -200,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ebitda",
+          "nombre": "EBITDA (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Deuda neta/EBITDA",
+          "unidad": "años",
+          "ejemplo": 2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la deuda neta y el EBITDA: ¿cuántos años de beneficio operativo harían falta para pagar la deuda? Prueba con una deuda neta negativa."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Acero Levante (empresa inventada)",
+          "enunciado": "Su deuda neta/EBITDA es de solo 1 y parece muy holgada. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Deuda neta",
+              "valor": "300 M€",
+              "esTrampa": false,
+              "explicacion": "Es el numerador del ratio. Por sí sola no dice si es mucha o poca: hay que compararla con lo que gana el negocio."
+            },
+            {
+              "etiqueta": "EBITDA de este año",
+              "valor": "300 M€ (año récord del sector)",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: en un sector cíclico, este año fue excepcional. Con el EBITDA de un año normal, 100 M€, el ratio sería 3 y no 1."
+            },
+            {
+              "etiqueta": "EBITDA medio de los últimos 5 años",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a descubrir la trampa: muestra lo que gana la empresa en un año normal."
+            },
+            {
+              "etiqueta": "Deuda neta/EBITDA resultante",
+              "valor": "1",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de dividir 300 entre 300. El dato engañoso es el EBITDA de un año tan bueno."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "deuda_patrimonio",
@@ -566,8 +633,12 @@
       "intuicion": "En una casa pagada con 30.000 € tuyos y 70.000 € de hipoteca, la hipoteca pesa mucho más que tu aportación. Cuanto más pesa la deuda frente a lo propio, más frágil es la situación si algo sale mal.",
       "formula": "Deuda total dividida entre el patrimonio neto, ambas del balance. Solo se calcula con patrimonio positivo.",
       "ejemplo": "Deuda de 400 M€ y patrimonio de 500 M€: ratio 0,8.",
-      "comoLeerla": "El motor da buena nota por debajo de 1 (la máxima hacia 0,3), media hacia 2 y mala hacia 3. Como orientación, cuanto menor, menos dependencia de los prestamistas; pero hay sectores que necesitan mucho capital y funcionan con ratios altos. No se usa en bancos.",
-      "cuandoEngana": "Una empresa que recompra muchas acciones reduce su patrimonio y su ratio sube sin haber pedido más deuda. Un patrimonio negativo (por pérdidas o recompras) hace el ratio inutilizable. Y no distingue la deuda barata a largo plazo de la cara a corto.",
+      "comoLeerla": "Cuanto menor, menos dependencia de los prestamistas y mejor lo puntúa el motor. Pero hay sectores que necesitan mucho capital y funcionan con ratios altos, así que compáralo con empresas parecidas. No se usa en bancos.",
+      "cuandoEngana": [
+        "Una empresa que recompra muchas acciones reduce su patrimonio y su ratio sube sin haber pedido más deuda.",
+        "Un patrimonio negativo, por pérdidas o recompras, hace el ratio inutilizable.",
+        "No distingue la deuda barata a largo plazo de la cara a corto."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "liquidez",
@@ -582,7 +653,50 @@
         ],
         "correcta": 1,
         "explicacion": "El patrimonio es el denominador. Si baja y la deuda no cambia, el cociente sube. Es un ejemplo de por qué un ratio aislado puede dar una imagen distorsionada."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "deuda",
+          "nombre": "Deuda total",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": 50,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "patrimonio",
+          "nombre": "Patrimonio neto (activos − deudas)",
+          "origen": "balance",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Deuda/Patrimonio",
+          "ejemplo": 0.8
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la deuda y el patrimonio: ¿cuántos euros de deuda hay por cada euro de los accionistas?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada debe 400 M€ y su patrimonio es de 500 M€. Recompra acciones por 300 M€ con su caja, sin pedir deuda nueva, y el patrimonio baja a 200 M€. ¿Qué pasa con su Deuda/Patrimonio?",
+          "opciones": [
+            "Sube",
+            "Baja",
+            "Se queda igual"
+          ],
+          "correcta": 0,
+          "explicacion": "La deuda no cambia, pero el patrimonio, que es el denominador, se reduce. Con la misma deuda y menos patrimonio, el cociente sube.",
+          "revelacion": "Antes: 400 / 500 = 0,8. Después: 400 / 200 = 2. La empresa no debe más, pero el ratio se ha disparado."
+        }
+      ]
     },
     {
       "id": "liquidez",
@@ -591,8 +705,11 @@
       "intuicion": "Es como mirar si lo que tienes en la cuenta y lo que vas a cobrar este año cubre lo que tienes que pagar este año. No va de ser rico, sino de no ahogarse por un desfase de pagos.",
       "formula": "Activo corriente (caja, clientes por cobrar y existencias) dividido entre pasivo corriente (deudas y pagos a menos de un año), ambos del balance.",
       "ejemplo": "Activo corriente de 300 M€ y pasivo corriente de 200 M€: ratio 1,5.",
-      "comoLeerla": "El motor da buena nota por encima de 1,5 (la máxima cerca de 2) y mala por debajo de 1, porque significaría que lo que debe a corto supera lo que tiene a corto. Pero ratios muy altos pueden indicar caja parada o existencias sin vender, y algunos negocios, como los supermercados, funcionan bien con ratios bajos porque cobran antes de pagar. No se usa en bancos.",
-      "cuandoEngana": "Cuenta como activos cosas difíciles de convertir en dinero, como existencias que no se venden. Es además una foto del balance en un momento concreto, que la estacionalidad puede alterar.",
+      "comoLeerla": "Por encima de 1, lo que tiene a corto plazo cubre lo que debe a corto, y el motor lo puntúa mejor cuanto más alto. Pero ratios muy altos pueden indicar caja parada o existencias sin vender, y negocios como los supermercados funcionan bien con ratios bajos porque cobran antes de pagar. No se usa en bancos.",
+      "cuandoEngana": [
+        "Cuenta como activos cosas difíciles de convertir en dinero, como existencias que no se venden.",
+        "Es una foto del balance en un momento concreto, que la estacionalidad puede alterar."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "fcf_positivo",
@@ -607,7 +724,73 @@
         ],
         "correcta": 2,
         "explicacion": "Cuando se cobra antes de pagar, el negocio se autofinancia y un ratio bajo no implica problema. Por eso el ratio se interpreta en el contexto del sector."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "activo",
+          "nombre": "Activo corriente (caja, clientes, existencias)",
+          "origen": "balance",
+          "ejemplo": 300,
+          "min": 50,
+          "max": 600,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "pasivo",
+          "nombre": "Pasivo corriente (pagos a menos de un año)",
+          "origen": "balance",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 600,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Ratio de liquidez",
+          "ejemplo": 1.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el activo y el pasivo corrientes: ¿en qué punto lo que tiene a corto plazo deja de cubrir lo que debe?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Distribución y fabricación",
+          "empresas": [
+            "Mercado Sol",
+            "Taller Norte"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Ratio de liquidez",
+              "a": "0,8",
+              "b": "1,6"
+            },
+            {
+              "etiqueta": "Cobra a sus clientes",
+              "a": "al contado",
+              "b": "a 90 días"
+            },
+            {
+              "etiqueta": "Paga a sus proveedores",
+              "a": "a 60 días",
+              "b": "a 30 días"
+            },
+            {
+              "etiqueta": "Existencias",
+              "a": "rotan en días",
+              "b": "se acumulan meses"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál tiene más riesgo de ahogarse por un desfase entre cobros y pagos?",
+            "correcta": 1,
+            "explicacion": "Mercado Sol tiene el ratio más bajo, pero cobra antes de pagar: sus clientes financian sus pagos. Taller Norte tiene mejor ratio, pero paga a 30 días lo que cobra a 90 y acumula existencias, así que el desfase pesa más. El ratio solo cuenta la historia entera con el contexto."
+          }
+        }
+      ]
     },
     {
       "id": "cobertura_intereses",
@@ -616,8 +799,12 @@
       "intuicion": "Si ganas 3.000 € al mes y tu cuota de hipoteca es de 1.000 €, estás cubierto tres veces. Si cobras 1.100 €, un pequeño bache te deja sin margen.",
       "formula": "EBIT (resultado operativo) de los últimos 12 meses dividido entre los gastos financieros (intereses) del mismo periodo, ambos de la cuenta de resultados. Si el proveedor de datos no da el resultado operativo o los intereses, saldrá «sin dato».",
       "ejemplo": "EBIT de 150 M€ e intereses de 30 M€: cobertura = 5.",
-      "comoLeerla": "El motor da nota nula cerca de 1 (el beneficio apenas paga los intereses), mala por debajo de 2, buena a partir de 5 y máxima hacia 10-20. Si la empresa no paga intereses, no aplica.",
-      "cuandoEngana": "Mide solo los intereses, no la devolución del principal de la deuda. Un EBIT de un año bueno enmascara la fragilidad en un ciclo malo. Y con muy poca deuda el ratio sale enorme sin decir nada útil.",
+      "comoLeerla": "Cuanto más alta, con más holgura paga la empresa sus intereses con su beneficio operativo, y mejor la puntúa el motor; cerca de 1 apenas llega. Si la empresa no paga intereses, no aplica.",
+      "cuandoEngana": [
+        "Mide solo los intereses, no la devolución del principal de la deuda.",
+        "Un EBIT de un año bueno enmascara la fragilidad en un ciclo malo.",
+        "Con muy poca deuda el ratio sale enorme sin decir nada útil."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "margen_operativo",
@@ -632,7 +819,66 @@
         ],
         "correcta": 0,
         "explicacion": "Cobertura = EBIT / intereses. Con 1,2, el beneficio operativo casi se va entero en intereses, con muy poco margen si bajan las ventas."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "ebit",
+          "nombre": "EBIT (resultado operativo)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 150,
+          "min": 20,
+          "max": 400,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "intereses",
+          "nombre": "Gastos financieros (intereses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 30,
+          "min": 5,
+          "max": 100,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Cobertura de intereses",
+          "unidad": "x",
+          "ejemplo": 5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio operativo y los intereses: ¿cuántas veces cubre el EBIT lo que paga la empresa de intereses?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas empresas inventadas de menor a mayor cobertura de intereses.",
+          "elementos": [
+            {
+              "nombre": "Alfa: EBIT de 150 M€ e intereses de 30 M€",
+              "valor": 5,
+              "mostrar": "5x"
+            },
+            {
+              "nombre": "Beta: EBIT de 60 M€ e intereses de 50 M€",
+              "valor": 1.2,
+              "mostrar": "1,2x"
+            },
+            {
+              "nombre": "Gamma: EBIT de 200 M€ e intereses de 10 M€",
+              "valor": 20,
+              "mostrar": "20x"
+            },
+            {
+              "nombre": "Delta: EBIT de 90 M€ e intereses de 30 M€",
+              "valor": 3,
+              "mostrar": "3x"
+            }
+          ],
+          "explicacion": "Cobertura = EBIT / intereses. Se ordena por ese cociente, no por el tamaño del beneficio: Beta es la que tiene menos margen, porque casi todo su EBIT se va en intereses."
+        }
+      ]
     },
     {
       "id": "fcf_positivo",
@@ -641,8 +887,11 @@
       "intuicion": "Un trabajador que casi todos los años termina con ahorro es más fiable que uno que un año ahorra mucho y los demás se endeuda.",
       "formula": "Se mira el flujo de caja libre (flujo operativo menos CAPEX, del estado de flujos de caja) de cada uno de los últimos 5 años, con al menos 3 con dato, y se cuenta qué fracción fue positiva.",
       "ejemplo": "En 5 años, el FCF fue +50, +30, −10, +40 y +60 M€. Cuatro de cinco son positivos: 80 %.",
-      "comoLeerla": "El motor da la mejor nota a las empresas con caja positiva todos los años (100 %), buena a partir del 80 % y mala por debajo del 60 %. Una empresa en plena expansión puede tener FCF negativo a propósito; en una empresa madura es una señal de debilidad.",
-      "cuandoEngana": "Un FCF negativo por invertir mucho en crecer no es lo mismo que uno negativo por perder dinero. Y un año positivo puede deberse a frenar inversiones, no a que el negocio mejore.",
+      "comoLeerla": "Cuantos más años con caja positiva, más constante es la empresa, y mejor lo puntúa el motor. Una empresa en plena expansión puede tener FCF negativo a propósito; en una empresa madura es una señal de debilidad.",
+      "cuandoEngana": [
+        "Un FCF negativo por invertir mucho en crecer no es lo mismo que uno negativo por perder dinero.",
+        "Un año positivo puede deberse a frenar inversiones, no a que el negocio mejore."
+      ],
       "combinaCon": [
         "p_fcf",
         "payout_fcf",
@@ -657,7 +906,69 @@
         ],
         "correcta": 2,
         "explicacion": "El FCF negativo tiene dos causas muy distintas: invertir (con un retorno esperado) o perder dinero. El dato solo avisa de que hay que mirar el crecimiento, los márgenes y la deuda."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "positivos",
+          "nombre": "Años con FCF positivo",
+          "origen": "flujo_caja",
+          "ejemplo": 4,
+          "min": 0,
+          "max": 5,
+          "unidad": "años",
+          "paso": 1
+        },
+        "denominador": {
+          "clave": "analizados",
+          "nombre": "Años analizados",
+          "origen": "flujo_caja",
+          "ejemplo": 5,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Fracción de años con caja positiva",
+          "unidad": "%",
+          "ejemplo": 0.8
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve cuántos de los 5 años tuvieron caja libre positiva: ¿cómo cambia la fracción?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Fábricas Delta (empresa inventada)",
+          "enunciado": "Su FCF fue negativo en 4 de los últimos 5 años y parece una empresa en apuros. ¿Qué dato engaña?",
+          "datos": [
+            {
+              "etiqueta": "Años con FCF positivo",
+              "valor": "1 de 5",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: es la señal que alarma, pero no dice por qué el FCF es negativo. Aquí el negocio genera caja y lo que la hunde es construir fábricas nuevas."
+            },
+            {
+              "etiqueta": "Caja de las operaciones",
+              "valor": "+40 M€ al año",
+              "esTrampa": false,
+              "explicacion": "Es la clave para interpretar: el negocio en sí genera dinero cada año."
+            },
+            {
+              "etiqueta": "Inversiones (CAPEX)",
+              "valor": "70 M€ al año, el doble que antes",
+              "esTrampa": false,
+              "explicacion": "Explica el FCF negativo: se invierte más de lo que genera la caja. Es el motivo de fondo, no una pérdida."
+            },
+            {
+              "etiqueta": "Crecimiento de ingresos",
+              "valor": "35 % anual",
+              "esTrampa": false,
+              "explicacion": "Confirma que se invierte para crecer. Falta comprobar que ese crecimiento acabe convirtiéndose en caja."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "payout_fcf",
@@ -666,8 +977,11 @@
       "intuicion": "Si te sobran 2.000 € al año y prometes regalar 1.900 €, tu generosidad es frágil: cualquier imprevisto te obliga a recortar.",
       "formula": "Dividendos pagados en el último año (estado de flujos de caja) divididos entre el flujo de caja libre del mismo año.",
       "ejemplo": "FCF de 100 M€ y dividendos de 50 M€: 50 %.",
-      "comoLeerla": "El motor solo lo usa en empresas de dividendo. Da buena nota por debajo del 60 % (la máxima hacia el 30 %), baja cerca del 90 % y nula por encima del 120 %: pagar más de lo que entra en caja obliga a endeudarse o a recortar.",
-      "cuandoEngana": "Un solo año de FCF extraordinariamente alto hace que el pago parezca cómodo, y uno bajo por una inversión puntual lo hace parecer insostenible. Mira varios años. Además, un dividendo muy alto (por encima del 7 % del precio) ya es un aviso en sí mismo.",
+      "comoLeerla": "Cuanto menor, más holgado es el pago del dividendo, y mejor lo puntúa el motor. Cerca del 100 % la empresa reparte casi toda su caja; por encima paga más de lo que entra y tendrá que endeudarse o recortar. El motor solo lo usa en empresas de dividendo.",
+      "cuandoEngana": [
+        "Un solo año de FCF extraordinariamente alto hace que el pago parezca cómodo, y uno bajo por una inversión puntual lo hace parecer insostenible. Mira varios años.",
+        "Un dividendo muy alto frente al precio ya es un aviso en sí mismo."
+      ],
       "combinaCon": [
         "p_fcf",
         "fcf_positivo",
@@ -682,7 +996,51 @@
         ],
         "correcta": 0,
         "explicacion": "Si paga más de lo que entra, el dinero sale de la caja acumulada o de la deuda. Eso no se puede sostener indefinidamente."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "dividendos",
+          "nombre": "Dividendos pagados",
+          "origen": "flujo_caja",
+          "ejemplo": 50,
+          "min": 0,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "fcf",
+          "nombre": "Flujo de caja libre",
+          "origen": "flujo_caja",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Dividendo/FCF",
+          "unidad": "%",
+          "ejemplo": 0.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los dividendos y el flujo de caja libre: ¿qué parte de la caja se va en dividendos? ¿Qué pasa si supera el 100 %?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada genera 100 M€ de caja libre y paga 130 M€ de dividendos. Antes de calcularlo: ¿su Dividendo/FCF será mayor o menor que el 100 %?",
+          "opciones": [
+            "Mayor que el 100 %",
+            "Menor que el 100 %",
+            "Exactamente el 100 %"
+          ],
+          "correcta": 0,
+          "explicacion": "Paga más de lo que entra en caja, así que el cociente supera el 100 %. La diferencia tiene que salir de la caja acumulada o de deuda nueva.",
+          "revelacion": "130 / 100 = 130 %. Mantenerlo varios años obligaría a endeudarse, vender activos o recortar el dividendo."
+        }
+      ]
     },
     {
       "id": "ingresos_cagr3",
@@ -690,9 +1048,13 @@
       "resumen": "Cuánto han crecido las ventas, de media por año, en los últimos tres años.",
       "intuicion": "Si una panadería vendía 100.000 € hace tres años y ahora 133.000 €, ha ido creciendo un 10 % cada año, aunque ningún año haya sido idéntico.",
       "formula": "(ingresos del último año / ingresos de hace 3 años) elevado a 1/3, menos 1. Se calcula con las cuentas de resultados anuales, así que hacen falta 4 años de datos.",
-      "ejemplo": "De 100 M€ a 133 M€ en 3 años: crecimiento anual compuesto ≈ 10 %.",
-      "comoLeerla": "El motor da nota media a un 5 %, buena a un 10 % y muy buena desde un 20-30 %. Por debajo de 0 es mala. Compara con la inflación y con el sector: un 3 % en una empresa madura puede ser razonable.",
-      "cuandoEngana": "Las ventas pueden crecer por comprar otras empresas o por subir precios, no por vender más. Un salto único (como un año extraordinario) distorsiona la media. Y crecer perdiendo dinero no es necesariamente bueno.",
+      "ejemplo": "De 100 M€ a 133,1 M€ en 3 años: crecimiento anual compuesto del 10 %.",
+      "comoLeerla": "Cuanto mayor, más rápido crecen las ventas, y el motor lo puntúa mejor; por debajo de cero, las ventas caen. Compáralo con la inflación y con el sector: un crecimiento pequeño puede ser razonable en una empresa madura. Y mira siempre si ese crecimiento deja beneficios.",
+      "cuandoEngana": [
+        "Las ventas pueden crecer por comprar otras empresas o por subir precios, no por vender más.",
+        "Un salto único, como un año extraordinario, distorsiona la media.",
+        "Y crecer perdiendo dinero no es necesariamente bueno."
+      ],
       "combinaCon": [
         "ingresos_yoy",
         "beneficio_cagr3",
@@ -707,7 +1069,77 @@
         ],
         "correcta": 0,
         "explicacion": "Se multiplica por 1,1 cada año: 100 → 110 → 121. El crecimiento total fue del 21 %, pero el anual compuesto es del 10 %."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Ingresos hace 3 años",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Ingresos del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 133.1,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Crecimiento anual compuesto",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los ingresos de hace 3 años y los de ahora: ¿a qué ritmo anual han crecido las ventas? Prueba también un descenso."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Grupo Aurora (empresa inventada)",
+          "enunciado": "Sus ventas parecen crecer a un ritmo altísimo. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Ingresos hace 3 años",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de partida. Por sí solo no engaña: hay que ver de dónde viene el aumento posterior."
+            },
+            {
+              "etiqueta": "Ingresos del último año",
+              "valor": "150 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Un buen número solo cuenta si procede de vender más y no de otra cosa."
+            },
+            {
+              "etiqueta": "Compras de empresas en el periodo",
+              "valor": "Ha adquirido dos empresas que aportan 40 M€",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: 40 de los 50 M€ de aumento vienen de comprar empresas, no de vender más. Sin ellas, los ingresos serían unos 110 M€ y el crecimiento rondaría el 3 % anual."
+            },
+            {
+              "etiqueta": "Crecimiento anual compuesto",
+              "valor": "14,5 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 100 con 150. El dato engañoso está en de dónde salen esos 50 M€ de más."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "ingresos_yoy",
@@ -716,8 +1148,11 @@
       "intuicion": "La tasa a 3 años es la tendencia; la del último año es la foto del momento: te dice si la historia sigue, se acelera o se frena.",
       "formula": "Ingresos del último año divididos entre los del año anterior, menos 1 (cuentas de resultados anuales).",
       "ejemplo": "De 200 M€ a 220 M€: +10 %.",
-      "comoLeerla": "Misma escala que la de 3 años: nota media hacia el 5 %, buena hacia el 10 % y muy buena desde el 20-30 %. Si el último año es mucho mejor o peor que la media de tres, la empresa se está acelerando o frenando.",
-      "cuandoEngana": "Un solo año puede ser anómalo: un lanzamiento extraordinario, un año anterior hundido (efecto rebote) o un cambio de calendario fiscal. Un crecimiento enorme sobre una base pequeña no es repetible.",
+      "comoLeerla": "Usa la misma escala que la de 3 años, así que cuanto mayor, mejor puntúa. Compara las dos: si el último año es mucho mejor que la media de tres, la empresa se está acelerando; si es peor, se frena.",
+      "cuandoEngana": [
+        "Un solo año puede ser anómalo: un lanzamiento extraordinario, un año anterior hundido (efecto rebote) o un cambio de calendario fiscal.",
+        "Un crecimiento enorme sobre una base pequeña no es repetible."
+      ],
       "combinaCon": [
         "ingresos_cagr3",
         "margen_tendencia",
@@ -732,7 +1167,58 @@
         ],
         "correcta": 2,
         "explicacion": "Tras un año malo, volver a la normalidad parece un gran crecimiento. Comparar el último año con la tendencia de tres evita confundir rebote con aceleración."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Ingresos del año anterior",
+          "origen": "cuenta_resultados",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 400,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Ingresos del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 220,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 1,
+          "unidad": "año"
+        },
+        "resultado": {
+          "nombre": "Crecimiento del último año",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los ingresos de los dos últimos años: ¿cuánto ha crecido o caído la empresa en el último año?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada vendía 100 M€ hace dos años, cayó a 60 M€ el año pasado por un cierre puntual y este año vende 90 M€. ¿Cuánto ha crecido en el último año?",
+          "opciones": [
+            "Un 50 %",
+            "Un 10 %",
+            "Ha caído un 10 %"
+          ],
+          "correcta": 0,
+          "explicacion": "El último año compara 90 con 60, que fue un año hundido. Esa comparación da un crecimiento muy alto, aunque la empresa aún venda menos que hace dos años.",
+          "revelacion": "90 / 60 − 1 = 50 %. Es el efecto rebote: parece un gran año, pero sigue por debajo de los 100 M€ de partida."
+        }
+      ]
     },
     {
       "id": "beneficio_cagr3",
@@ -740,9 +1226,13 @@
       "resumen": "Cuánto ha crecido de media por año el beneficio neto en tres años.",
       "intuicion": "Vender más está bien, pero lo que le queda al dueño es el beneficio. Es como comprobar si sube tu sueldo neto, no solo lo que factura tu jefe.",
       "formula": "(beneficio neto del último año / beneficio neto de hace 3 años) elevado a 1/3, menos 1, con las cuentas de resultados anuales. Con beneficios negativos al principio o al final del periodo no se calcula.",
-      "ejemplo": "De 40 M€ a 53 M€ en 3 años: ≈ 10 % anual.",
-      "comoLeerla": "El motor da nota media hacia el 5 %, buena hacia el 10 % y muy buena a partir del 20 %; por debajo de 0 es mala. En empresas de crecimiento le da menos peso porque sus beneficios aún son pequeños o inestables.",
-      "cuandoEngana": "Partir de un beneficio muy bajo infla el porcentaje. El beneficio también sube por ventas de activos o por recomprar acciones. Un beneficio que crece mucho más que los ingresos durante años merece una pregunta: ¿de dónde viene?",
+      "ejemplo": "De 100 M€ a 133,1 M€ en 3 años: crecimiento anual compuesto del 10 %.",
+      "comoLeerla": "Cuanto mayor, más crece lo que le queda al accionista, y el motor lo puntúa mejor; por debajo de cero, el beneficio cae. En empresas de crecimiento le da menos peso porque sus beneficios aún son pequeños o inestables.",
+      "cuandoEngana": [
+        "Partir de un beneficio muy bajo infla el porcentaje.",
+        "El beneficio también sube por ventas de activos o por recomprar acciones.",
+        "Un beneficio que crece mucho más que los ingresos durante años merece una pregunta: ¿de dónde viene?"
+      ],
       "combinaCon": [
         "ingresos_cagr3",
         "per",
@@ -757,7 +1247,77 @@
         ],
         "correcta": 2,
         "explicacion": "Los porcentajes sobre bases pequeñas se disparan con cambios modestos en euros. Conviene mirar también el beneficio en cifras absolutas."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Beneficio neto hace 3 años",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Beneficio neto del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 133.1,
+          "min": 20,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Crecimiento anual compuesto",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio de hace 3 años y el actual: ¿qué pasa con el porcentaje si partes de un beneficio muy pequeño?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Industrias Mar (empresa inventada)",
+          "enunciado": "Su beneficio crece un 100 % al año. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Beneficio hace 3 años",
+              "valor": "2 M€ (año de crisis)",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: partir de un beneficio hundido infla el porcentaje. Antes de esa crisis la empresa ganaba unos 15 M€, así que en realidad apenas ha crecido."
+            },
+            {
+              "etiqueta": "Beneficio del último año",
+              "valor": "16 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Es un beneficio normal para esta empresa, no un dato extraordinario."
+            },
+            {
+              "etiqueta": "Beneficio anual antes de la crisis",
+              "valor": "15 M€",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a descubrir la trampa: muestra lo que ganaba la empresa en un año normal."
+            },
+            {
+              "etiqueta": "Crecimiento anual compuesto",
+              "valor": "100 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 2 con 16. El dato engañoso es el punto de partida tan bajo."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "margen_operativo",
@@ -766,8 +1326,11 @@
       "intuicion": "Si cada pizza se vende a 10 € y, tras ingredientes, sueldos y alquiler, te quedan 2 €, tu margen es del 20 %.",
       "formula": "Resultado operativo (beneficio antes de intereses e impuestos) de los últimos 12 meses dividido entre los ingresos del mismo periodo, de la cuenta de resultados. Si el proveedor de datos no da el resultado operativo, el motor usa su margen ya calculado.",
       "ejemplo": "Ingresos de 500 M€ y resultado operativo de 75 M€: margen del 15 %.",
-      "comoLeerla": "El motor da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 20 % y máxima hacia el 30 %. Pero los márgenes normales varían muchísimo por sector: un supermercado vive con un dígito, un software puede superar el 30 %. Compara con empresas del mismo sector. No se usa en bancos.",
-      "cuandoEngana": "Un margen alto puede ser temporal (un buen ciclo, una ventaja pasajera) o venir de recortar gastos que luego se pagan, como marketing o inversión. Una empresa con margen bajo pero estable y mucho volumen puede ser un buen negocio.",
+      "comoLeerla": "Cuanto mayor, más se queda la empresa de cada euro vendido, y el motor lo puntúa mejor. Pero los márgenes normales varían muchísimo por sector: un supermercado vive con un dígito, un software puede superar el 30 %. Compara con empresas del mismo sector. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un margen alto puede ser temporal (un buen ciclo, una ventaja pasajera) o venir de recortar gastos que luego se pagan, como marketing o inversión.",
+        "Una empresa con margen bajo pero estable y mucho volumen puede ser un buen negocio."
+      ],
       "combinaCon": [
         "margen_bruto",
         "margen_tendencia",
@@ -782,7 +1345,74 @@
         ],
         "correcta": 1,
         "explicacion": "Los márgenes dependen del modelo de negocio. El supermercado gana poco por venta, pero vende muchísimo. Hay que comparar dentro del mismo sector."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "ebit",
+          "nombre": "Resultado operativo (antes de intereses e impuestos)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 75,
+          "min": -20,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ingresos",
+          "nombre": "Ingresos (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1000,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Margen operativo",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el resultado operativo y los ingresos: ¿cuántos céntimos se queda la empresa de cada euro vendido? Prueba un resultado negativo."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Distribución y software",
+          "empresas": [
+            "Mercado Sol",
+            "SoftNorte"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Ingresos",
+              "a": "5.000 M€",
+              "b": "500 M€"
+            },
+            {
+              "etiqueta": "Resultado operativo",
+              "a": "150 M€",
+              "b": "160 M€"
+            },
+            {
+              "etiqueta": "Qué vende",
+              "a": "alimentación",
+              "b": "licencias de software"
+            },
+            {
+              "etiqueta": "Clientes",
+              "a": "millones de compras pequeñas",
+              "b": "pocas empresas grandes"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál se queda con más céntimos de cada euro que vende?",
+            "correcta": 1,
+            "explicacion": "Mercado Sol: 150 / 5.000 = 3 %. SoftNorte: 160 / 500 = 32 %. Ganan casi lo mismo en euros, pero uno vende diez veces más para conseguirlo. Y no se pueden comparar sin más: cada sector tiene sus márgenes normales."
+          }
+        }
+      ]
     },
     {
       "id": "margen_tendencia",
@@ -791,8 +1421,12 @@
       "intuicion": "No solo importa cuánto te quedas de cada venta hoy, sino si cada año te queda más o menos. Un margen que cae suele indicar presión de competidores o de costes.",
       "formula": "Margen operativo del último año menos el de hace 3 años (en puntos porcentuales), con las cuentas de resultados anuales. Hacen falta 4 años y el resultado operativo; si el proveedor de datos no los da, saldrá «sin dato».",
       "ejemplo": "Pasar de un margen del 12 % al 15 % son +3 puntos.",
-      "comoLeerla": "El motor da nota media si el margen no cambia, buena con mejoras de 3 puntos y muy buena desde 6; si cae 5 puntos o más, nota baja. Un margen en mejora sostenida suele reflejar capacidad de fijar precios o de ser eficiente.",
-      "cuandoEngana": "Un margen que sube porque se recorta inversión o mantenimiento mejora a costa del futuro. Una caída puede ser deliberada, por ejemplo para expandirse. Y los ciclos del sector pueden mover el margen sin que la empresa haya cambiado.",
+      "comoLeerla": "Un margen que mejora de forma sostenida suele reflejar capacidad de fijar precios o de ser eficiente, y el motor lo puntúa mejor; si cae, la puntuación baja. Se mide como el cambio en puntos porcentuales a tres años.",
+      "cuandoEngana": [
+        "Un margen que sube porque se recorta inversión o mantenimiento mejora a costa del futuro.",
+        "Una caída puede ser deliberada, por ejemplo para expandirse.",
+        "Y los ciclos del sector pueden mover el margen sin que la empresa haya cambiado."
+      ],
       "combinaCon": [
         "margen_operativo",
         "margen_bruto",
@@ -807,7 +1441,74 @@
         ],
         "correcta": 1,
         "explicacion": "La tendencia no es una sentencia, sino una pista. Saber la causa distingue un problema de competencia de una inversión para crecer."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Margen de hace 3 años",
+            "descripcion": "Resultado operativo entre ingresos de aquel año: por ejemplo, un 12 %."
+          },
+          {
+            "nombre": "Margen del último año",
+            "descripcion": "Lo mismo con el año más reciente: por ejemplo, un 15 %."
+          },
+          {
+            "nombre": "La diferencia",
+            "descripcion": "Margen actual menos margen antiguo, en puntos porcentuales: 15 − 12 = +3 puntos."
+          }
+        ],
+        "resultado": {
+          "nombre": "Cambio del margen operativo",
+          "unidad": "puntos",
+          "ejemplo": 3
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "trampa",
+          "empresa": "Servicios Este (empresa inventada)",
+          "enunciado": "Su margen ha mejorado 6 puntos en 3 años. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Margen hace 3 años",
+              "valor": "9 %",
+              "esTrampa": false,
+              "explicacion": "Es el punto de partida. Un margen bajo deja mucho espacio para mejorar, pero no explica de dónde sale la mejora."
+            },
+            {
+              "etiqueta": "Margen del último año",
+              "valor": "15 %",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Una mejora de 6 puntos parece excelente, pero hay que saber cómo se ha conseguido."
+            },
+            {
+              "etiqueta": "Gasto en marketing y mantenimiento",
+              "valor": "Recortado a la mitad",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: el margen sube por recortar gastos que luego hay que volver a pagar. Es una mejora a costa del futuro, no una ventaja del negocio."
+            },
+            {
+              "etiqueta": "Ingresos",
+              "valor": "Estables",
+              "esTrampa": false,
+              "explicacion": "Que las ventas no crezcan encaja con una mejora conseguida recortando costes, no vendiendo más ni fijando mejores precios."
+            }
+          ]
+        },
+        {
+          "tipo": "predecir",
+          "texto": "El margen de una empresa inventada baja del 20 % al 16 % mientras abre 30 tiendas nuevas. Antes de mirar más datos: ¿qué conclusión es la más prudente?",
+          "opciones": [
+            "Es mala señal, siempre",
+            "Puede ser el coste de expandirse: hay que mirar por qué",
+            "No importa nunca"
+          ],
+          "correcta": 1,
+          "explicacion": "Una caída del margen no es mala por sí sola. Abrir tiendas cuesta antes de dar ventas, pero también puede ser que la empresa esté perdiendo poder de precio. Hay que averiguar la causa.",
+          "revelacion": "Si las ventas crecen y el margen se recupera en un par de años, fue inversión. Si el margen sigue cayendo sin que crezcan las ventas, es un aviso."
+        }
+      ]
     },
     {
       "id": "margen_bruto",
@@ -816,8 +1517,11 @@
       "intuicion": "El margen bruto es lo que sobra de un producto antes de pagar la oficina, el marketing o los sueldos centrales: indica cuánto «poder» tiene el producto en sí.",
       "formula": "Beneficio bruto (ingresos menos coste de ventas) dividido entre los ingresos de los últimos 12 meses, de la cuenta de resultados. Si el proveedor de datos no da el beneficio bruto, el motor usa su margen ya calculado.",
       "ejemplo": "Una empresa vende 100 M€ y el coste directo es de 30 M€: beneficio bruto de 70 M€, margen bruto del 70 %.",
-      "comoLeerla": "El motor solo lo usa en empresas de crecimiento. Da nota media hacia el 40 %, buena hacia el 60 % y máxima hacia el 75 %. Los márgenes brutos altos son típicos del software y de los productos con marca; los bajos, de la distribución o la industria pesada.",
-      "cuandoEngana": "Empresas distintas contabilizan los costes en lugares distintos (qué es «coste de ventas» y qué es gasto general), así que comparar márgenes brutos entre empresas muy diferentes confunde. Un margen bruto altísimo con gastos de venta enormes puede acabar en un margen operativo flojo.",
+      "comoLeerla": "Cuanto mayor, más poder tiene el producto en sí, y el motor lo puntúa mejor. El motor solo lo usa en empresas de crecimiento. Los márgenes brutos altos son típicos del software y de los productos con marca; los bajos, de la distribución o la industria pesada.",
+      "cuandoEngana": [
+        "Empresas distintas contabilizan los costes en lugares distintos (qué es «coste de ventas» y qué es gasto general), así que comparar márgenes brutos entre empresas muy diferentes confunde.",
+        "Un margen bruto altísimo con gastos de venta enormes puede acabar en un margen operativo flojo."
+      ],
       "combinaCon": [
         "margen_operativo",
         "p_ventas",
@@ -832,7 +1536,74 @@
         ],
         "correcta": 2,
         "explicacion": "El margen bruto solo descuenta el coste directo. Entre uno y otro están los gastos de estructura. Un margen bruto alto con un operativo bajo significa que la empresa gasta mucho en vender y operar."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "bruto",
+          "nombre": "Beneficio bruto (ingresos − coste de ventas)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 70,
+          "min": 5,
+          "max": 90,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ingresos",
+          "nombre": "Ingresos (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 80,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Margen bruto",
+          "unidad": "%",
+          "ejemplo": 0.7
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio bruto y los ingresos: ¿qué parte de cada venta sobra después de pagar solo el coste directo?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Software",
+          "empresas": [
+            "AppNube",
+            "DatosPro"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Margen bruto",
+              "a": "80 %",
+              "b": "65 %"
+            },
+            {
+              "etiqueta": "Gastos de venta y marketing",
+              "a": "70 % de las ventas",
+              "b": "30 % de las ventas"
+            },
+            {
+              "etiqueta": "Otros gastos",
+              "a": "5 % de las ventas",
+              "b": "10 % de las ventas"
+            },
+            {
+              "etiqueta": "Ingresos",
+              "a": "200 M€",
+              "b": "200 M€"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál se queda con más de cada euro vendido después de todos los gastos?",
+            "correcta": 1,
+            "explicacion": "AppNube: 80 − 70 − 5 = 5 %. DatosPro: 65 − 30 − 10 = 25 %. AppNube tiene el mejor margen bruto, pero gasta casi todo en vender. El margen bruto es solo el primer escalón."
+          }
+        }
+      ]
     },
     {
       "id": "roic",
@@ -841,8 +1612,11 @@
       "intuicion": "Si inviertes 100 € en un negocio y te da 15 € al año tras impuestos, tu rentabilidad es del 15 %. El ROIC es lo mismo para toda la empresa: ¿cuánto rinde cada euro puesto en el negocio?",
       "formula": "Resultado operativo (EBIT) por (1 − tipo impositivo) dividido entre (deuda + patrimonio − caja), con datos de la cuenta de resultados y del balance. Si el tipo efectivo no es razonable, se usa un 21 %. Si el proveedor de datos no da esas cuentas, el motor usa el ROIC que calcula el propio proveedor.",
       "ejemplo": "EBIT de 100 M€, impuestos del 25 % y capital invertido de 500 M€: ROIC = 100 · 0,75 / 500 = 15 %.",
-      "comoLeerla": "El motor da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 15 % y máxima hacia el 25 %. Para que un negocio cree valor, su ROIC debería superar con holgura lo que cuesta financiarse. Un ROIC alto mantenido durante años suele ir con una ventaja competitiva. No se usa en bancos.",
-      "cuandoEngana": "Un ROIC muy alto puede deberse a un capital contable pequeño porque la empresa lleva años amortizando, o porque su valor está en una marca o en conocimiento que no aparece en el balance. Un año extraordinario lo dispara.",
+      "comoLeerla": "Cuanto mayor, más rinde cada euro puesto en el negocio, y el motor lo puntúa mejor. Para crear valor, debería superar con holgura lo que cuesta financiarse. Un ROIC alto mantenido durante años suele ir con una ventaja competitiva. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un ROIC muy alto puede deberse a un capital contable pequeño, porque la empresa lleva años amortizando o porque su valor está en una marca o en conocimiento que no aparece en el balance.",
+        "Un año extraordinario lo dispara."
+      ],
       "combinaCon": [
         "roe",
         "margen_operativo",
@@ -857,7 +1631,66 @@
         ],
         "correcta": 1,
         "explicacion": "Para crear valor, el rendimiento del capital debe superar su coste. Con un 8 % frente a un 10 %, cada euro invertido rinde menos de lo que cuesta."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "nopat",
+          "nombre": "Resultado operativo tras impuestos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 75,
+          "min": 5,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "capital",
+          "nombre": "Capital invertido (deuda + patrimonio − caja)",
+          "origen": "balance",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "ROIC",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el resultado operativo tras impuestos y el capital invertido: ¿cuánto rinde cada euro puesto en el negocio?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas empresas inventadas de menor a mayor ROIC.",
+          "elementos": [
+            {
+              "nombre": "Alfa: gana 75 M€ tras impuestos con 500 M€ invertidos",
+              "valor": 0.15,
+              "mostrar": "15 %"
+            },
+            {
+              "nombre": "Beta: gana 30 M€ tras impuestos con 600 M€ invertidos",
+              "valor": 0.05,
+              "mostrar": "5 %"
+            },
+            {
+              "nombre": "Gamma: gana 120 M€ tras impuestos con 400 M€ invertidos",
+              "valor": 0.3,
+              "mostrar": "30 %"
+            },
+            {
+              "nombre": "Delta: gana 40 M€ tras impuestos con 400 M€ invertidos",
+              "valor": 0.1,
+              "mostrar": "10 %"
+            }
+          ],
+          "explicacion": "ROIC = resultado operativo tras impuestos / capital invertido. Se ordena por ese cociente, no por cuánto gana la empresa: Beta gana 30 M€ pero necesita 600 M€ para conseguirlo."
+        }
+      ]
     },
     {
       "id": "roe",
@@ -866,8 +1699,11 @@
       "intuicion": "Si tienes 100 € en una cuenta y ganas 12 € al año, tu rentabilidad es del 12 %. El ROE es eso, medido sobre el dinero de los dueños.",
       "formula": "Beneficio neto de los últimos 12 meses (cuenta de resultados) dividido entre el patrimonio neto (balance). Con patrimonio negativo no se calcula. Si faltan esas cuentas, el motor usa el ROE del proveedor.",
       "ejemplo": "Beneficio de 60 M€ y patrimonio de 400 M€: ROE del 15 %.",
-      "comoLeerla": "El motor solo lo usa en empresas financieras. Da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 15 % y máxima hacia el 20 %.",
-      "cuandoEngana": "La deuda lo infla: con mucha deuda y poco patrimonio, un mismo beneficio da un ROE altísimo, pero con más riesgo. Las recompras de acciones, que reducen el patrimonio, también lo suben. Un ROE alto con deuda alta no es lo mismo que uno alto con deuda baja.",
+      "comoLeerla": "Cuanto mayor, más beneficio genera cada euro de los accionistas, y el motor lo puntúa mejor. El motor solo lo usa en empresas financieras. Mira siempre cuánta deuda hay detrás: un ROE alto con poca deuda es mejor señal que uno alto con mucha.",
+      "cuandoEngana": [
+        "La deuda lo infla: con mucha deuda y poco patrimonio, un mismo beneficio da un ROE altísimo, pero con más riesgo.",
+        "Las recompras de acciones, que reducen el patrimonio, también lo suben."
+      ],
       "combinaCon": [
         "roic",
         "deuda_patrimonio",
@@ -882,7 +1718,70 @@
         ],
         "correcta": 2,
         "explicacion": "El ROE divide por el patrimonio. Con poco patrimonio, y la deuda aportando el resto del dinero, el cociente sube aunque el negocio sea idéntico. En una empresa no financiera, el ROIC, que incluye la deuda, ofrece una imagen más fiel; en bancos y aseguradoras, donde el motor usa el ROE, hay que mirarlo junto a la deuda y el Precio/Valor contable."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "beneficio",
+          "nombre": "Beneficio neto (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 60,
+          "min": 5,
+          "max": 150,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "patrimonio",
+          "nombre": "Patrimonio neto",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": 100,
+          "max": 1200,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "ROE",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio y el patrimonio: ¿cuánto gana la empresa por cada euro de sus accionistas? ¿Qué pasa si el patrimonio es muy pequeño?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Financiera Sur (empresa inventada)",
+          "enunciado": "Su ROE es del 40 %, altísimo. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Beneficio neto",
+              "valor": "40 M€",
+              "esTrampa": false,
+              "explicacion": "Es un beneficio razonable. No explica por sí solo un ROE tan alto: depende de con cuánto patrimonio se compare."
+            },
+            {
+              "etiqueta": "Patrimonio neto",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Es pequeño, y por eso el ROE sale alto. Pero la pregunta es por qué es tan pequeño: mira cuánta deuda hay detrás."
+            },
+            {
+              "etiqueta": "Deuda total",
+              "valor": "900 M€, nueve veces el patrimonio",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con tanta deuda y tan poco patrimonio, un beneficio normal da un ROE altísimo. No es solo buen negocio: es también mucho riesgo."
+            },
+            {
+              "etiqueta": "ROE resultante",
+              "valor": "40 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de dividir 40 entre 100. El dato engañoso es la deuda que hay detrás de ese patrimonio tan pequeño."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "dilucion",
@@ -890,9 +1789,12 @@
       "resumen": "Si la empresa crea acciones nuevas (te diluye) o recompra las suyas (te concentra).",
       "intuicion": "Si eres dueño del 10 % de una pizza y el restaurante reparte trozos de propiedad a otros, tu parte baja aunque la pizza sea la misma. Si recompra acciones, tu parte sube.",
       "formula": "Crecimiento anual compuesto del número de acciones en circulación durante 3 años (balance). Hacen falta 4 años de datos; si el proveedor de datos no da esa serie, saldrá «sin dato».",
-      "ejemplo": "De 100 a 106 millones de acciones en tres años: +2 % anual de dilución.",
-      "comoLeerla": "El motor da buena nota si el número de acciones baja (recompras), nota media entre el 0 % y el 3 % y mala hacia el 6 %. Más de un 5 % anual dispara además un aviso. Tiene poco peso en la nota global.",
-      "cuandoEngana": "Algunas empresas pagan a sus directivos con acciones y luego recompran acciones solo para compensar: el número queda igual, pero se ha gastado caja. Y una recompra a precios muy altos no beneficia al accionista.",
+      "ejemplo": "De 100 a 106,1 millones de acciones en tres años: +2 % anual de dilución.",
+      "comoLeerla": "Si el número de acciones baja (recompras), el motor lo puntúa bien; si sube mucho (acciones nuevas), tu parte se diluye y puntúa peor. Un aumento fuerte genera además un aviso. Tiene poco peso en la nota global.",
+      "cuandoEngana": [
+        "Algunas empresas pagan a sus directivos con acciones y luego recompran solo para compensar: el número queda igual, pero se ha gastado caja.",
+        "Y una recompra a precios muy altos no beneficia al accionista."
+      ],
       "combinaCon": [
         "beneficio_cagr3",
         "roe",
@@ -907,7 +1809,58 @@
         ],
         "correcta": 2,
         "explicacion": "Cada acción nueva reparte el mismo negocio entre más dueños. Tu participación baja, salvo que el negocio crezca lo bastante como para compensarlo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Acciones hace 3 años",
+          "origen": "balance",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 200,
+          "unidad": "millones"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Acciones hoy",
+          "origen": "balance",
+          "ejemplo": 106.1208,
+          "min": 50,
+          "max": 200,
+          "unidad": "millones"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "balance",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Variación anual de acciones",
+          "unidad": "%",
+          "ejemplo": 0.02
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el número de acciones de hace 3 años y el actual: ¿cuándo se diluye el accionista y cuándo se concentra? Prueba con menos acciones que antes."
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada paga a sus directivos con 5 millones de acciones nuevas al año y recompra otras 5 millones para compensar. ¿Cómo evoluciona su número de acciones?",
+          "opciones": [
+            "Baja",
+            "Se queda igual",
+            "Sube"
+          ],
+          "correcta": 1,
+          "explicacion": "Crea 5 millones y retira otros 5: el número total no cambia, así que la variación sale en torno a cero y la métrica no ve ningún problema.",
+          "revelacion": "Pero la recompra costó caja real que podría haber ido a dividendos o a invertir. Por eso conviene mirarla junto al flujo de caja."
+        }
+      ]
     },
     {
       "id": "precio_sma200",
@@ -916,8 +1869,12 @@
       "intuicion": "Imagina que sigues el precio de la gasolina de tu barrio. Si hoy está muy por encima de lo que pagaste de media el último año, sabes que ha subido bastante. La media de 200 sesiones es ese «precio normal» del último año, aproximadamente.",
       "formula": "Precio actual dividido entre la media de los últimos 200 cierres diarios, menos 1. Si el proveedor de datos no da el histórico, usa su media de 200 sesiones ya calculada.",
       "ejemplo": "Precio de 110 € y media de 200 sesiones de 100 €: +10 %.",
-      "comoLeerla": "El motor da nota media si el precio está justo en su media (0 %), buena desde un +5 % y máxima hacia el +15 % (tendencia sana). Si cae por debajo del −5 %, la nota es baja (tendencia debilitada). Si está más de un 25-40 % por encima, la nota baja de nuevo: puede haber subido demasiado deprisa. Es una foto de la tendencia, no una predicción.",
-      "cuandoEngana": "Que el precio esté sobre su media no garantiza que siga subiendo, y que esté debajo no garantiza un rebote. En mercados laterales cruza la media muchas veces y da señales falsas. Mide cómo se ha movido el precio, no cuánto vale la empresa.",
+      "comoLeerla": "Por encima de su media, el precio va en una tendencia sana, y el motor lo puntúa mejor; por debajo, la tendencia está debilitada. Pero si se aleja mucho por encima, la nota baja de nuevo: puede haber subido demasiado deprisa. Es una foto de la tendencia, no una predicción.",
+      "cuandoEngana": [
+        "Que el precio esté sobre su media no garantiza que siga subiendo, y que esté debajo no garantiza un rebote.",
+        "En mercados laterales cruza la media muchas veces y da señales falsas.",
+        "Mide cómo se ha movido el precio, no cuánto vale la empresa."
+      ],
       "combinaCon": [
         "pendiente_sma200",
         "rsi",
@@ -932,7 +1889,70 @@
         ],
         "correcta": 0,
         "explicacion": "Una subida muy rápida respecto a su media puede corregirse. La mejor nota del motor está en subidas moderadas sobre la media, donde la tendencia es sana pero no extrema."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 110,
+          "min": 40,
+          "max": 200,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "media",
+          "nombre": "Media de los últimos 200 cierres",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 150,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Distancia a la media",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio y su media: ¿a qué distancia queda el precio de su media? Prueba con un precio muy por encima y otro por debajo."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Papel Centro (empresa inventada)",
+          "enunciado": "Su precio acaba de pasar por encima de la media y parece el inicio de una tendencia al alza. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Precio hoy",
+              "valor": "103 €",
+              "esTrampa": false,
+              "explicacion": "Es un precio algo por encima de la media, pero un solo día no dice mucho: hay que ver cómo se ha comportado antes."
+            },
+            {
+              "etiqueta": "Media de 200 sesiones",
+              "valor": "100 €",
+              "esTrampa": false,
+              "explicacion": "Es la referencia. Por sí sola no engaña; lo que importa es cuántas veces el precio la ha cruzado."
+            },
+            {
+              "etiqueta": "Veces que el precio ha cruzado la media en 3 meses",
+              "valor": "9 veces",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: si el precio cruza la media 9 veces en 3 meses, se mueve de lado. En un mercado lateral cada cruce es ruido, no una tendencia: es la fuente típica de señales falsas."
+            },
+            {
+              "etiqueta": "Distancia a la media",
+              "valor": "+3 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 103 con 100. No dice nada sobre si el precio lleva días oscilando alrededor de la media."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "pendiente_sma200",
@@ -941,8 +1961,11 @@
       "intuicion": "No solo importa dónde está la media, sino hacia dónde va. Un camino que sube suavemente (media creciente) es muy distinto de uno en pendiente descendente.",
       "formula": "Media de 200 sesiones de hoy dividida entre la media de 200 sesiones de hace 20 sesiones, menos 1. Requiere al menos 220 sesiones de histórico; si el proveedor de datos no lo da, saldrá «sin dato».",
       "ejemplo": "La media pasó de 100 € a 102 € en 20 sesiones: +2 %.",
-      "comoLeerla": "El motor da nota baja si la media cae (−5 %), baja-media si está plana y buena con subidas de un 2-5 %. Una media que sube es una señal de tendencia de fondo al alza.",
-      "cuandoEngana": "Es una medida muy lenta: cambia de dirección mucho después de que el precio lo haya hecho, y cuando por fin se gira, la mayor parte del movimiento ya ocurrió. Con precios laterales, la pendiente oscila cerca de cero.",
+      "comoLeerla": "Una media que sube indica una tendencia de fondo al alza, y el motor la puntúa mejor; si está plana, la nota queda en un punto intermedio-bajo, y si cae, la nota es baja.",
+      "cuandoEngana": [
+        "Es una medida muy lenta: cambia de dirección mucho después de que el precio lo haya hecho, y cuando por fin se gira, la mayor parte del movimiento ya ocurrió.",
+        "Con precios laterales, la pendiente oscila cerca de cero."
+      ],
       "combinaCon": [
         "precio_sma200",
         "macd",
@@ -957,7 +1980,51 @@
         ],
         "correcta": 1,
         "explicacion": "Cada día nuevo entra 1 de 200 datos. Un cambio reciente se diluye en el promedio, por eso la media reacciona despacio y confirma los cambios de tendencia tarde."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "hoy",
+          "nombre": "Media de 200 sesiones hoy",
+          "origen": "historico_precios",
+          "ejemplo": 102,
+          "min": 80,
+          "max": 120,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "antes",
+          "nombre": "Media de 200 sesiones hace 20 sesiones",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "min": 80,
+          "max": 120,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Pendiente de la media",
+          "unidad": "%",
+          "ejemplo": 0.02
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la media de hoy y la de hace 20 sesiones: ¿sube, está plana o baja? ¿Cuánto hay que mover una para notar el cambio?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "La media de 200 sesiones de una empresa inventada vale 100 €. El precio se desploma a 60 € y se queda ahí durante 5 sesiones. ¿Cuánto baja la media?",
+          "opciones": [
+            "Baja a unos 80 €",
+            "Baja alrededor de 1 €, a unos 99 €",
+            "No se mueve nada"
+          ],
+          "correcta": 1,
+          "explicacion": "Cada sesión nueva entra en una media de 200 y sale una antigua. Un solo día cambia muy poco el total, y por eso la media tarda tanto en girar.",
+          "revelacion": "Cada sesión a 60 € sustituye a una de unos 100 €: la media baja 40 / 200 = 0,2 € al día. En 5 sesiones, 1 €."
+        }
+      ]
     },
     {
       "id": "rsi",
@@ -966,8 +2033,11 @@
       "intuicion": "Piensa en un corredor: tras un esprint se queda sin aire. El RSI mide si el precio ha ido en «esprint» al alza (cerca de 100) o a la baja (cerca de 0) durante las últimas 14 sesiones.",
       "formula": "Se compara la media de las subidas diarias con la de las bajadas de los últimos 14 días de bolsa (método de Wilder): RSI = 100 − 100 / (1 + subidas / bajadas). Si el proveedor de datos no da el histórico, el motor usa el RSI ya calculado por el proveedor.",
       "ejemplo": "Si en 14 días las subidas medias son el doble de las bajadas medias, RSI = 100 − 100 / 3 ≈ 67.",
-      "comoLeerla": "Por convención, por encima de 70 se habla de «sobrecompra» y por debajo de 30 de «sobreventa». El motor da la mejor nota entre 45 y 60 (movimiento sano, sin excesos) y baja la nota en los extremos. Son umbrales orientativos, no leyes.",
-      "cuandoEngana": "En tendencias fuertes, el RSI puede quedarse por encima de 70 durante semanas mientras el precio sigue subiendo, y por debajo de 30 mientras sigue cayendo. Que esté «sobrecomprado» no significa que vaya a bajar mañana.",
+      "comoLeerla": "Por convención, un RSI muy alto se llama «sobrecompra» y uno muy bajo, «sobreventa». El motor puntúa mejor la zona intermedia (movimiento sano, sin excesos) y baja la nota en los extremos. Son referencias orientativas, no leyes.",
+      "cuandoEngana": [
+        "En tendencias fuertes, el RSI puede quedarse en sobrecompra durante semanas mientras el precio sigue subiendo, y en sobreventa mientras sigue cayendo.",
+        "Que esté «sobrecomprado» no significa que vaya a bajar mañana."
+      ],
       "combinaCon": [
         "precio_sma200",
         "macd",
@@ -982,17 +2052,106 @@
         ],
         "correcta": 0,
         "explicacion": "El RSI describe la intensidad reciente del movimiento, no el futuro. En tendencias fuertes puede mantenerse en extremos mucho tiempo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Subidas medias",
+            "descripcion": "Media de lo que ha subido el precio en los días de subida de las últimas 14 sesiones."
+          },
+          {
+            "nombre": "Bajadas medias",
+            "descripcion": "Lo mismo con los días de bajada."
+          },
+          {
+            "nombre": "Se comparan",
+            "descripcion": "Si las subidas medias son el doble de las bajadas, la relación es 2."
+          },
+          {
+            "nombre": "Se pasa a una escala de 0 a 100",
+            "descripcion": "RSI = 100 − 100 / (1 + 2) ≈ 67."
+          }
+        ],
+        "resultado": {
+          "nombre": "RSI (14)",
+          "ejemplo": 66.67
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "trampa",
+          "empresa": "Aceros Norte (empresa inventada)",
+          "enunciado": "Su RSI marca 78 y parece que «tiene que bajar». ¿Qué dato hace que esa lectura engañe?",
+          "datos": [
+            {
+              "etiqueta": "RSI (14)",
+              "valor": "78, «sobrecompra»",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: «sobrecompra» es una etiqueta, no una predicción. En una tendencia fuerte, el RSI puede quedarse por encima de 70 durante semanas mientras el precio sigue subiendo."
+            },
+            {
+              "etiqueta": "Tiempo con el RSI por encima de 70",
+              "valor": "5 semanas seguidas",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a ver la trampa: si lleva semanas así, no es un aviso de giro inmediato, sino una tendencia muy intensa."
+            },
+            {
+              "etiqueta": "Precio en esas 5 semanas",
+              "valor": "Ha subido un 25 %",
+              "esTrampa": false,
+              "explicacion": "Confirma que el RSI refleja una subida rápida. Que suba rápido no implica que vaya a corregir en un momento concreto."
+            },
+            {
+              "etiqueta": "Media de 200 sesiones",
+              "valor": "Subiendo",
+              "esTrampa": false,
+              "explicacion": "Indica que la tendencia de fondo es al alza. Es un dato de contexto, que el RSI por sí solo no da."
+            }
+          ]
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas acciones inventadas de menor a mayor RSI, según lo que han subido y bajado en las últimas 14 sesiones.",
+          "elementos": [
+            {
+              "nombre": "Alfa: sube 1,5 € al día de media en los días de subida y baja 0,5 € en los de bajada",
+              "valor": 75,
+              "mostrar": "75"
+            },
+            {
+              "nombre": "Beta: sube y baja lo mismo, 1 €",
+              "valor": 50,
+              "mostrar": "50"
+            },
+            {
+              "nombre": "Gamma: sube 0,5 € y baja 1,5 €",
+              "valor": 25,
+              "mostrar": "25"
+            },
+            {
+              "nombre": "Delta: sube 1 € y baja 0,5 €",
+              "valor": 66.67,
+              "mostrar": "67"
+            }
+          ],
+          "explicacion": "El RSI es mayor cuanto más pesan las subidas frente a las bajadas. Con subidas iguales a las bajadas da 50; el triple de subidas, 75; un tercio, 25."
+        }
+      ]
     },
     {
       "id": "macd",
       "titulo": "MACD: cambio de impulso del precio",
       "resumen": "Si el impulso del precio se está acelerando o frenando.",
       "intuicion": "Es como mirar el acelerador de un coche: no solo si va rápido, sino si está pisando más o menos que hace unos días.",
-      "formula": "Se resta la media móvil exponencial de 26 días a la de 12 (la línea MACD), se le quita su propia media de 9 días (la señal) y el resultado es el histograma. El motor mira si el histograma es positivo o negativo y si sube o baja. Necesita histórico diario; si el proveedor de datos no lo da, saldrá «sin dato».",
+      "formula": "Se resta la media móvil exponencial de 26 días a la de 12 (línea MACD), se le quita su propia media de 9 días (señal) y el resultado es el histograma. El motor mira su signo y si sube o baja. Necesita histórico diario; si no lo hay, saldrá «sin dato».",
       "ejemplo": "Un histograma de +0,5 que el día anterior era +0,2: el impulso positivo se está acelerando.",
-      "comoLeerla": "El motor da la mejor nota si el histograma es positivo y creciente, nota media si es positivo pero decrece, baja si es negativo pero mejora y la peor si es negativo y empeora. Es un indicador de impulso a corto plazo.",
-      "cuandoEngana": "Da muchas señales falsas cuando el precio se mueve de lado. Llega tarde, porque se calcula con medias de precios pasados. Y, como los demás indicadores técnicos, no mira el valor de la empresa.",
+      "comoLeerla": "No hay una escala por tramos: se lee el signo del histograma y si crece o decrece. Positivo y creciente es la mejor lectura; negativo y empeorando, la peor. Es un indicador de impulso a corto plazo, no de valor.",
+      "cuandoEngana": [
+        "Da muchas señales falsas cuando el precio se mueve de lado.",
+        "Llega tarde, porque se calcula con medias de precios pasados.",
+        "Y, como los demás indicadores técnicos, no mira el valor de la empresa."
+      ],
       "combinaCon": [
         "rsi",
         "pendiente_sma200",
@@ -1007,7 +2166,95 @@
         ],
         "correcta": 0,
         "explicacion": "Positivo significa impulso al alza; que sea menor que ayer indica que ese impulso pierde fuerza. Es un matiz, no una predicción."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Línea MACD",
+            "descripcion": "La media exponencial de 12 días menos la de 26 días."
+          },
+          {
+            "nombre": "Línea de señal",
+            "descripcion": "La media de 9 días de la propia línea MACD."
+          },
+          {
+            "nombre": "Histograma",
+            "descripcion": "Línea MACD menos línea de señal: por ejemplo, +0,5 hoy frente a +0,2 ayer."
+          }
+        ],
+        "resultado": {
+          "nombre": "Histograma del MACD",
+          "ejemplo": 0.5
+        }
+      },
+      "leyenda": [
+        {
+          "condicion": "Positivo y creciente",
+          "significado": "El impulso al alza se está acelerando.",
+          "tono": "positivo"
+        },
+        {
+          "condicion": "Positivo y decreciente",
+          "significado": "El impulso al alza sigue, pero se está frenando.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Negativo y mejorando",
+          "significado": "El impulso a la baja se está frenando.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Negativo y empeorando",
+          "significado": "El impulso a la baja se está acelerando.",
+          "tono": "negativo"
+        }
+      ],
+      "actividades": [
+        {
+          "tipo": "predecir",
+          "texto": "El histograma del MACD de una acción inventada vale +0,8, luego +0,5 y luego +0,2 en tres días seguidos, mientras el precio sigue subiendo. ¿Qué dice sobre el impulso?",
+          "opciones": [
+            "Que el impulso al alza se está frenando, aunque el precio siga subiendo",
+            "Que el precio va a caer mañana",
+            "Que el impulso al alza se acelera"
+          ],
+          "correcta": 0,
+          "explicacion": "Un histograma positivo que se encoge indica que el precio sube cada vez con menos fuerza. El precio puede seguir subiendo: lo que cambia es la velocidad.",
+          "revelacion": "No dice que vaya a bajar: dice que el empuje se afloja. Por eso es un dato de impulso a corto plazo, no una predicción."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Textil Valle (empresa inventada)",
+          "enunciado": "Su histograma acaba de pasar a positivo, lo que parece el inicio de un impulso al alza. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Histograma hoy",
+              "valor": "+0,3, acaba de pasar a positivo",
+              "esTrampa": false,
+              "explicacion": "Parece una señal de impulso, pero hay que ver cuántas veces ha cambiado de signo antes."
+            },
+            {
+              "etiqueta": "Precio en los últimos 2 meses",
+              "valor": "Entre 48 € y 52 €",
+              "esTrampa": false,
+              "explicacion": "Muestra que el precio apenas se ha movido de lado: es el contexto que explica lo demás."
+            },
+            {
+              "etiqueta": "Cambios de signo del histograma en 2 meses",
+              "valor": "8",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con el precio moviéndose de lado, el histograma cambia de signo una y otra vez. Cada cambio parece una señal, pero es solo ruido."
+            },
+            {
+              "etiqueta": "Variación del precio en 2 meses",
+              "valor": "+1 %",
+              "esTrampa": false,
+              "explicacion": "Confirma que, pese a tanto cambio de signo, el precio apenas ha ido a ninguna parte."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "dist_maximo",
@@ -1016,8 +2263,12 @@
       "intuicion": "Es como saber a cuánto estás de la cima de una montaña que has escalado: cerca de la cima o ya en mitad de la bajada.",
       "formula": "Precio actual dividido entre el máximo de las últimas 52 semanas, menos 1 (siempre ≤ 0). Si el proveedor de datos no da el histórico, usa su máximo de 52 semanas.",
       "ejemplo": "Precio de 80 € y máximo de 52 semanas de 100 €: −20 %.",
-      "comoLeerla": "El motor da buena nota cerca del máximo y hasta un −10 %, nota media hacia el −30 % y baja si cae más del 30 %. Tiene poco peso: estar lejos de un máximo puede ser tanto una caída preocupante como un precio que ha bajado sin que el negocio haya cambiado.",
-      "cuandoEngana": "Un precio lejos del máximo no es «barato» por sí mismo: puede haber caído por buenas razones. Y uno cerca del máximo no es «caro». El máximo es un punto del pasado, no un valor justo.",
+      "comoLeerla": "Cuanto más cerca del máximo, mejor puntúa; cuanto más lejos, peor. Tiene poco peso: estar lejos de un máximo puede ser una caída preocupante o un precio que ha bajado sin que el negocio haya cambiado.",
+      "cuandoEngana": [
+        "Un precio lejos del máximo no es «barato» por sí mismo: puede haber caído por buenas razones.",
+        "Y uno cerca del máximo no es «caro».",
+        "El máximo es un punto del pasado, no un valor justo."
+      ],
       "combinaCon": [
         "caida_maxima",
         "precio_sma200",
@@ -1032,7 +2283,72 @@
         ],
         "correcta": 1,
         "explicacion": "Sabemos que ha caído, pero no por qué. Puede haber empeorado el negocio, y entonces el precio es el reflejo de ello. Para saber si está barata hay que mirar su valoración y sus resultados."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 80,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "maximo",
+          "nombre": "Máximo de las últimas 52 semanas",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Distancia al máximo",
+          "unidad": "%",
+          "ejemplo": -0.2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio actual: ¿a qué distancia queda del máximo del último año? El precio nunca puede estar por encima del máximo."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Suministros",
+          "empresas": [
+            "Luz Norte",
+            "Agua Sur"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Distancia al máximo",
+              "a": "−40 %",
+              "b": "−40 %"
+            },
+            {
+              "etiqueta": "Beneficio por acción",
+              "a": "ha bajado un 50 %",
+              "b": "sin cambios"
+            },
+            {
+              "etiqueta": "Ingresos",
+              "a": "han caído un 20 %",
+              "b": "estables"
+            },
+            {
+              "etiqueta": "Mercado general",
+              "a": "estable",
+              "b": "ha caído un 35 %"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿En cuál de las dos ha cambiado el negocio?",
+            "correcta": 0,
+            "explicacion": "Las dos están igual de lejos de su máximo. En Luz Norte han bajado los beneficios y las ventas: el negocio ha empeorado. En Agua Sur no ha cambiado nada, y el precio ha caído con el mercado. Misma distancia, historias distintas: por eso este dato pesa poco."
+          }
+        }
+      ]
     },
     {
       "id": "sorpresas_bpa",
@@ -1041,8 +2357,12 @@
       "intuicion": "Si cada trimestre se espera que un alumno saque un 6 y saca 7, 7 y 8, rinde por encima de lo esperado de forma habitual.",
       "formula": "Se compara el beneficio por acción real con el estimado por los analistas en cada uno de los últimos 4 trimestres (informes de resultados) y se cuentan los que lo superan. Si el proveedor de datos no da las estimaciones, saldrá «sin dato».",
       "ejemplo": "Real frente a estimado en 4 trimestres: 1,2 frente a 1,0; 1,1 frente a 1,1; 1,3 frente a 1,2; 0,9 frente a 1,0. Bate en 2.",
-      "comoLeerla": "Más trimestres superados da mejor nota: 4 de 4 es la máxima y 0 de 4 la mínima. Refleja si la empresa suele ser prudente con sus previsiones y si el negocio resiste mejor de lo esperado.",
-      "cuandoEngana": "Las empresas gestionan las expectativas: si orientan a los analistas hacia cifras bajas, batirlas es fácil. Batir por muy poco no significa nada, y el mercado ya descuenta mucho de eso en el precio. No dice nada de la calidad del beneficio.",
+      "comoLeerla": "Cuantos más trimestres supera, mejor puntúa: batirlas todas es la nota máxima, y no batir ninguna, la mínima. Refleja si la empresa suele ser prudente con sus previsiones y si el negocio resiste mejor de lo esperado. Cuánto bate importa tanto como cuántas veces.",
+      "cuandoEngana": [
+        "Las empresas gestionan las expectativas: si orientan a los analistas hacia cifras bajas, batirlas es fácil.",
+        "Batir por muy poco no significa nada, y el mercado ya descuenta mucho de eso en el precio.",
+        "No dice nada de la calidad del beneficio."
+      ],
       "combinaCon": [
         "beneficio_cagr3",
         "potencial_analistas",
@@ -1057,7 +2377,74 @@
         ],
         "correcta": 0,
         "explicacion": "Batir por muy poco y de forma constante puede reflejar estimaciones ajustadas por la propia empresa. Conviene mirar cuánto se bate y qué ocurre con los ingresos."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Cada trimestre",
+            "descripcion": "Se compara el beneficio por acción real con la estimación media de los analistas."
+          },
+          {
+            "nombre": "Se cuentan los que la superan",
+            "descripcion": "Igualar la estimación no cuenta como batirla."
+          },
+          {
+            "nombre": "Se suman los de los últimos 4",
+            "descripcion": "El resultado es un número de 0 a 4."
+          }
+        ],
+        "resultado": {
+          "nombre": "Trimestres que baten la estimación",
+          "unidad": "de 4",
+          "ejemplo": 2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada tuvo, en 4 trimestres, estos beneficios por acción reales frente a los estimados: 1,2 frente a 1,0; 1,1 frente a 1,1; 1,3 frente a 1,2; 0,9 frente a 1,0. ¿En cuántos bate la estimación?",
+          "opciones": [
+            "En 4",
+            "En 3",
+            "En 2"
+          ],
+          "correcta": 2,
+          "explicacion": "Solo cuenta superar la estimación. Igualarla no es batirla, y quedarse por debajo tampoco.",
+          "revelacion": "Bate en el primer trimestre (1,2 frente a 1,0) y en el tercero (1,3 frente a 1,2). El segundo la iguala y el cuarto se queda por debajo: 2 de 4."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Tecnología Alba (empresa inventada)",
+          "enunciado": "Bate las estimaciones en los 4 trimestres y parece una empresa que siempre sorprende. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Trimestres que baten la estimación",
+              "valor": "4 de 4",
+              "esTrampa": false,
+              "explicacion": "Es el resultado. Por sí solo parece perfecto, pero depende de lo difícil que fuera batir la estimación."
+            },
+            {
+              "etiqueta": "Margen de cada sorpresa",
+              "valor": "0,01 € por acción",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a ver la trampa: batir por tan poco apenas significa nada."
+            },
+            {
+              "etiqueta": "Orientación de la empresa a los analistas",
+              "valor": "Rebajó sus previsiones antes de cada informe",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: si la empresa rebaja las expectativas antes de cada informe, batirlas es fácil. El 4 de 4 dice más de cómo gestiona las expectativas que de cómo va el negocio."
+            },
+            {
+              "etiqueta": "Beneficio por acción real",
+              "valor": "Baja trimestre a trimestre",
+              "esTrampa": false,
+              "explicacion": "Es un dato de contexto importante: se puede batir una estimación a la baja mientras el negocio empeora."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "potencial_analistas",
@@ -1066,8 +2453,12 @@
       "intuicion": "Es como preguntar a varios tasadores cuánto vale una casa. Su opinión orienta, pero se equivocan y tienen sus propios incentivos.",
       "formula": "Precio objetivo medio de los analistas dividido entre el precio actual, menos 1. El proveedor de datos da el precio objetivo; si no lo da, saldrá «sin dato».",
       "ejemplo": "Precio de 50 € y objetivo medio de 60 €: +20 %.",
-      "comoLeerla": "El motor da nota baja si el objetivo está por debajo del precio actual, media en torno al +10 % y mejor hacia el +25 %. Tiene poco peso en la nota global.",
-      "cuandoEngana": "Los precios objetivo suelen ser optimistas y se revisan tras cada movimiento del precio: siguen al mercado más que lo anticipan. Con pocos analistas, la media es poco fiable. Un potencial enorme suele indicar desacuerdo o una situación muy incierta.",
+      "comoLeerla": "Cuanto mayor es el precio objetivo frente al precio actual, mejor puntúa; si el objetivo está por debajo del precio, la nota es baja. Tiene poco peso en la nota global: es una opinión, no un dato del negocio.",
+      "cuandoEngana": [
+        "Los precios objetivo suelen ser optimistas y se revisan tras cada movimiento del precio: siguen al mercado más que lo anticipan.",
+        "Con pocos analistas, la media es poco fiable.",
+        "Un potencial enorme suele indicar desacuerdo o una situación muy incierta."
+      ],
       "combinaCon": [
         "sorpresas_bpa",
         "per",
@@ -1082,7 +2473,70 @@
         ],
         "correcta": 1,
         "explicacion": "Un potencial muy alto suele indicar que los analistas ven mucha incertidumbre o que sus previsiones son demasiado optimistas. Es un dato de contexto, no una instrucción."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "objetivo",
+          "nombre": "Precio objetivo medio de los analistas",
+          "origen": "mercado",
+          "ejemplo": 60,
+          "min": 20,
+          "max": 120,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 50,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Potencial según los analistas",
+          "unidad": "%",
+          "ejemplo": 0.2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio objetivo y el precio actual: ¿cuánto subiría el precio si llegase al objetivo? Prueba con un objetivo por debajo del precio."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Biotec Luz (empresa inventada)",
+          "enunciado": "El potencial según los analistas es de un +60 % y parece una gran oportunidad. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Precio objetivo medio",
+              "valor": "80 €",
+              "esTrampa": false,
+              "explicacion": "Es la media de las opiniones. Una media es tan fiable como los datos que la forman."
+            },
+            {
+              "etiqueta": "Precio actual",
+              "valor": "50 €",
+              "esTrampa": false,
+              "explicacion": "Es la referencia. Por sí solo no explica un potencial tan alto."
+            },
+            {
+              "etiqueta": "Número de analistas que la siguen",
+              "valor": "2",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con solo dos analistas, la media es poco fiable. Un solo objetivo muy optimista basta para disparar el potencial."
+            },
+            {
+              "etiqueta": "Potencial resultante",
+              "valor": "+60 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 80 con 50. El dato engañoso es cuántas opiniones hay detrás de ese 80."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "beta",
@@ -1091,8 +2545,12 @@
       "intuicion": "Si el mercado fuese una ola, la beta dice si esta acción es un barco que se balancea más que la ola (beta mayor que 1) o menos (beta menor que 1).",
       "formula": "Se compara, con datos históricos, cómo han variado los precios de la acción frente a los de un índice amplio de mercado. El proveedor de datos la da ya calculada.",
       "ejemplo": "Con una beta de 1,5, si el mercado sube un 10 %, la acción tendería a subir un 15 % (y a bajar un 15 % si el mercado baja un 10 %).",
-      "comoLeerla": "El motor da mejor nota a betas por debajo de 0,8, nota media hacia 1,2 y baja a partir de 1,8-2,5, porque una beta alta implica más oscilación. Una beta baja no significa que la empresa sea buena, solo que se mueve menos que el mercado.",
-      "cuandoEngana": "Se calcula con el pasado y cambia según el periodo elegido. Mide solo cuánto se mueve junto al mercado, no el riesgo propio de la empresa (una deuda excesiva o un problema legal). Una beta baja puede coincidir con una empresa en problemas.",
+      "comoLeerla": "Una beta mayor que 1 indica que la acción oscila más que el mercado; menor que 1, que oscila menos. El motor puntúa mejor las betas bajas porque implican menos oscilación. Una beta baja no significa que la empresa sea buena, solo que se mueve menos.",
+      "cuandoEngana": [
+        "Se calcula con el pasado y cambia según el periodo elegido.",
+        "Mide solo cuánto se mueve junto al mercado, no el riesgo propio de la empresa, como una deuda excesiva o un problema legal.",
+        "Una beta baja puede coincidir con una empresa en problemas."
+      ],
       "combinaCon": [
         "caida_maxima",
         "dist_maximo",
@@ -1107,7 +2565,50 @@
         ],
         "correcta": 1,
         "explicacion": "Una beta de 0,5 indica que, históricamente, se mueve aproximadamente la mitad que el mercado, en ambos sentidos. No garantiza que nunca baje."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "accion",
+          "nombre": "Cuánto tiende a moverse la acción",
+          "origen": "historico_precios",
+          "ejemplo": 15,
+          "min": 2,
+          "max": 40,
+          "unidad": "%"
+        },
+        "denominador": {
+          "clave": "mercado",
+          "nombre": "Cuánto se mueve el mercado",
+          "origen": "historico_precios",
+          "ejemplo": 10,
+          "min": 2,
+          "max": 30,
+          "unidad": "%"
+        },
+        "resultado": {
+          "nombre": "Beta (idea simplificada)",
+          "ejemplo": 1.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve cuánto se mueve la acción y cuánto el mercado: ¿cuándo la beta supera 1 y cuándo queda por debajo?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una acción inventada tiene una beta de 0,5. Si el mercado cae un 20 %, ¿qué cabría esperar de ella?",
+          "opciones": [
+            "Que caiga en torno a un 10 %",
+            "Que caiga un 20 %",
+            "Que no caiga"
+          ],
+          "correcta": 0,
+          "explicacion": "Con una beta de 0,5, la acción tiende a moverse la mitad que el mercado, tanto cuando sube como cuando baja.",
+          "revelacion": "0,5 × 20 % = 10 %. Es una tendencia histórica, no una garantía: y una beta baja no quita los problemas propios de la empresa."
+        }
+      ]
     },
     {
       "id": "caida_maxima",
@@ -1116,8 +2617,12 @@
       "intuicion": "Es el peor «bajón» que habrías sufrido si hubieras comprado en el momento más alto del último año: te dice cuánto dolería aguantar.",
       "formula": "Se recorren los cierres diarios del último año y se toma la mayor caída entre un máximo acumulado y un cierre posterior: mínimo de (cierre / máximo acumulado − 1). Requiere un año de histórico diario; si el proveedor de datos no lo da, saldrá «sin dato».",
       "ejemplo": "El precio sube hasta 100 €, cae a 70 € y luego se recupera: la caída máxima es −30 %.",
-      "comoLeerla": "El motor da buena nota si la caída máxima es pequeña (cerca del −10 %), nota media hacia el −25 % y baja desde el −40 %. Tiene poco peso: es una medida de lo que habría que estar dispuesto a aguantar, no un veredicto.",
-      "cuandoEngana": "Solo mira un año: puede ser un año excepcionalmente tranquilo o excepcionalmente malo. Una caída profunda con recuperación rápida no es lo mismo que una que no se recupera. No indica cuándo ocurrirá la próxima.",
+      "comoLeerla": "Cuanto menor sea la caída máxima, mejor puntúa. Tiene poco peso: mide cuánto habría que estar dispuesto a aguantar, no es un veredicto. Compárala con cuánto aguantarías tú ver caer una inversión sin necesitar ese dinero.",
+      "cuandoEngana": [
+        "Solo mira un año: puede ser un año excepcionalmente tranquilo o excepcionalmente malo.",
+        "Una caída profunda con recuperación rápida no es lo mismo que una que no se recupera.",
+        "No indica cuándo ocurrirá la próxima."
+      ],
       "combinaCon": [
         "beta",
         "dist_maximo",
@@ -1132,7 +2637,72 @@
         ],
         "correcta": 2,
         "explicacion": "La caída máxima muestra el «bajón» histórico. Invertir con sentido incluye saber si puedes tolerar ese vaivén y no necesitas el dinero a corto plazo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "minimo",
+          "nombre": "Cierre más bajo tras el máximo",
+          "origen": "historico_precios",
+          "ejemplo": 70,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "maximo",
+          "nombre": "Máximo previo",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Caída máxima",
+          "unidad": "%",
+          "ejemplo": -0.3
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el cierre más bajo: ¿cuánto cae el precio desde su máximo? Una caída del 50 % exige una subida del 100 % para volver al punto de partida."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Bebidas",
+          "empresas": [
+            "Fuente Norte",
+            "Río Sur"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Caída máxima en el año",
+              "a": "−35 %",
+              "b": "−35 %"
+            },
+            {
+              "etiqueta": "Dónde está hoy",
+              "a": "ha recuperado su máximo",
+              "b": "sigue un 30 % por debajo"
+            },
+            {
+              "etiqueta": "Tiempo en recuperarse",
+              "a": "3 meses",
+              "b": "aún sin recuperar"
+            },
+            {
+              "etiqueta": "Qué pasó con sus beneficios",
+              "a": "sin cambios",
+              "b": "a la baja"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿En cuál de las dos ha sido más pasajera la caída hasta hoy?",
+            "correcta": 0,
+            "explicacion": "Las dos tienen la misma caída máxima, pero Fuente Norte se recuperó en tres meses y Río Sur sigue lejos de su máximo con beneficios a la baja. La caída máxima mide cuánto dolió, no si se recuperó."
+          }
+        }
+      ]
     }
   ]
 }

@@ -53,6 +53,24 @@ void main() {
       expect(evaluateFormula(growth, {'anios': 0}), isNull);
     });
 
+    final variation = VariationFormula(
+      current: _piece('precio', 110),
+      reference: _piece('media', 100),
+      result: _result,
+    );
+
+    test('una variación de 110 sobre 100 es el +10 %', () {
+      expect(evaluateFormula(variation), closeTo(0.10, 1e-12));
+    });
+
+    test('una variación por debajo de la referencia es negativa', () {
+      expect(evaluateFormula(variation, {'precio': 80}), closeTo(-0.2, 1e-12));
+    });
+
+    test('una variación con referencia cero devuelve null', () {
+      expect(evaluateFormula(variation, {'media': 0}), isNull);
+    });
+
     test('una fórmula por pasos no se calcula', () {
       final steps = StepsFormula(
         steps: const [

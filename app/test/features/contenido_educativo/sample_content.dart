@@ -226,4 +226,6 @@ ReadingScale sampleScale() => ReadingScale(
     ScalePoint(50, 1),
   ],
   unit: ScaleUnit.multiple,
+  favorableFrom: 7,
+  neutralFrom: 5,
 );

@@ -96,9 +96,10 @@ class LessonController extends TopicController {
   /// Posiciones (en `items`) en el orden en que se muestran ahora; la primera
   /// vez sale barajado con una semilla fija por ficha y paso.
   List<int> orderOf(int step, OrderActivity activity) => List.unmodifiable(
-    _orders[step] ??= shuffledOrder('$currentTopicId#$step', [
-      for (final item in activity.items) item.value,
-    ]),
+    _orders[step] ??
+        shuffledOrder('$currentTopicId#$step', [
+          for (final item in activity.items) item.value,
+        ]),
   );
 
   /// Mueve un elemento; [newIndex] ya viene ajustado por `onReorderItem`.

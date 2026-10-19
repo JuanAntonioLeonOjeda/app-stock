@@ -4,6 +4,7 @@ import 'package:stock_app/features/contenido_educativo/domain/content/scale_band
 import 'package:stock_app/features/contenido_educativo/domain/entities/formula_diagram.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/learning_activity.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/scale_formatting.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/tone_style.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/formula_diagram_view.dart';
@@ -41,12 +42,14 @@ class SimulatorActivityView extends StatelessWidget {
       children: [
         Text(activity.prompt, style: theme.textTheme.bodyLarge),
         const SizedBox(height: 12),
-        for (final piece in diagram.pieces.where((p) => p.isAdjustable))
-          _PieceSlider(
-            piece: piece,
-            value: values[piece.key] ?? piece.exampleValue,
-            onChanged: (value) => onChanged(piece.key, value),
-          ),
+        for (final piece in diagram.pieces)
+          if (piece.range case final range?)
+            _PieceSlider(
+              piece: piece,
+              range: range,
+              value: values[piece.key] ?? piece.exampleValue,
+              onChanged: (value) => onChanged(piece.key, value),
+            ),
         const SizedBox(height: 12),
         FormulaDiagramView(diagram: diagram, values: values),
         const SizedBox(height: 12),
@@ -67,21 +70,30 @@ class SimulatorActivityView extends StatelessWidget {
   }
 }
 
+/// Posiciones de un deslizador sin `paso`: suficientes para parecer continuo.
+const _continuousDivisions = 100;
+
 class _PieceSlider extends StatelessWidget {
   const _PieceSlider({
     required this.piece,
+    required this.range,
     required this.value,
     required this.onChanged,
   });
 
   final FormulaPiece piece;
+  final ({double min, double max}) range;
   final double value;
   final ValueChanged<double> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final min = piece.min!;
-    final max = piece.max!;
+    final (:min, :max) = range;
+    int divisions() {
+      final step = piece.step;
+      return step == null ? _continuousDivisions : ((max - min) / step).round();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,7 +105,7 @@ class _PieceSlider extends StatelessWidget {
           value: value.clamp(min, max),
           min: min,
           max: max,
-          divisions: 100,
+          divisions: divisions(),
           label: formatPieceValue(value, piece.unit),
           semanticFormatterCallback: (v) => formatPieceValue(v, piece.unit),
           onChanged: onChanged,
@@ -119,8 +131,7 @@ class _ToneCaption extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '${toneLabel(tone)} según el motor. Es una orientación: '
-              'depende del sector.',
+              '${toneLabel(tone)} $simulatorToneNote',
               style: theme.textTheme.bodySmall,
             ),
           ),

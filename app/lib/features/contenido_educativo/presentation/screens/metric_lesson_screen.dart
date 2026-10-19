@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/educational_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/metric_content.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/controllers/lesson_controller.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/educational_notice.dart';
@@ -9,7 +11,8 @@ import 'package:stock_app/features/contenido_educativo/presentation/widgets/less
 /// gráfica, en tarjetas cortas (criterios 72-73 y 90).
 ///
 /// Una métrica relacionada se abre en la misma pantalla y el botón de volver
-/// regresa a la anterior. El [controller] lo crea quien abre la pantalla.
+/// regresa a la anterior. El [controller] lo crea quien abre la pantalla y esta
+/// lo libera al cerrarse (la ruta es de un solo uso).
 class MetricLessonScreen extends StatefulWidget {
   const MetricLessonScreen({super.key, required this.controller});
 
@@ -37,18 +40,26 @@ class _MetricLessonScreenState extends State<MetricLessonScreen> {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: _controller,
-    builder: (context, _) => Scaffold(
-      appBar: AppBar(
-        leading: _controller.canGoBack
-            ? IconButton(
-                tooltip: 'Volver a la ficha anterior',
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _controller.goBack,
-              )
-            : null,
-        title: const Text('Aprender'),
+    // El botón atrás del sistema también regresa a la ficha anterior antes
+    // de cerrar la pantalla.
+    builder: (context, _) => PopScope(
+      canPop: !_controller.canGoBack,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _controller.goBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: _controller.canGoBack
+              ? IconButton(
+                  tooltip: 'Volver a la ficha anterior',
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _controller.goBack,
+                )
+              : null,
+          title: const Text('Aprender'),
+        ),
+        body: SafeArea(child: _body()),
       ),
-      body: SafeArea(child: _body()),
     ),
   );
 
@@ -64,6 +75,8 @@ class _MetricLessonScreenState extends State<MetricLessonScreen> {
     return _LessonPager(
       key: ValueKey(_controller.currentTopicId),
       controller: _controller,
+      metric: metric,
+      content: content,
     );
   }
 
@@ -84,9 +97,16 @@ class _MetricLessonScreenState extends State<MetricLessonScreen> {
 
 /// Las tarjetas de una ficha con su indicador y los botones de avance.
 class _LessonPager extends StatefulWidget {
-  const _LessonPager({super.key, required this.controller});
+  const _LessonPager({
+    super.key,
+    required this.controller,
+    required this.metric,
+    required this.content,
+  });
 
   final LessonController controller;
+  final MetricContent metric;
+  final EducationalContent content;
 
   @override
   State<_LessonPager> createState() => _LessonPagerState();
@@ -106,8 +126,8 @@ class _LessonPagerState extends State<_LessonPager> {
   @override
   Widget build(BuildContext context) {
     final steps = _controller.steps;
-    final metric = _controller.currentMetric!;
-    final content = _controller.content!;
+    final metric = widget.metric;
+    final content = widget.content;
     return Column(
       children: [
         LessonProgress(

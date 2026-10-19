@@ -85,8 +85,24 @@ class CompareActivityView extends StatelessWidget {
     child: Text(text, style: style),
   );
 
-  Widget _choice(String label, {required bool isA, required bool? answer}) =>
-      answer == isA
-      ? FilledButton(onPressed: () => onAnswer(isA), child: Text(label))
-      : OutlinedButton(onPressed: () => onAnswer(isA), child: Text(label));
+  Widget _choice(String label, {required bool isA, required bool? answer}) {
+    final isChosen = answer == isA;
+    // MergeSemantics: sin él, «seleccionado» queda en un nodo aparte y el
+    // lector de pantalla no lo une al botón.
+    return MergeSemantics(
+      child: Semantics(
+        selected: isChosen,
+        child: isChosen
+            ? FilledButton.icon(
+                onPressed: () => onAnswer(isA),
+                icon: const Icon(Icons.check, size: 18),
+                label: Text(label),
+              )
+            : OutlinedButton(
+                onPressed: () => onAnswer(isA),
+                child: Text(label),
+              ),
+      ),
+    );
+  }
 }

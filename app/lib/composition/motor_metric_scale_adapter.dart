@@ -1,6 +1,7 @@
 import 'package:stock_app/features/analisis_accion/domain/entities/analysis_result.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/rules/metric_rule.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/rules/metric_rules.dart';
+import 'package:stock_app/features/analisis_accion/domain/motor/rules/verdict_thresholds.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 import 'package:stock_app/features/contenido_educativo/domain/ports/metric_scale_port.dart';
 
@@ -20,6 +21,8 @@ class MotorMetricScaleAdapter implements MetricScalePort {
       ScaleScoring(:final points) => ReadingScale(
         points: [for (final p in points) ScalePoint(p.value, p.score)],
         unit: _unitOf(rule.format),
+        favorableFrom: favorableMinScore,
+        neutralFrom: neutralMinScore,
       ),
       CustomScoring() => null,
     };

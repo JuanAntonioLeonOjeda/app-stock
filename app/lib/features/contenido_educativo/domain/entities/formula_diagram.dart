@@ -19,6 +19,7 @@ class FormulaPiece {
     this.unit = '',
     this.min,
     this.max,
+    this.step,
   });
 
   /// Identifica la pieza dentro de su fórmula (`precio`, `beneficio`...).
@@ -32,7 +33,17 @@ class FormulaPiece {
   final double? min;
   final double? max;
 
-  bool get isAdjustable => min != null && max != null;
+  /// Salto del deslizador (1 para años enteros); `null` si es continuo.
+  final double? step;
+
+  /// Límites del deslizador, o `null` si la pieza no se puede mover.
+  ({double min, double max})? get range {
+    final min = this.min;
+    final max = this.max;
+    return min == null || max == null ? null : (min: min, max: max);
+  }
+
+  bool get isAdjustable => range != null;
 }
 
 /// El resultado de una fórmula: qué es y cuánto vale en el ejemplo.
@@ -99,6 +110,22 @@ class GrowthFormula extends FormulaDiagram {
 
   @override
   List<FormulaPiece> get pieces => [initial, finalValue, years];
+}
+
+/// Cuánto se aleja un valor de otro de referencia: `actual / referencia − 1`
+/// (precio frente a su media, distancia al máximo...).
+class VariationFormula extends FormulaDiagram {
+  const VariationFormula({
+    required this.current,
+    required this.reference,
+    required super.result,
+  });
+
+  final FormulaPiece current;
+  final FormulaPiece reference;
+
+  @override
+  List<FormulaPiece> get pieces => [current, reference];
 }
 
 /// Secuencia de pasos sin simulador (RSI, MACD, medias...).

@@ -80,7 +80,11 @@ class OrderActivityView extends StatelessWidget {
       subtitle: isChecked ? Text(item.shown) : null,
       trailing: ReorderableDragStartListener(
         index: position,
-        child: const Icon(Icons.drag_handle, semanticLabel: 'Arrastrar'),
+        child: const SizedBox(
+          width: 48,
+          height: 48,
+          child: Icon(Icons.drag_handle, semanticLabel: 'Arrastrar'),
+        ),
       ),
     ),
   );

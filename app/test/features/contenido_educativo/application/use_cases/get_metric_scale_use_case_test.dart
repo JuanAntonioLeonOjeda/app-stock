@@ -9,6 +9,8 @@ void main() {
     final perScale = ReadingScale(
       points: const [ScalePoint(8, 9), ScalePoint(50, 1)],
       unit: ScaleUnit.multiple,
+      favorableFrom: 7,
+      neutralFrom: 5,
     );
 
     test('devuelve la escala que da el port para esa métrica', () {

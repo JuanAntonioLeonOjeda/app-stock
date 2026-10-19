@@ -157,13 +157,17 @@ void main() {
       expect(find.text('Por encima de 70'), findsOneWidget);
     });
 
-    testWidgets('cada trampa tiene su propia tarjeta', (tester) async {
+    testWidgets('cada trampa tiene su propia tarjeta y su contador', (
+      tester,
+    ) async {
       await _pump(tester);
 
       await _next(tester, 3);
       expect(find.text('Un beneficio puntual.'), findsOneWidget);
+      expect(find.text('Trampa 1 de 2'), findsOneWidget);
       await _next(tester);
       expect(find.text('Beneficios negativos.'), findsOneWidget);
+      expect(find.text('Trampa 2 de 2'), findsOneWidget);
     });
   });
 
@@ -310,6 +314,22 @@ void main() {
 
       expect(controller.currentTopicId, 'per');
       expect(find.text('PER 12 meses'), findsWidgets);
+    });
+
+    testWidgets('el botón atrás del sistema regresa a la ficha anterior', (
+      tester,
+    ) async {
+      final controller = await _pump(tester);
+      await _next(tester, 10);
+      await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
+      await tester.pumpAndSettle();
+      expect(controller.currentTopicId, 'peg');
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(controller.currentTopicId, 'per');
+      expect(find.byType(MetricLessonScreen), findsOneWidget);
     });
 
     testWidgets('sin ficha anterior no hay botón de volver a la anterior', (
