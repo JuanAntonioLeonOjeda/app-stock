@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:stock_app/features/contenido_educativo/domain/entities/educational_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 import 'package:stock_app/features/contenido_educativo/infrastructure/adapters/educational_content_parser.dart';
 
 /// JSON de una ficha de métrica válida; los tests rompen un campo a la vez.
@@ -9,6 +10,10 @@ Map<String, Object?> metricJson(
   String title = 'Título',
   String summary = 'Resumen de la métrica.',
   List<String> combinaCon = const [],
+  Map<String, Object?>? formulaVisual,
+  List<Map<String, Object?>>? leyenda,
+  List<Map<String, Object?>>? actividades,
+  List<String> cuandoEngana = const ['Una trampa típica.'],
 }) => {
   'id': id,
   'titulo': title,
@@ -17,7 +22,7 @@ Map<String, Object?> metricJson(
   'formula': 'Precio entre beneficio, del balance y la cuenta de resultados.',
   'ejemplo': 'Ejemplo inventado con cifras redondas.',
   'comoLeerla': 'Orientación sobre valores altos y bajos.',
-  'cuandoEngana': 'Una trampa típica.',
+  'cuandoEngana': cuandoEngana,
   'combinaCon': combinaCon,
   'pregunta': {
     'texto': '¿Qué mide?',
@@ -25,6 +30,9 @@ Map<String, Object?> metricJson(
     'correcta': 1,
     'explicacion': 'Porque sí mide otra cosa.',
   },
+  'formulaVisual': ?formulaVisual,
+  'leyenda': ?leyenda,
+  'actividades': ?actividades,
 };
 
 Map<String, Object?> blockJson(String id, List<String> metricIds) => {
@@ -59,6 +67,15 @@ sampleFiles() => (
         title: 'PER 12 meses',
         summary: 'Cuántos años de beneficio pagas.',
         combinaCon: ['peg'],
+        cuandoEngana: ['Un beneficio puntual.', 'Beneficios negativos.'],
+        formulaVisual: ratioFormulaJson(),
+        actividades: [
+          {'tipo': 'simulador', 'enunciado': 'Mueve el precio.'},
+          trapActivityJson(),
+          compareActivityJson(),
+          predictActivityJson(),
+          orderActivityJson(),
+        ],
       ),
       metricJson(
         'peg',
@@ -70,6 +87,18 @@ sampleFiles() => (
         'rsi',
         title: 'RSI',
         summary: 'Si el precio ha subido o bajado muy rápido.',
+        leyenda: [
+          {
+            'condicion': 'Por encima de 70',
+            'significado': 'Ha subido muy rápido.',
+            'tono': 'neutro',
+          },
+          {
+            'condicion': 'Por debajo de 30',
+            'significado': 'Ha bajado muy rápido.',
+            'tono': 'neutro',
+          },
+        ],
       ),
     ],
   }),
@@ -186,3 +215,15 @@ Map<String, Object?> orderActivityJson() => {
   ],
   'explicacion': 'El PER mide años de beneficio.',
 };
+
+/// La escala del PER del motor: cuanto más bajo, mejor.
+ReadingScale sampleScale() => ReadingScale(
+  points: const [
+    ScalePoint(8, 9),
+    ScalePoint(15, 8),
+    ScalePoint(25, 5),
+    ScalePoint(35, 3),
+    ScalePoint(50, 1),
+  ],
+  unit: ScaleUnit.multiple,
+);

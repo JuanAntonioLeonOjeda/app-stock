@@ -5,6 +5,10 @@ import 'package:stock_app/features/contenido_educativo/domain/entities/metric_co
 /// Id de tema de la guía del diagnóstico.
 const guideTopicId = 'guia_diagnostico';
 
+/// Si [topicId] es el de un bloque (`bloque_valoracion`...) y no el de una
+/// métrica o un concepto: unos y otros se abren de forma distinta.
+bool isBlockTopicId(String topicId) => topicId.startsWith('bloque_');
+
 /// Todo el contenido didáctico de la app.
 class EducationalContent {
   EducationalContent({

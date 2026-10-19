@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/get_metric_scale_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/controllers/topic_controller.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/block_content_view.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/educational_notice.dart';
-import 'package:stock_app/features/contenido_educativo/presentation/widgets/metric_content_view.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/widgets/metric_quick_view.dart';
 
 /// La explicación de una métrica o de un bloque para mostrarla en el sitio,
-/// debajo del dato que se está mirando (criterios 1, 2b y 7).
+/// debajo del dato que se está mirando (criterios 2b, 7 y 89): de una métrica,
+/// la versión corta con su botón de aprender paso a paso.
 ///
-/// Es dueña de su controller: lo crea al montarse y lo libera al ocultarse, así
-/// que la respuesta de la pregunta se descarta al ocultar la explicación y no
-/// se guarda nada. El contenido se lee la primera vez que se muestra.
+/// Es dueña de su controller: lo crea al montarse y lo libera al ocultarse. El
+/// contenido se lee la primera vez que se muestra.
 ///
-/// [onOpenTopic] se llama al pulsar una métrica relacionada: esa métrica puede
-/// estar en otro bloque, así que se abre aparte en vez de en el sitio.
+/// [onOpenTopic] se llama al pulsar "Aprender paso a paso" o una métrica de un
+/// bloque: se abren aparte, a pantalla completa, en vez de en el sitio.
 class TopicInlineView extends StatefulWidget {
   const TopicInlineView({
     super.key,
     required this.loadContent,
+    required this.getMetricScale,
     required this.topicId,
     required this.onOpenTopic,
   });
 
   final LoadEducationalContentUseCase loadContent;
+  final GetMetricScaleUseCase getMetricScale;
   final String topicId;
   final ValueChanged<String> onOpenTopic;
 
@@ -70,12 +73,10 @@ class _TopicInlineViewState extends State<TopicInlineView> {
     final metric = _controller.currentMetric;
     final block = _controller.currentBlock;
     if (metric != null) {
-      return MetricContentView(
+      return MetricQuickView(
         metric: metric,
-        content: content,
-        selectedOption: _controller.selectedOption,
-        onSelectOption: _controller.selectOption,
-        onOpenTopic: widget.onOpenTopic,
+        scale: widget.getMetricScale(widget.topicId),
+        onOpenLesson: () => widget.onOpenTopic(widget.topicId),
       );
     }
     if (block != null) {

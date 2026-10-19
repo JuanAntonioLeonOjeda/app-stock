@@ -129,9 +129,10 @@
 
 ### Presentation
 
-- [ ] T45. `ScaleBar`, `FormulaDiagramView`, `ReadingLegendView`, `MetricQuickView` y
-      `illustrationFor` (con ilustraciones provisionales) + tests.
-- [ ] T46. `LessonController`, `lessonStepsFor`, `MetricLessonScreen` y los cinco widgets
+- [x] T45. `ScaleBar`, `FormulaDiagramView`, `ReadingLegendView`, `MetricQuickView` e
+      `illustrationFor` (el enganche, con el registro vacío: cada bloque añade las suyas en
+      T47-T52) + tests.
+- [x] T46. `LessonController`, `lessonStepsFor`, `MetricLessonScreen` y los cinco widgets
       de actividad; `openEducationalTopic` y `TopicInlineView` usan lo nuevo; cableado en
       `app.dart` + tests.
 

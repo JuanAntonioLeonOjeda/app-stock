@@ -77,6 +77,7 @@ FormulaPiece _piece(ContentReader reader) {
     name: reader.text('nombre'),
     source: _source(reader),
     exampleValue: example,
+    unit: reader.has('unidad') ? reader.text('unidad') : '',
     min: min,
     max: max,
   );

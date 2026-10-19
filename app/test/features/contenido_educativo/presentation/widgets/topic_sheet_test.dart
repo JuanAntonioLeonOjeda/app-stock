@@ -14,7 +14,7 @@ import '../tall_screen.dart';
 
 TopicController _controller(
   FakeEducationalContent port, {
-  String topic = 'per',
+  String topic = 'bloque_valoracion',
 }) {
   return TopicController(
     loadContent: LoadEducationalContentUseCase(port),
@@ -22,10 +22,10 @@ TopicController _controller(
   );
 }
 
-Future<TopicController> _pump(
+Future<List<String>> _pump(
   WidgetTester tester, {
   FakeEducationalContent? port,
-  String topic = 'per',
+  String topic = 'bloque_valoracion',
 }) async {
   useTallScreen(tester);
   final controller = _controller(
@@ -33,109 +33,41 @@ Future<TopicController> _pump(
     topic: topic,
   );
   addTearDown(controller.dispose);
+  final opened = <String>[];
   await tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(body: TopicSheet(controller: controller)),
+      home: Scaffold(
+        body: TopicSheet(controller: controller, onOpenTopic: opened.add),
+      ),
     ),
   );
   await tester.pump();
-  return controller;
+  return opened;
 }
 
 void main() {
-  group('TopicSheet ficha de métrica', () {
-    testWidgets('muestra todas las secciones de la ficha (criterio 1)', (
-      tester,
-    ) async {
-      await _pump(tester);
-
-      expect(find.text('PER 12 meses'), findsOneWidget);
-      expect(find.text('Cuántos años de beneficio pagas.'), findsOneWidget);
-      expect(find.text('La idea'), findsOneWidget);
-      expect(find.text('Una analogía cotidiana.'), findsOneWidget);
-      expect(find.text('Cómo se calcula'), findsOneWidget);
-      expect(find.text('Ejemplo inventado'), findsOneWidget);
-      expect(find.text('Cómo leerla'), findsOneWidget);
-      expect(find.text('Cuándo engaña'), findsOneWidget);
-      expect(find.text('Se combina con'), findsOneWidget);
-      expect(find.text('Comprueba lo que has aprendido'), findsOneWidget);
-      expect(find.text(educationalNoticeText), findsOneWidget);
-    });
-
-    testWidgets('las métricas relacionadas se ven con su título', (
-      tester,
-    ) async {
-      await _pump(tester);
-
-      expect(find.widgetWithText(ActionChip, 'PEG'), findsOneWidget);
-    });
-
-    testWidgets('pulsar una relacionada abre su ficha y se puede volver', (
-      tester,
-    ) async {
-      await _pump(tester);
-
-      await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
-      await tester.pump();
-
-      expect(find.text('El PER ajustado por crecimiento.'), findsOneWidget);
-      await tester.tap(find.byTooltip('Volver'));
-      await tester.pump();
-      expect(find.text('Cuántos años de beneficio pagas.'), findsOneWidget);
-    });
-
-    testWidgets('sin tema anterior no hay botón de volver', (tester) async {
-      await _pump(tester);
-
-      expect(find.byTooltip('Volver'), findsNothing);
-    });
-
-    testWidgets('al cambiar de ficha la respuesta elegida se borra', (
-      tester,
-    ) async {
-      await _pump(tester);
-      await tester.tap(find.text('Otra cosa'));
-      await tester.pump();
-      expect(find.text('¡Correcto!'), findsOneWidget);
-
-      await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
-      await tester.pump();
-
-      expect(find.text('¡Correcto!'), findsNothing);
-    });
-
-    testWidgets('responder la pregunta muestra la explicación (criterio 5)', (
-      tester,
-    ) async {
-      await _pump(tester);
-
-      await tester.tap(find.text('Una cosa'));
-      await tester.pump();
-
-      expect(find.text('Porque sí mide otra cosa.'), findsOneWidget);
-    });
-  });
-
   group('TopicSheet ficha de bloque', () {
     testWidgets('muestra qué responde, cómo usarlo y sus métricas', (
       tester,
     ) async {
-      await _pump(tester, topic: 'bloque_valoracion');
+      await _pump(tester);
 
       expect(find.text('Bloque bloque_valoracion'), findsOneWidget);
       expect(find.text('Qué pregunta responde'), findsOneWidget);
       expect(find.text('Cómo usarlo'), findsOneWidget);
       expect(find.widgetWithText(ActionChip, 'PER 12 meses'), findsOneWidget);
       expect(find.widgetWithText(ActionChip, 'PEG'), findsOneWidget);
+      expect(find.text(educationalNoticeText), findsOneWidget);
     });
 
-    testWidgets('pulsar una métrica del bloque abre su ficha', (tester) async {
-      await _pump(tester, topic: 'bloque_valoracion');
+    testWidgets('pulsar una métrica del bloque pide abrir su ficha', (
+      tester,
+    ) async {
+      final opened = await _pump(tester);
 
       await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
-      await tester.pump();
 
-      expect(find.text('El PER ajustado por crecimiento.'), findsOneWidget);
+      expect(opened, ['peg']);
     });
   });
 
@@ -175,7 +107,7 @@ void main() {
   });
 
   group('showTopicSheet', () {
-    testWidgets('abre la hoja con la ficha y se cierra', (tester) async {
+    testWidgets('abre la hoja con el bloque y se cierra', (tester) async {
       useTallScreen(tester);
       final loadContent = LoadEducationalContentUseCase(
         FakeEducationalContent(),
@@ -187,7 +119,8 @@ void main() {
               onPressed: () => showTopicSheet(
                 context,
                 loadContent: loadContent,
-                topicId: 'rsi',
+                topicId: 'bloque_tecnico',
+                onOpenTopic: (_) {},
               ),
               child: const Text('abrir'),
             ),
@@ -197,17 +130,11 @@ void main() {
 
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Si el precio ha subido o bajado muy rápido.'),
-        findsOneWidget,
-      );
+      expect(find.text('Bloque bloque_tecnico'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Cerrar'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Si el precio ha subido o bajado muy rápido.'),
-        findsNothing,
-      );
+      expect(find.text('Bloque bloque_tecnico'), findsNothing);
     });
   });
 }

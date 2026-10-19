@@ -16,6 +16,7 @@ class FormulaPiece {
     required this.name,
     required this.source,
     required this.exampleValue,
+    this.unit = '',
     this.min,
     this.max,
   });
@@ -25,6 +26,9 @@ class FormulaPiece {
   final String name;
   final DataSource source;
   final double exampleValue;
+
+  /// Sufijo para mostrar el dato (`€`, `M€`, `años`); vacío si no lleva.
+  final String unit;
   final double? min;
   final double? max;
 
@@ -42,6 +46,7 @@ class FormulaResult {
   final String name;
 
   /// Sufijo para mostrarlo (`x`, `años`, `%`...); vacío si no lleva (RSI).
+  /// Con `%` el valor es una fracción (0,10 = 10 %), como en todo el proyecto.
   final String unit;
   final double exampleValue;
 }

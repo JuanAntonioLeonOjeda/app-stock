@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/get_metric_scale_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/educational_content.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/open_topic.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/screens/diagnosis_guide_screen.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/screens/metric_lesson_screen.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/topic_sheet.dart';
 
 import '../application/fake_ports.dart';
+import '../sample_content.dart';
 import 'tall_screen.dart';
 
 Future<void> _open(WidgetTester tester, String topicId) async {
   useTallScreen(tester);
   final loadContent = LoadEducationalContentUseCase(FakeEducationalContent());
+  final getMetricScale = GetMetricScaleUseCase(
+    FakeMetricScales({'per': sampleScale()}),
+  );
   await tester.pumpWidget(
     MaterialApp(
       home: Builder(
@@ -19,6 +25,7 @@ Future<void> _open(WidgetTester tester, String topicId) async {
           onPressed: () => openEducationalTopic(
             context,
             loadContent: loadContent,
+            getMetricScale: getMetricScale,
             topicId: topicId,
           ),
           child: const Text('abrir'),
@@ -36,21 +43,44 @@ void main() {
       await _open(tester, guideTopicId);
 
       expect(find.byType(DiagnosisGuideScreen), findsOneWidget);
-      expect(find.byType(TopicSheet), findsNothing);
+      expect(find.byType(MetricLessonScreen), findsNothing);
     });
 
-    testWidgets('una métrica se abre en una hoja inferior', (tester) async {
+    testWidgets('una métrica se abre como recorrido a pantalla completa', (
+      tester,
+    ) async {
       await _open(tester, 'per');
 
-      expect(find.byType(TopicSheet), findsOneWidget);
-      expect(find.byType(DiagnosisGuideScreen), findsNothing);
-      expect(find.text('PER 12 meses'), findsOneWidget);
+      expect(find.byType(MetricLessonScreen), findsOneWidget);
+      expect(find.byType(TopicSheet), findsNothing);
+      expect(find.text('PER 12 meses'), findsWidgets);
     });
 
-    testWidgets('un bloque también se abre en una hoja', (tester) async {
+    testWidgets('un concepto de la gráfica también abre el recorrido', (
+      tester,
+    ) async {
+      await _open(tester, 'media_50');
+
+      expect(find.byType(MetricLessonScreen), findsOneWidget);
+    });
+
+    testWidgets('un bloque se abre en una hoja inferior', (tester) async {
       await _open(tester, 'bloque_tecnico');
 
       expect(find.byType(TopicSheet), findsOneWidget);
+      expect(find.byType(MetricLessonScreen), findsNothing);
     });
+
+    testWidgets(
+      'pulsar una métrica de la hoja de un bloque abre su recorrido',
+      (tester) async {
+        await _open(tester, 'bloque_valoracion');
+
+        await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(MetricLessonScreen), findsOneWidget);
+      },
+    );
   });
 }
