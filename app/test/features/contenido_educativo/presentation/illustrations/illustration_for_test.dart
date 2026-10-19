@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/growth_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_canvas.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_for.dart';
@@ -14,7 +15,11 @@ Future<void> _pump(WidgetTester tester, Widget child, Brightness brightness) =>
       ),
     );
 
-final _allIds = [...valuationIllustrations.keys, ...healthIllustrations.keys];
+final _allIds = [
+  ...valuationIllustrations.keys,
+  ...healthIllustrations.keys,
+  ...growthIllustrations.keys,
+];
 
 void main() {
   group('illustrationFor', () {
@@ -49,6 +54,26 @@ void main() {
         expect(illustrationFor(id), isNotNull, reason: id);
       }
     });
+
+    test(
+      'hay una ilustración por cada métrica de crecimiento y rentabilidad',
+      () {
+        expect(growthIllustrations.keys, [
+          'ingresos_cagr3',
+          'ingresos_yoy',
+          'beneficio_cagr3',
+          'margen_operativo',
+          'margen_tendencia',
+          'margen_bruto',
+          'roic',
+          'roe',
+          'dilucion',
+        ]);
+        for (final id in growthIllustrations.keys) {
+          expect(illustrationFor(id), isNotNull, reason: id);
+        }
+      },
+    );
 
     test('ningún id está en dos bloques', () {
       expect(_allIds.toSet(), hasLength(_allIds.length));

@@ -141,7 +141,7 @@
 - [x] T47. Valoración (6): JSON nuevo e ilustraciones. Pendiente de tu revisión (T31).
 - [x] T48. Salud financiera (6): JSON nuevo, ilustraciones y `paso` en las piezas movibles
       (para que un deslizador de años avance de 1 en 1). Pendiente de tu revisión (T31).
-- [ ] T49. Crecimiento y rentabilidad (9).
+- [x] T49. Crecimiento y rentabilidad (9). Pendiente de tu revisión (T31).
 - [ ] T50. Técnico (5), incluida la leyenda de MACD.
 - [ ] T51. Contexto (4).
 - [ ] T52. Conceptos de la gráfica (3), con leyenda.

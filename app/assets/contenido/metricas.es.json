@@ -1048,9 +1048,13 @@
       "resumen": "Cuánto han crecido las ventas, de media por año, en los últimos tres años.",
       "intuicion": "Si una panadería vendía 100.000 € hace tres años y ahora 133.000 €, ha ido creciendo un 10 % cada año, aunque ningún año haya sido idéntico.",
       "formula": "(ingresos del último año / ingresos de hace 3 años) elevado a 1/3, menos 1. Se calcula con las cuentas de resultados anuales, así que hacen falta 4 años de datos.",
-      "ejemplo": "De 100 M€ a 133 M€ en 3 años: crecimiento anual compuesto ≈ 10 %.",
-      "comoLeerla": "El motor da nota media a un 5 %, buena a un 10 % y muy buena desde un 20-30 %. Por debajo de 0 es mala. Compara con la inflación y con el sector: un 3 % en una empresa madura puede ser razonable.",
-      "cuandoEngana": "Las ventas pueden crecer por comprar otras empresas o por subir precios, no por vender más. Un salto único (como un año extraordinario) distorsiona la media. Y crecer perdiendo dinero no es necesariamente bueno.",
+      "ejemplo": "De 100 M€ a 133,1 M€ en 3 años: crecimiento anual compuesto del 10 %.",
+      "comoLeerla": "Cuanto mayor, más rápido crecen las ventas, y el motor lo puntúa mejor; por debajo de cero, las ventas caen. Compáralo con la inflación y con el sector: un crecimiento pequeño puede ser razonable en una empresa madura. Y mira siempre si ese crecimiento deja beneficios.",
+      "cuandoEngana": [
+        "Las ventas pueden crecer por comprar otras empresas o por subir precios, no por vender más.",
+        "Un salto único, como un año extraordinario, distorsiona la media.",
+        "Y crecer perdiendo dinero no es necesariamente bueno."
+      ],
       "combinaCon": [
         "ingresos_yoy",
         "beneficio_cagr3",
@@ -1065,7 +1069,77 @@
         ],
         "correcta": 0,
         "explicacion": "Se multiplica por 1,1 cada año: 100 → 110 → 121. El crecimiento total fue del 21 %, pero el anual compuesto es del 10 %."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Ingresos hace 3 años",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Ingresos del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 133.1,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Crecimiento anual compuesto",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los ingresos de hace 3 años y los de ahora: ¿a qué ritmo anual han crecido las ventas? Prueba también un descenso."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Grupo Aurora (empresa inventada)",
+          "enunciado": "Sus ventas parecen crecer a un ritmo altísimo. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Ingresos hace 3 años",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de partida. Por sí solo no engaña: hay que ver de dónde viene el aumento posterior."
+            },
+            {
+              "etiqueta": "Ingresos del último año",
+              "valor": "150 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Un buen número solo cuenta si procede de vender más y no de otra cosa."
+            },
+            {
+              "etiqueta": "Compras de empresas en el periodo",
+              "valor": "Ha adquirido dos empresas que aportan 40 M€",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: 40 de los 50 M€ de aumento vienen de comprar empresas, no de vender más. Sin ellas, los ingresos serían unos 110 M€ y el crecimiento rondaría el 3 % anual."
+            },
+            {
+              "etiqueta": "Crecimiento anual compuesto",
+              "valor": "14,5 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 100 con 150. El dato engañoso está en de dónde salen esos 50 M€ de más."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "ingresos_yoy",
@@ -1074,8 +1148,11 @@
       "intuicion": "La tasa a 3 años es la tendencia; la del último año es la foto del momento: te dice si la historia sigue, se acelera o se frena.",
       "formula": "Ingresos del último año divididos entre los del año anterior, menos 1 (cuentas de resultados anuales).",
       "ejemplo": "De 200 M€ a 220 M€: +10 %.",
-      "comoLeerla": "Misma escala que la de 3 años: nota media hacia el 5 %, buena hacia el 10 % y muy buena desde el 20-30 %. Si el último año es mucho mejor o peor que la media de tres, la empresa se está acelerando o frenando.",
-      "cuandoEngana": "Un solo año puede ser anómalo: un lanzamiento extraordinario, un año anterior hundido (efecto rebote) o un cambio de calendario fiscal. Un crecimiento enorme sobre una base pequeña no es repetible.",
+      "comoLeerla": "Usa la misma escala que la de 3 años, así que cuanto mayor, mejor puntúa. Compara las dos: si el último año es mucho mejor que la media de tres, la empresa se está acelerando; si es peor, se frena.",
+      "cuandoEngana": [
+        "Un solo año puede ser anómalo: un lanzamiento extraordinario, un año anterior hundido (efecto rebote) o un cambio de calendario fiscal.",
+        "Un crecimiento enorme sobre una base pequeña no es repetible."
+      ],
       "combinaCon": [
         "ingresos_cagr3",
         "margen_tendencia",
@@ -1090,7 +1167,58 @@
         ],
         "correcta": 2,
         "explicacion": "Tras un año malo, volver a la normalidad parece un gran crecimiento. Comparar el último año con la tendencia de tres evita confundir rebote con aceleración."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Ingresos del año anterior",
+          "origen": "cuenta_resultados",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 400,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Ingresos del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 220,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 1,
+          "unidad": "año"
+        },
+        "resultado": {
+          "nombre": "Crecimiento del último año",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los ingresos de los dos últimos años: ¿cuánto ha crecido o caído la empresa en el último año?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada vendía 100 M€ hace dos años, cayó a 60 M€ el año pasado por un cierre puntual y este año vende 90 M€. ¿Cuánto ha crecido en el último año?",
+          "opciones": [
+            "Un 50 %",
+            "Un 10 %",
+            "Ha caído un 10 %"
+          ],
+          "correcta": 0,
+          "explicacion": "El último año compara 90 con 60, que fue un año hundido. Esa comparación da un crecimiento muy alto, aunque la empresa aún venda menos que hace dos años.",
+          "revelacion": "90 / 60 − 1 = 50 %. Es el efecto rebote: parece un gran año, pero sigue por debajo de los 100 M€ de partida."
+        }
+      ]
     },
     {
       "id": "beneficio_cagr3",
@@ -1098,9 +1226,13 @@
       "resumen": "Cuánto ha crecido de media por año el beneficio neto en tres años.",
       "intuicion": "Vender más está bien, pero lo que le queda al dueño es el beneficio. Es como comprobar si sube tu sueldo neto, no solo lo que factura tu jefe.",
       "formula": "(beneficio neto del último año / beneficio neto de hace 3 años) elevado a 1/3, menos 1, con las cuentas de resultados anuales. Con beneficios negativos al principio o al final del periodo no se calcula.",
-      "ejemplo": "De 40 M€ a 53 M€ en 3 años: ≈ 10 % anual.",
-      "comoLeerla": "El motor da nota media hacia el 5 %, buena hacia el 10 % y muy buena a partir del 20 %; por debajo de 0 es mala. En empresas de crecimiento le da menos peso porque sus beneficios aún son pequeños o inestables.",
-      "cuandoEngana": "Partir de un beneficio muy bajo infla el porcentaje. El beneficio también sube por ventas de activos o por recomprar acciones. Un beneficio que crece mucho más que los ingresos durante años merece una pregunta: ¿de dónde viene?",
+      "ejemplo": "De 100 M€ a 133,1 M€ en 3 años: crecimiento anual compuesto del 10 %.",
+      "comoLeerla": "Cuanto mayor, más crece lo que le queda al accionista, y el motor lo puntúa mejor; por debajo de cero, el beneficio cae. En empresas de crecimiento le da menos peso porque sus beneficios aún son pequeños o inestables.",
+      "cuandoEngana": [
+        "Partir de un beneficio muy bajo infla el porcentaje.",
+        "El beneficio también sube por ventas de activos o por recomprar acciones.",
+        "Un beneficio que crece mucho más que los ingresos durante años merece una pregunta: ¿de dónde viene?"
+      ],
       "combinaCon": [
         "ingresos_cagr3",
         "per",
@@ -1115,7 +1247,77 @@
         ],
         "correcta": 2,
         "explicacion": "Los porcentajes sobre bases pequeñas se disparan con cambios modestos en euros. Conviene mirar también el beneficio en cifras absolutas."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Beneficio neto hace 3 años",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Beneficio neto del último año",
+          "origen": "cuenta_resultados",
+          "ejemplo": 133.1,
+          "min": 20,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Crecimiento anual compuesto",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio de hace 3 años y el actual: ¿qué pasa con el porcentaje si partes de un beneficio muy pequeño?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Industrias Mar (empresa inventada)",
+          "enunciado": "Su beneficio crece un 100 % al año. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Beneficio hace 3 años",
+              "valor": "2 M€ (año de crisis)",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: partir de un beneficio hundido infla el porcentaje. Antes de esa crisis la empresa ganaba unos 15 M€, así que en realidad apenas ha crecido."
+            },
+            {
+              "etiqueta": "Beneficio del último año",
+              "valor": "16 M€",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Es un beneficio normal para esta empresa, no un dato extraordinario."
+            },
+            {
+              "etiqueta": "Beneficio anual antes de la crisis",
+              "valor": "15 M€",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a descubrir la trampa: muestra lo que ganaba la empresa en un año normal."
+            },
+            {
+              "etiqueta": "Crecimiento anual compuesto",
+              "valor": "100 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 2 con 16. El dato engañoso es el punto de partida tan bajo."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "margen_operativo",
@@ -1124,8 +1326,11 @@
       "intuicion": "Si cada pizza se vende a 10 € y, tras ingredientes, sueldos y alquiler, te quedan 2 €, tu margen es del 20 %.",
       "formula": "Resultado operativo (beneficio antes de intereses e impuestos) de los últimos 12 meses dividido entre los ingresos del mismo periodo, de la cuenta de resultados. Si el proveedor de datos no da el resultado operativo, el motor usa su margen ya calculado.",
       "ejemplo": "Ingresos de 500 M€ y resultado operativo de 75 M€: margen del 15 %.",
-      "comoLeerla": "El motor da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 20 % y máxima hacia el 30 %. Pero los márgenes normales varían muchísimo por sector: un supermercado vive con un dígito, un software puede superar el 30 %. Compara con empresas del mismo sector. No se usa en bancos.",
-      "cuandoEngana": "Un margen alto puede ser temporal (un buen ciclo, una ventaja pasajera) o venir de recortar gastos que luego se pagan, como marketing o inversión. Una empresa con margen bajo pero estable y mucho volumen puede ser un buen negocio.",
+      "comoLeerla": "Cuanto mayor, más se queda la empresa de cada euro vendido, y el motor lo puntúa mejor. Pero los márgenes normales varían muchísimo por sector: un supermercado vive con un dígito, un software puede superar el 30 %. Compara con empresas del mismo sector. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un margen alto puede ser temporal (un buen ciclo, una ventaja pasajera) o venir de recortar gastos que luego se pagan, como marketing o inversión.",
+        "Una empresa con margen bajo pero estable y mucho volumen puede ser un buen negocio."
+      ],
       "combinaCon": [
         "margen_bruto",
         "margen_tendencia",
@@ -1140,7 +1345,74 @@
         ],
         "correcta": 1,
         "explicacion": "Los márgenes dependen del modelo de negocio. El supermercado gana poco por venta, pero vende muchísimo. Hay que comparar dentro del mismo sector."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "ebit",
+          "nombre": "Resultado operativo (antes de intereses e impuestos)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 75,
+          "min": -20,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ingresos",
+          "nombre": "Ingresos (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1000,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Margen operativo",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el resultado operativo y los ingresos: ¿cuántos céntimos se queda la empresa de cada euro vendido? Prueba un resultado negativo."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Distribución y software",
+          "empresas": [
+            "Mercado Sol",
+            "SoftNorte"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Ingresos",
+              "a": "5.000 M€",
+              "b": "500 M€"
+            },
+            {
+              "etiqueta": "Resultado operativo",
+              "a": "150 M€",
+              "b": "160 M€"
+            },
+            {
+              "etiqueta": "Qué vende",
+              "a": "alimentación",
+              "b": "licencias de software"
+            },
+            {
+              "etiqueta": "Clientes",
+              "a": "millones de compras pequeñas",
+              "b": "pocas empresas grandes"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál se queda con más céntimos de cada euro que vende?",
+            "correcta": 1,
+            "explicacion": "Mercado Sol: 150 / 5.000 = 3 %. SoftNorte: 160 / 500 = 32 %. Ganan casi lo mismo en euros, pero uno vende diez veces más para conseguirlo. Y no se pueden comparar sin más: cada sector tiene sus márgenes normales."
+          }
+        }
+      ]
     },
     {
       "id": "margen_tendencia",
@@ -1149,8 +1421,12 @@
       "intuicion": "No solo importa cuánto te quedas de cada venta hoy, sino si cada año te queda más o menos. Un margen que cae suele indicar presión de competidores o de costes.",
       "formula": "Margen operativo del último año menos el de hace 3 años (en puntos porcentuales), con las cuentas de resultados anuales. Hacen falta 4 años y el resultado operativo; si el proveedor de datos no los da, saldrá «sin dato».",
       "ejemplo": "Pasar de un margen del 12 % al 15 % son +3 puntos.",
-      "comoLeerla": "El motor da nota media si el margen no cambia, buena con mejoras de 3 puntos y muy buena desde 6; si cae 5 puntos o más, nota baja. Un margen en mejora sostenida suele reflejar capacidad de fijar precios o de ser eficiente.",
-      "cuandoEngana": "Un margen que sube porque se recorta inversión o mantenimiento mejora a costa del futuro. Una caída puede ser deliberada, por ejemplo para expandirse. Y los ciclos del sector pueden mover el margen sin que la empresa haya cambiado.",
+      "comoLeerla": "Un margen que mejora de forma sostenida suele reflejar capacidad de fijar precios o de ser eficiente, y el motor lo puntúa mejor; si cae, la puntuación baja. Se mide como el cambio en puntos porcentuales a tres años.",
+      "cuandoEngana": [
+        "Un margen que sube porque se recorta inversión o mantenimiento mejora a costa del futuro.",
+        "Una caída puede ser deliberada, por ejemplo para expandirse.",
+        "Y los ciclos del sector pueden mover el margen sin que la empresa haya cambiado."
+      ],
       "combinaCon": [
         "margen_operativo",
         "margen_bruto",
@@ -1165,7 +1441,74 @@
         ],
         "correcta": 1,
         "explicacion": "La tendencia no es una sentencia, sino una pista. Saber la causa distingue un problema de competencia de una inversión para crecer."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Margen de hace 3 años",
+            "descripcion": "Resultado operativo entre ingresos de aquel año: por ejemplo, un 12 %."
+          },
+          {
+            "nombre": "Margen del último año",
+            "descripcion": "Lo mismo con el año más reciente: por ejemplo, un 15 %."
+          },
+          {
+            "nombre": "La diferencia",
+            "descripcion": "Margen actual menos margen antiguo, en puntos porcentuales: 15 − 12 = +3 puntos."
+          }
+        ],
+        "resultado": {
+          "nombre": "Cambio del margen operativo",
+          "unidad": "puntos",
+          "ejemplo": 3
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "trampa",
+          "empresa": "Servicios Este (empresa inventada)",
+          "enunciado": "Su margen ha mejorado 6 puntos en 3 años. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Margen hace 3 años",
+              "valor": "9 %",
+              "esTrampa": false,
+              "explicacion": "Es el punto de partida. Un margen bajo deja mucho espacio para mejorar, pero no explica de dónde sale la mejora."
+            },
+            {
+              "etiqueta": "Margen del último año",
+              "valor": "15 %",
+              "esTrampa": false,
+              "explicacion": "Es el punto de llegada. Una mejora de 6 puntos parece excelente, pero hay que saber cómo se ha conseguido."
+            },
+            {
+              "etiqueta": "Gasto en marketing y mantenimiento",
+              "valor": "Recortado a la mitad",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: el margen sube por recortar gastos que luego hay que volver a pagar. Es una mejora a costa del futuro, no una ventaja del negocio."
+            },
+            {
+              "etiqueta": "Ingresos",
+              "valor": "Estables",
+              "esTrampa": false,
+              "explicacion": "Que las ventas no crezcan encaja con una mejora conseguida recortando costes, no vendiendo más ni fijando mejores precios."
+            }
+          ]
+        },
+        {
+          "tipo": "predecir",
+          "texto": "El margen de una empresa inventada baja del 20 % al 16 % mientras abre 30 tiendas nuevas. Antes de mirar más datos: ¿qué conclusión es la más prudente?",
+          "opciones": [
+            "Es mala señal, siempre",
+            "Puede ser el coste de expandirse: hay que mirar por qué",
+            "No importa nunca"
+          ],
+          "correcta": 1,
+          "explicacion": "Una caída del margen no es mala por sí sola. Abrir tiendas cuesta antes de dar ventas, pero también puede ser que la empresa esté perdiendo poder de precio. Hay que averiguar la causa.",
+          "revelacion": "Si las ventas crecen y el margen se recupera en un par de años, fue inversión. Si el margen sigue cayendo sin que crezcan las ventas, es un aviso."
+        }
+      ]
     },
     {
       "id": "margen_bruto",
@@ -1174,8 +1517,11 @@
       "intuicion": "El margen bruto es lo que sobra de un producto antes de pagar la oficina, el marketing o los sueldos centrales: indica cuánto «poder» tiene el producto en sí.",
       "formula": "Beneficio bruto (ingresos menos coste de ventas) dividido entre los ingresos de los últimos 12 meses, de la cuenta de resultados. Si el proveedor de datos no da el beneficio bruto, el motor usa su margen ya calculado.",
       "ejemplo": "Una empresa vende 100 M€ y el coste directo es de 30 M€: beneficio bruto de 70 M€, margen bruto del 70 %.",
-      "comoLeerla": "El motor solo lo usa en empresas de crecimiento. Da nota media hacia el 40 %, buena hacia el 60 % y máxima hacia el 75 %. Los márgenes brutos altos son típicos del software y de los productos con marca; los bajos, de la distribución o la industria pesada.",
-      "cuandoEngana": "Empresas distintas contabilizan los costes en lugares distintos (qué es «coste de ventas» y qué es gasto general), así que comparar márgenes brutos entre empresas muy diferentes confunde. Un margen bruto altísimo con gastos de venta enormes puede acabar en un margen operativo flojo.",
+      "comoLeerla": "Cuanto mayor, más poder tiene el producto en sí, y el motor lo puntúa mejor. El motor solo lo usa en empresas de crecimiento. Los márgenes brutos altos son típicos del software y de los productos con marca; los bajos, de la distribución o la industria pesada.",
+      "cuandoEngana": [
+        "Empresas distintas contabilizan los costes en lugares distintos (qué es «coste de ventas» y qué es gasto general), así que comparar márgenes brutos entre empresas muy diferentes confunde.",
+        "Un margen bruto altísimo con gastos de venta enormes puede acabar en un margen operativo flojo."
+      ],
       "combinaCon": [
         "margen_operativo",
         "p_ventas",
@@ -1190,7 +1536,74 @@
         ],
         "correcta": 2,
         "explicacion": "El margen bruto solo descuenta el coste directo. Entre uno y otro están los gastos de estructura. Un margen bruto alto con un operativo bajo significa que la empresa gasta mucho en vender y operar."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "bruto",
+          "nombre": "Beneficio bruto (ingresos − coste de ventas)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 70,
+          "min": 5,
+          "max": 90,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ingresos",
+          "nombre": "Ingresos (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 80,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Margen bruto",
+          "unidad": "%",
+          "ejemplo": 0.7
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio bruto y los ingresos: ¿qué parte de cada venta sobra después de pagar solo el coste directo?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Software",
+          "empresas": [
+            "AppNube",
+            "DatosPro"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Margen bruto",
+              "a": "80 %",
+              "b": "65 %"
+            },
+            {
+              "etiqueta": "Gastos de venta y marketing",
+              "a": "70 % de las ventas",
+              "b": "30 % de las ventas"
+            },
+            {
+              "etiqueta": "Otros gastos",
+              "a": "5 % de las ventas",
+              "b": "10 % de las ventas"
+            },
+            {
+              "etiqueta": "Ingresos",
+              "a": "200 M€",
+              "b": "200 M€"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál se queda con más de cada euro vendido después de todos los gastos?",
+            "correcta": 1,
+            "explicacion": "AppNube: 80 − 70 − 5 = 5 %. DatosPro: 65 − 30 − 10 = 25 %. AppNube tiene el mejor margen bruto, pero gasta casi todo en vender. El margen bruto es solo el primer escalón."
+          }
+        }
+      ]
     },
     {
       "id": "roic",
@@ -1199,8 +1612,11 @@
       "intuicion": "Si inviertes 100 € en un negocio y te da 15 € al año tras impuestos, tu rentabilidad es del 15 %. El ROIC es lo mismo para toda la empresa: ¿cuánto rinde cada euro puesto en el negocio?",
       "formula": "Resultado operativo (EBIT) por (1 − tipo impositivo) dividido entre (deuda + patrimonio − caja), con datos de la cuenta de resultados y del balance. Si el tipo efectivo no es razonable, se usa un 21 %. Si el proveedor de datos no da esas cuentas, el motor usa el ROIC que calcula el propio proveedor.",
       "ejemplo": "EBIT de 100 M€, impuestos del 25 % y capital invertido de 500 M€: ROIC = 100 · 0,75 / 500 = 15 %.",
-      "comoLeerla": "El motor da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 15 % y máxima hacia el 25 %. Para que un negocio cree valor, su ROIC debería superar con holgura lo que cuesta financiarse. Un ROIC alto mantenido durante años suele ir con una ventaja competitiva. No se usa en bancos.",
-      "cuandoEngana": "Un ROIC muy alto puede deberse a un capital contable pequeño porque la empresa lleva años amortizando, o porque su valor está en una marca o en conocimiento que no aparece en el balance. Un año extraordinario lo dispara.",
+      "comoLeerla": "Cuanto mayor, más rinde cada euro puesto en el negocio, y el motor lo puntúa mejor. Para crear valor, debería superar con holgura lo que cuesta financiarse. Un ROIC alto mantenido durante años suele ir con una ventaja competitiva. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un ROIC muy alto puede deberse a un capital contable pequeño, porque la empresa lleva años amortizando o porque su valor está en una marca o en conocimiento que no aparece en el balance.",
+        "Un año extraordinario lo dispara."
+      ],
       "combinaCon": [
         "roe",
         "margen_operativo",
@@ -1215,7 +1631,66 @@
         ],
         "correcta": 1,
         "explicacion": "Para crear valor, el rendimiento del capital debe superar su coste. Con un 8 % frente a un 10 %, cada euro invertido rinde menos de lo que cuesta."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "nopat",
+          "nombre": "Resultado operativo tras impuestos",
+          "origen": "cuenta_resultados",
+          "ejemplo": 75,
+          "min": 5,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "capital",
+          "nombre": "Capital invertido (deuda + patrimonio − caja)",
+          "origen": "balance",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "ROIC",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el resultado operativo tras impuestos y el capital invertido: ¿cuánto rinde cada euro puesto en el negocio?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas empresas inventadas de menor a mayor ROIC.",
+          "elementos": [
+            {
+              "nombre": "Alfa: gana 75 M€ tras impuestos con 500 M€ invertidos",
+              "valor": 0.15,
+              "mostrar": "15 %"
+            },
+            {
+              "nombre": "Beta: gana 30 M€ tras impuestos con 600 M€ invertidos",
+              "valor": 0.05,
+              "mostrar": "5 %"
+            },
+            {
+              "nombre": "Gamma: gana 120 M€ tras impuestos con 400 M€ invertidos",
+              "valor": 0.3,
+              "mostrar": "30 %"
+            },
+            {
+              "nombre": "Delta: gana 40 M€ tras impuestos con 400 M€ invertidos",
+              "valor": 0.1,
+              "mostrar": "10 %"
+            }
+          ],
+          "explicacion": "ROIC = resultado operativo tras impuestos / capital invertido. Se ordena por ese cociente, no por cuánto gana la empresa: Beta gana 30 M€ pero necesita 600 M€ para conseguirlo."
+        }
+      ]
     },
     {
       "id": "roe",
@@ -1224,8 +1699,11 @@
       "intuicion": "Si tienes 100 € en una cuenta y ganas 12 € al año, tu rentabilidad es del 12 %. El ROE es eso, medido sobre el dinero de los dueños.",
       "formula": "Beneficio neto de los últimos 12 meses (cuenta de resultados) dividido entre el patrimonio neto (balance). Con patrimonio negativo no se calcula. Si faltan esas cuentas, el motor usa el ROE del proveedor.",
       "ejemplo": "Beneficio de 60 M€ y patrimonio de 400 M€: ROE del 15 %.",
-      "comoLeerla": "El motor solo lo usa en empresas financieras. Da nota baja por debajo del 5 %, media hacia el 10 %, buena hacia el 15 % y máxima hacia el 20 %.",
-      "cuandoEngana": "La deuda lo infla: con mucha deuda y poco patrimonio, un mismo beneficio da un ROE altísimo, pero con más riesgo. Las recompras de acciones, que reducen el patrimonio, también lo suben. Un ROE alto con deuda alta no es lo mismo que uno alto con deuda baja.",
+      "comoLeerla": "Cuanto mayor, más beneficio genera cada euro de los accionistas, y el motor lo puntúa mejor. El motor solo lo usa en empresas financieras. Mira siempre cuánta deuda hay detrás: un ROE alto con poca deuda es mejor señal que uno alto con mucha.",
+      "cuandoEngana": [
+        "La deuda lo infla: con mucha deuda y poco patrimonio, un mismo beneficio da un ROE altísimo, pero con más riesgo.",
+        "Las recompras de acciones, que reducen el patrimonio, también lo suben."
+      ],
       "combinaCon": [
         "roic",
         "deuda_patrimonio",
@@ -1240,7 +1718,70 @@
         ],
         "correcta": 2,
         "explicacion": "El ROE divide por el patrimonio. Con poco patrimonio, y la deuda aportando el resto del dinero, el cociente sube aunque el negocio sea idéntico. En una empresa no financiera, el ROIC, que incluye la deuda, ofrece una imagen más fiel; en bancos y aseguradoras, donde el motor usa el ROE, hay que mirarlo junto a la deuda y el Precio/Valor contable."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "beneficio",
+          "nombre": "Beneficio neto (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 60,
+          "min": 5,
+          "max": 150,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "patrimonio",
+          "nombre": "Patrimonio neto",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": 100,
+          "max": 1200,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "ROE",
+          "unidad": "%",
+          "ejemplo": 0.15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio y el patrimonio: ¿cuánto gana la empresa por cada euro de sus accionistas? ¿Qué pasa si el patrimonio es muy pequeño?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Financiera Sur (empresa inventada)",
+          "enunciado": "Su ROE es del 40 %, altísimo. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Beneficio neto",
+              "valor": "40 M€",
+              "esTrampa": false,
+              "explicacion": "Es un beneficio razonable. No explica por sí solo un ROE tan alto: depende de con cuánto patrimonio se compare."
+            },
+            {
+              "etiqueta": "Patrimonio neto",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Es pequeño, y por eso el ROE sale alto. Pero la pregunta es por qué es tan pequeño: mira cuánta deuda hay detrás."
+            },
+            {
+              "etiqueta": "Deuda total",
+              "valor": "900 M€, nueve veces el patrimonio",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con tanta deuda y tan poco patrimonio, un beneficio normal da un ROE altísimo. No es solo buen negocio: es también mucho riesgo."
+            },
+            {
+              "etiqueta": "ROE resultante",
+              "valor": "40 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de dividir 40 entre 100. El dato engañoso es la deuda que hay detrás de ese patrimonio tan pequeño."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "dilucion",
@@ -1248,9 +1789,12 @@
       "resumen": "Si la empresa crea acciones nuevas (te diluye) o recompra las suyas (te concentra).",
       "intuicion": "Si eres dueño del 10 % de una pizza y el restaurante reparte trozos de propiedad a otros, tu parte baja aunque la pizza sea la misma. Si recompra acciones, tu parte sube.",
       "formula": "Crecimiento anual compuesto del número de acciones en circulación durante 3 años (balance). Hacen falta 4 años de datos; si el proveedor de datos no da esa serie, saldrá «sin dato».",
-      "ejemplo": "De 100 a 106 millones de acciones en tres años: +2 % anual de dilución.",
-      "comoLeerla": "El motor da buena nota si el número de acciones baja (recompras), nota media entre el 0 % y el 3 % y mala hacia el 6 %. Más de un 5 % anual dispara además un aviso. Tiene poco peso en la nota global.",
-      "cuandoEngana": "Algunas empresas pagan a sus directivos con acciones y luego recompran acciones solo para compensar: el número queda igual, pero se ha gastado caja. Y una recompra a precios muy altos no beneficia al accionista.",
+      "ejemplo": "De 100 a 106,1 millones de acciones en tres años: +2 % anual de dilución.",
+      "comoLeerla": "Si el número de acciones baja (recompras), el motor lo puntúa bien; si sube mucho (acciones nuevas), tu parte se diluye y puntúa peor. Un aumento fuerte genera además un aviso. Tiene poco peso en la nota global.",
+      "cuandoEngana": [
+        "Algunas empresas pagan a sus directivos con acciones y luego recompran solo para compensar: el número queda igual, pero se ha gastado caja.",
+        "Y una recompra a precios muy altos no beneficia al accionista."
+      ],
       "combinaCon": [
         "beneficio_cagr3",
         "roe",
@@ -1265,7 +1809,58 @@
         ],
         "correcta": 2,
         "explicacion": "Cada acción nueva reparte el mismo negocio entre más dueños. Tu participación baja, salvo que el negocio crezca lo bastante como para compensarlo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "crecimiento",
+        "inicial": {
+          "clave": "inicial",
+          "nombre": "Acciones hace 3 años",
+          "origen": "balance",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 200,
+          "unidad": "millones"
+        },
+        "final": {
+          "clave": "final",
+          "nombre": "Acciones hoy",
+          "origen": "balance",
+          "ejemplo": 106.1208,
+          "min": 50,
+          "max": 200,
+          "unidad": "millones"
+        },
+        "anios": {
+          "clave": "anios",
+          "nombre": "Años transcurridos",
+          "origen": "balance",
+          "ejemplo": 3,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Variación anual de acciones",
+          "unidad": "%",
+          "ejemplo": 0.02
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el número de acciones de hace 3 años y el actual: ¿cuándo se diluye el accionista y cuándo se concentra? Prueba con menos acciones que antes."
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada paga a sus directivos con 5 millones de acciones nuevas al año y recompra otras 5 millones para compensar. ¿Cómo evoluciona su número de acciones?",
+          "opciones": [
+            "Baja",
+            "Se queda igual",
+            "Sube"
+          ],
+          "correcta": 1,
+          "explicacion": "Crea 5 millones y retira otros 5: el número total no cambia, así que la variación sale en torno a cero y la métrica no ve ningún problema.",
+          "revelacion": "Pero la recompra costó caja real que podría haber ido a dividendos o a invertir. Por eso conviene mirarla junto al flujo de caja."
+        }
+      ]
     },
     {
       "id": "precio_sma200",
