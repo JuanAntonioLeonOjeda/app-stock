@@ -58,7 +58,7 @@ class MetricContentView extends StatelessWidget {
         TopicSection(
           title: 'Cuándo engaña',
           icon: Icons.warning_amber_outlined,
-          text: metric.whenItMisleads,
+          text: metric.whenItMisleads.join('\n\n'),
         ),
         if (related.isNotEmpty)
           TopicSection(

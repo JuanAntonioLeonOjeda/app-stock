@@ -249,3 +249,153 @@ reintento, pregunta, chips); `metric_row_test`, `block_tile_test` y `analysis_sc
 2. **Los ids son un contrato de strings**, como los de bloque: `analisis_accion` los define
    (`labels.dart`) y el test de `app/test/` comprueba que existen en el contenido.
 
+
+---
+
+## Revisión 2: fichas visuales y actividades (spec, criterios 72-90)
+
+### Dependencias nuevas
+
+Ninguna. Las ilustraciones y la barra de tramos se dibujan con `CustomPainter`; el
+recorrido usa `PageView` y la actividad de ordenar, `ReorderableListView`, todo de
+Flutter.
+
+### La barra de tramos sale del motor (criterios 77-78)
+
+`contenido_educativo` no puede importar el motor, así que pide la escala a un port:
+
+```dart
+/// Escala con la que el motor puntúa una métrica, para dibujarla en su ficha.
+abstract interface class MetricScalePort {
+  /// `null` si la métrica no tiene escala por tramos (MACD) o no existe.
+  ReadingScale? scaleFor(String metricId);
+}
+```
+
+- `ReadingScale` (entidad de `contenido_educativo`): puntos `(valor, nota)` en el
+  mismo orden que el motor, más la unidad (`ScaleUnit`: múltiplo, fracción o decimal).
+- **El adapter vive fuera de las dos features**, en
+  `app/lib/composition/motor_metric_scale_adapter.dart`: es el único sitio, aparte de
+  `app.dart`, que importa de ambas (lee `metricRules` y traduce `ScaleScoring` y
+  `MetricFormat`). Se saca de `app.dart` para poder testearlo
+  (`app/test/composition/`), igual que el test de cobertura ya vive en `app/test/`.
+- `domain/content/scale_bands.dart` (puro) convierte los puntos en tramos de color: nota
+  ≥ 7 alta, de 4 a 7 media y < 4 baja. Las fronteras se interpolan donde la escala
+  lineal cruza 7 y 4. Así la barra no copia ningún umbral (criterio 78).
+
+### Formato del contenido
+
+Se mantiene `metricas.es.json` / `conceptos.es.json`, una entrada por `id`. Cambios
+por ficha (la skill `contenido-educativo` se actualiza con este formato). La ilustración
+no va en el JSON: se busca por `id` en presentación.
+
+| Campo | Cambio |
+|---|---|
+| `formulaVisual` | **Nuevo.** `tipo`: `cociente` (numerador ÷ denominador), `crecimiento` (valor inicial → final en N años) o `pasos` (2-4 pasos con flecha, para RSI, MACD o medias). Cada pieza: `nombre`, `origen` (`mercado`, `cuenta_resultados`, `balance`, `flujo_caja`, `historico_precios`), `ejemplo` y, si es movible, `min`/`max`. `resultado`: `nombre`, `unidad` y `ejemplo` |
+| `ejemplo` | Pasa a ser una frase de contexto («Una tienda de muebles inventada…»); las cifras salen de `formulaVisual`, así el ejemplo y el simulador no pueden contradecirse (criterio 87) |
+| `comoLeerla` | ≤ 60 palabras (criterio 74) |
+| `cuandoEngana` | Pasa de texto a lista de 1-3 trampas, ≤ 60 palabras cada una: una tarjeta por trampa |
+| `leyenda` | **Nuevo, obligatorio solo sin escala de motor** (MACD y conceptos): 2-4 filas `{condicion, significado, tono}` con `tono` ∈ `positivo`/`neutro`/`negativo` (criterio 79) |
+| `actividades` | **Nuevo.** Lista de ≥ 1 (criterio 80), ver tipos abajo |
+| `pregunta` | Sin cambios: va en el último paso |
+
+Tipos de actividad (`tipo`):
+
+- `simulador`: `enunciado`. Usa las piezas movibles de `formulaVisual`; solo es válido
+  con `cociente` o `crecimiento`.
+- `trampa`: `empresa`, `datos: [{etiqueta, valor, esTrampa, explicacion}]` (4-6, una
+  sola trampa).
+- `comparar`: `sector`, `empresas: [nombreA, nombreB]`, `filas: [{etiqueta, a, b}]`
+  (4-5), `pregunta: {texto, correcta: 0|1, explicacion}`.
+- `predecir`: `texto`, `opciones`, `correcta`, `explicacion` y `revelacion` (el dato
+  que confirma la respuesta, mostrado después).
+- `ordenar`: `enunciado`, `elementos: [{nombre, valor}]` (3-5) y `explicacion`; el orden
+  correcto es de menor a mayor `valor`, y la app los baraja con una semilla fija por
+  `id` para que no salgan ya ordenados ni cambie entre aperturas.
+
+### Elementos por capa
+
+#### domain/entities
+
+| Archivo | Cambio |
+|---|---|
+| `metric_content.dart` | `MetricContent` añade `formulaDiagram`, `legend` (nullable), `activities`; `whenItMisleads` pasa a `List<String>` |
+| `formula_diagram.dart` | `sealed class FormulaDiagram` → `RatioFormula`, `GrowthFormula`, `StepsFormula`; `FormulaPiece` y `DataSource` |
+| `learning_activity.dart` | `sealed class LearningActivity` → `SimulatorActivity`, `SpotTrapActivity`, `CompareActivity`, `PredictActivity`, `OrderActivity` |
+| `reading_scale.dart` | `ReadingScale`, `ScalePoint`, `ScaleUnit`, y `ScaleBand` (desde/hasta, tono) |
+| `reading_legend.dart` | `LegendRow` y `Tone` |
+
+#### domain/content (funciones puras)
+
+| Archivo | Contenido |
+|---|---|
+| `formula_evaluation.dart` | `evaluateFormula(FormulaDiagram, Map<String, double>)`: valor o `null` (denominador 0, `pasos`) |
+| `scale_bands.dart` | `bandsFor(ReadingScale)` y `bandOf(ReadingScale, double)` |
+| `activity_grading.dart` | Corrección de `trampa`, `comparar`, `predecir` y `ordenar`, y `shuffledOrder(id, n)` determinista |
+
+#### domain/ports
+
+`metric_scale_port.dart`: `MetricScalePort` (arriba).
+
+#### application/use_cases
+
+`get_metric_scale_use_case.dart`: `GetMetricScaleUseCase(MetricScalePort)`. Doc comment
+obligatorio.
+
+#### infrastructure/adapters
+
+`educational_content_parser.dart` lee los campos nuevos y rechaza, indicando archivo e
+`id`: `formulaVisual` incoherente (rangos `min < ejemplo < max`, simulador sobre
+`pasos`), actividades mal formadas (índices fuera de rango, ninguna o varias trampas,
+menos elementos de los exigidos) y `leyenda` vacía.
+
+#### presentation
+
+| Archivo | Contenido |
+|---|---|
+| `controllers/lesson_controller.dart` | Un controller para el recorrido (criterios 72-73, 85, 90): carga, paso actual, pila de temas para volver, valores del simulador y respuesta de cada actividad. Se descarta al cerrar (no se guarda nada) |
+| `screens/metric_lesson_screen.dart` | Recorrido a pantalla completa: `PageView`, indicador de pasos que permite saltar, «Anterior»/«Siguiente» |
+| `lesson_steps.dart` | `lessonStepsFor(MetricContent)`: lista de pasos en orden (idea, fórmula, cómo leerla, una por trampa, una por actividad, pregunta) |
+| `widgets/metric_quick_view.dart` | Versión corta de la fila (criterio 89): resumen, barra o leyenda y botón «Aprender paso a paso». `TopicInlineView` la usa para métricas y conceptos; los bloques no cambian |
+| `widgets/scale_bar.dart` | Barra de tramos con fronteras y un marcador opcional (el del simulador) |
+| `widgets/formula_diagram_view.dart` | Fórmula por piezas con su origen y el ejemplo resuelto (criterio 76) |
+| `widgets/reading_legend_view.dart` | Leyenda por tono (criterio 79) |
+| `widgets/activities/*.dart` | Un widget por tipo de actividad; solo pintan y reenvían al controller |
+| `illustrations/illustration_for.dart` | `Widget? illustrationFor(String id)` |
+| `illustrations/<bloque>_illustrations.dart` | Los `CustomPainter` de cada bloque (valoración, salud, crecimiento, técnico, contexto y gráfica), con colores del `ColorScheme` |
+
+`MetricContentView` y la hoja de métricas desaparecen: los sustituyen el recorrido y la
+versión corta. `openEducationalTopic` abre las métricas y los conceptos en
+`MetricLessonScreen`; los bloques siguen en hoja y la guía, en su pantalla. El glosario
+ya llama a `openTopic`, así que no cambia.
+
+### Cableado (`app/lib/app.dart`)
+
+Construye `MotorMetricScaleAdapter` → `GetMetricScaleUseCase` y lo pasa a
+`openEducationalTopic` y a `TopicInlineView`. `analisis_accion` no cambia: sigue
+recibiendo `showInfo` y `buildInfo`.
+
+### Tests
+
+- `domain/content`: evaluación de fórmulas (cociente, crecimiento, denominador 0),
+  tramos (escala creciente y decreciente, fronteras interpoladas) y corrección de cada
+  actividad, más el barajado determinista.
+- Parser: cada campo nuevo, y un error con archivo e `id` por cada regla de validación.
+- `app/test/composition/motor_metric_scale_adapter_test.dart`: la escala del PER coincide
+  con `metricRules`; MACD devuelve `null`.
+- `LessonController`: avanzar, saltar, volver a un tema anterior, responder y repetir.
+- Widgets: recorrido (pasos e indicador), versión corta con su botón y una prueba por
+  tipo de actividad.
+- `app/test/contenido_coverage_test.dart` amplía: ≤ 60 palabras por tarjeta (criterio
+  74), ilustración para cada `id` (75), leyenda si y solo si el motor no da escala (79),
+  los cuatro tipos de actividad presentes (80), simulador = `resultado.ejemplo` (87) y
+  las reglas de textos sobre las actividades (88).
+
+### Riesgos
+
+- **El contenido es la mayor parte del trabajo**: reescribir 33 fichas con fórmula,
+  trampas y actividades, y dibujar 33 ilustraciones. Se hace por bloques (tasks
+  T47-T52) y el usuario revisa cada bloque antes de seguir con el siguiente.
+- La fórmula de algunas métricas no cabe en `cociente`/`crecimiento` (RSI, MACD,
+  pendiente de la SMA200, sorpresas de BPA): van con `pasos` y sin simulador; su
+  actividad será otra.

@@ -175,3 +175,134 @@ motor.
 - No aparecen en el glosario "Aprender" de esta revisión (el glosario es por bloques del motor).
   La fase 3 del panel decidirá si se agrupan en un apartado de gráficas.
 
+
+---
+
+## Revisión 2: fichas visuales y actividades (2026-10-19)
+
+> Estado: cerrada (2026-10-19).
+
+### Qué cambia y por qué
+
+Cada ficha es hoy un bloque de seis textos seguidos y una pregunta tipo test. Cuesta
+digerirlo: hay que leerlo todo para llegar a lo útil y lo único que se practica es
+elegir una opción. Esta revisión rehace las fichas para que se aprendan **viéndolas y
+haciendo algo**: la ficha se recorre en pasos cortos, la fórmula y la escala se dibujan,
+la analogía lleva una ilustración y cada ficha tiene actividades además del test.
+
+Afecta a las 30 fichas de métrica y a los 3 conceptos de la gráfica (`media_50`,
+`media_200` y `grafico_precio`). Los ejemplos siguen siendo **inventados** y rotulados
+(criterio 4 vigente): se decidió no usar cifras reales.
+
+### Fuera de alcance (añade a los de arriba)
+
+- Lecciones y ruta de aprendizaje: siguen en su propia spec futura, que reutilizará estos
+  formatos.
+- Ejemplos con cifras reales, ya sean históricos o de la empresa analizada.
+- Rehacer las fichas de bloque, la guía del diagnóstico y el glosario (solo cambia lo
+  que abren).
+- Guardar progreso, rachas o puntuaciones: sigue sin guardarse nada.
+- Animaciones complejas o vídeo.
+
+### Criterios de aceptación
+
+#### Recorrido por pasos
+
+72. **Dado** una ficha, **cuando** la abro, **entonces** la veo como una secuencia de
+    tarjetas cortas (la idea → cómo se calcula → cómo leerla → cuándo engaña →
+    actividades → comprueba lo que has aprendido), cada una con una sola idea y un
+    indicador de en qué paso estoy.
+73. **Dado** el recorrido, **cuando** deslizo o pulso "Siguiente"/"Anterior", **entonces**
+    paso de tarjeta, y puedo saltar a cualquier paso desde el indicador sin tener que
+    hacer los anteriores.
+74. **Dado** una tarjeta, **cuando** la leo, **entonces** su texto principal ocupa como
+    máximo unas 60 palabras (lo comprueba un test sobre el contenido real); lo que no
+    quepa se reparte en otra tarjeta o se convierte en visual.
+
+#### Visual
+
+75. **Dado** la tarjeta de la idea, **cuando** la veo, **entonces** la analogía va con una
+    ilustración sencilla propia de esa métrica, legible en tema claro y oscuro.
+76. **Dado** la tarjeta "Cómo se calcula", **cuando** la veo, **entonces** la fórmula se
+    dibuja por piezas (p. ej. precio ÷ beneficio por acción), cada pieza dice de dónde
+    sale (mercado, cuenta de resultados, balance, flujo de caja o histórico de precios)
+    y debajo va el ejemplo inventado resuelto con esas mismas piezas.
+77. **Dado** una métrica que el motor puntúa con una escala por tramos, **cuando** veo
+    "Cómo leerla", **entonces** hay una barra con los tramos coloreados (nota alta,
+    media y baja) y sus valores frontera, y el texto los presenta como orientación que
+    depende del sector (criterio 19).
+78. **Dado** que cambia la escala de una métrica en el motor, **cuando** abro su ficha,
+    **entonces** la barra muestra la escala nueva sin tocar el contenido: la barra sale
+    del motor, no de una copia en el contenido.
+79. **Dado** una métrica sin escala por tramos (MACD) o un concepto de la gráfica,
+    **cuando** veo "Cómo leerla", **entonces** hay un visual equivalente (p. ej. qué
+    significa cada signo o cruce) en vez de la barra.
+
+#### Actividades
+
+80. **Dado** una ficha, **cuando** llego a "Actividades", **entonces** hay al menos una
+    actividad interactiva distinta de la pregunta tipo test; entre todas las fichas
+    aparecen los cuatro tipos de los criterios 81-84.
+81. **Simulador.** **Dado** una métrica que se calcula con datos que se pueden mover
+    (p. ej. PER, deuda/EBITDA, margen), **cuando** muevo los deslizadores de sus piezas,
+    **entonces** veo al momento el valor resultante y su posición en la barra de tramos.
+    El simulador no da nota ni veredicto: dice en qué tramo cae.
+82. **Detectar la trampa.** **Dado** una empresa inventada con 4-6 datos, uno de ellos
+    engañoso, **cuando** pulso el que creo que engaña, **entonces** se me explica por qué
+    es (o no es) la trampa, y puedo seguir probando.
+83. **Comparar dos empresas.** **Dado** dos empresas inventadas del mismo sector con 4-5
+    métricas, **cuando** respondo a una pregunta sobre ellas (p. ej. "¿cuál aguanta mejor
+    su deuda?"), **entonces** se me explica la respuesta a partir de sus datos, sin
+    decir cuál conviene comprar.
+84. **Predecir y ordenar.** **Dado** una pregunta de predicción ("¿el margen de un
+    supermercado es alto o bajo?") o una lista de 3-5 empresas inventadas para ordenar
+    por una métrica, **cuando** respondo, **entonces** veo la solución y su explicación.
+85. **Dado** cualquier actividad, **cuando** respondo, **entonces** siempre hay una
+    explicación, no solo "correcto/incorrecto", sin tono burlón; puedo repetirla y no se
+    guarda nada (como el criterio 5).
+
+#### Calidad del contenido
+
+86. **Dado** el contenido real, **cuando** se ejecutan los tests, **entonces** cada ficha
+    tiene ilustración, fórmula por piezas y al menos una actividad válida (índices
+    correctos dentro de rango, un único dato trampa, rangos de deslizador con mínimo <
+    valor inicial < máximo), y los cuatro tipos de actividad aparecen.
+87. **Dado** el simulador de una métrica, **cuando** se ejecutan los tests, **entonces**
+    con los valores iniciales de sus piezas da el mismo resultado que el ejemplo
+    inventado de la ficha.
+88. **Dado** los textos nuevos (actividades incluidas), **cuando** se ejecutan los tests,
+    **entonces** siguen aplicando los criterios 4, 17 y 19: sin empresas reales, sin
+    frases de recomendación y sin reglas orientativas presentadas como ley.
+
+### Decisiones
+
+- **Ejemplos inventados (2026-10-19)**: se valoró usar casos históricos fechados o el
+  dato real de la empresa analizada, y se descartó: el foco de esta revisión es la forma,
+  no el origen de los datos.
+- **La barra de tramos sale del motor**: `contenido_educativo` no puede importar de
+  `analisis_accion`, así que la escala se le pasa desde el composition root (igual que
+  `ShowInfo`). Copiar los umbrales al JSON los desincronizaría al primer cambio.
+- **Una actividad mínima por ficha, no cuatro**: no todas las métricas admiten todos los
+  tipos (el simulador necesita una fórmula con piezas que se puedan mover). Se elige la
+  que mejor enseña cada métrica.
+
+#### Dónde se abre
+
+89. **Dado** un resultado, **cuando** pulso el icono de información de una métrica,
+    **entonces** la fila despliega una versión corta (resumen y barra de tramos, o su
+    visual equivalente) con un botón "Aprender paso a paso" que abre el recorrido a
+    pantalla completa. Sustituye a la ficha completa desplegada del criterio 1; el
+    mostrar/ocultar del criterio 2b se mantiene.
+90. **Dado** el glosario, una métrica de "se combina con" o un concepto de la gráfica,
+    **cuando** lo abro, **entonces** se abre directamente el recorrido a pantalla
+    completa (sustituye a la hoja inferior del criterio 3, con el mismo botón para volver).
+
+### Preguntas abiertas
+
+Ninguna. Decisiones al cerrar (2026-10-19):
+
+- **Versión corta en la fila y recorrido a pantalla completa**: las tarjetas con
+  deslizadores no caben bien dentro de una lista con scroll, y la versión corta mantiene
+  la explicación rápida en el sitio, que fue lo que se pidió el 2026-10-06.
+- **Ilustraciones de línea dibujadas en código**: una por ficha (33), con los colores del
+  tema para que funcionen en modo oscuro, sin imágenes ni paquetes nuevos.

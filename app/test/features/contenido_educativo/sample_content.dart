@@ -107,3 +107,82 @@ EducationalContent sampleContent() {
     guide: files.guide,
   );
 }
+
+/// Pieza de fórmula válida; `min` y `max` hacen que el simulador pueda moverla.
+Map<String, Object?> pieceJson(
+  String key,
+  num example, {
+  num? min,
+  num? max,
+  String source = 'mercado',
+}) => {
+  'clave': key,
+  'nombre': 'Pieza $key',
+  'origen': source,
+  'ejemplo': example,
+  'min': ?min,
+  'max': ?max,
+};
+
+/// `formulaVisual` de un cociente: 30 ÷ 2 = 15, con las dos piezas movibles.
+Map<String, Object?> ratioFormulaJson() => {
+  'tipo': 'cociente',
+  'numerador': pieceJson('precio', 30, min: 5, max: 100),
+  'denominador': pieceJson(
+    'beneficio',
+    2,
+    min: 0.5,
+    max: 10,
+    source: 'cuenta_resultados',
+  ),
+  'resultado': {'nombre': 'PER', 'unidad': 'x', 'ejemplo': 15},
+};
+
+Map<String, Object?> trapActivityJson() => {
+  'tipo': 'trampa',
+  'empresa': 'Muebles Norte (inventada)',
+  'enunciado': '¿Qué dato engaña?',
+  'datos': [
+    for (var i = 0; i < 4; i++)
+      {
+        'etiqueta': 'Dato $i',
+        'valor': '$i',
+        'esTrampa': i == 2,
+        'explicacion': 'Explicación del dato $i.',
+      },
+  ],
+};
+
+Map<String, Object?> compareActivityJson() => {
+  'tipo': 'comparar',
+  'sector': 'Muebles',
+  'empresas': ['Norte', 'Sur'],
+  'filas': [
+    for (var i = 0; i < 4; i++) {'etiqueta': 'Fila $i', 'a': '1', 'b': '2'},
+  ],
+  'pregunta': {
+    'texto': '¿Cuál aguanta mejor su deuda?',
+    'correcta': 1,
+    'explicacion': 'Porque debe menos años de beneficio.',
+  },
+};
+
+Map<String, Object?> predictActivityJson() => {
+  'tipo': 'predecir',
+  'texto': '¿Margen alto o bajo?',
+  'opciones': ['Alto', 'Bajo'],
+  'correcta': 1,
+  'explicacion': 'Vende mucho con poco margen.',
+  'revelacion': 'Suelen quedar en torno al 3 %.',
+};
+
+Map<String, Object?> orderActivityJson() => {
+  'tipo': 'ordenar',
+  'enunciado': 'Ordénalas de menor a mayor PER.',
+  'elementos': [
+    {'nombre': 'A', 'valor': 8, 'mostrar': '8x'},
+    {'nombre': 'B', 'valor': 15, 'mostrar': '15x'},
+    {'nombre': 'C', 'valor': 30, 'mostrar': '30x'},
+  ],
+  'explicacion': 'El PER mide años de beneficio.',
+};
