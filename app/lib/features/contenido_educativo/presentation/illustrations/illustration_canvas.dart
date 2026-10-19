@@ -89,7 +89,9 @@ abstract class ThemedPainter extends CustomPainter {
   bool shouldRepaint(covariant ThemedPainter oldDelegate) =>
       oldDelegate.palette.line != palette.line ||
       oldDelegate.palette.accent != palette.accent ||
-      oldDelegate.palette.soft != palette.soft;
+      oldDelegate.palette.soft != palette.soft ||
+      oldDelegate.palette.favorable != palette.favorable ||
+      oldDelegate.palette.unfavorable != palette.unfavorable;
 }
 
 /// Una ilustración lista para usar: su descripción y el dibujo que la pinta.

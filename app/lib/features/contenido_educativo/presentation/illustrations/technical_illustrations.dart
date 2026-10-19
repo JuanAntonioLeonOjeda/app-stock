@@ -119,7 +119,8 @@ class _RsiGaugePainter extends ThemedPainter {
     final radius = size.height * 0.56;
     final arc = Rect.fromCircle(center: center, radius: radius);
     final width = size.height * 0.1;
-    // Tramos: 0-30, 30-70, 70-100 sobre un semicírculo de 180°.
+    // Tramos 0-30, 30-70 y 70-100 sobre un semicírculo de 180°: son los cortes
+    // convencionales del RSI («sobreventa» y «sobrecompra»), no los del motor.
     const zones = [(0.0, 0.3), (0.3, 0.7), (0.7, 1.0)];
     // El motor baja la nota en los dos extremos por igual: mismo color.
     final colors = [palette.accent, palette.favorable, palette.accent];

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/formula_diagram.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/formula_diagram_view.dart';
 
 Future<void> _pump(
@@ -68,12 +69,21 @@ void main() {
       expect(find.text('25x'), findsOneWidget);
     });
 
-    testWidgets('un denominador cero muestra un guion en vez del resultado', (
+    testWidgets('un denominador cero dice «Sin dato» y explica por qué', (
       tester,
     ) async {
       await _pump(tester, ratio, values: {'beneficio': 0});
 
-      expect(find.text('—'), findsOneWidget);
+      expect(find.text('Sin dato'), findsOneWidget);
+      expect(find.text(noResultNote), findsOneWidget);
+    });
+
+    testWidgets('con resultado no aparece la nota de «sin dato»', (
+      tester,
+    ) async {
+      await _pump(tester, ratio);
+
+      expect(find.text(noResultNote), findsNothing);
     });
 
     testWidgets('un crecimiento dibuja sus tres piezas y el resultado en %', (

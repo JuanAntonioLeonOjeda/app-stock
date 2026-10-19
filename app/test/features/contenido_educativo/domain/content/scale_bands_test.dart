@@ -12,12 +12,16 @@ final _per = ReadingScale(
     ScalePoint(50, 1),
   ],
   unit: ScaleUnit.multiple,
+  favorableFrom: 7,
+  neutralFrom: 5,
 );
 
 /// Una escala creciente (cuanto más alto, mejor), como un margen.
 final _margin = ReadingScale(
   points: const [ScalePoint(0, 1), ScalePoint(0.1, 5), ScalePoint(0.2, 9)],
   unit: ScaleUnit.fraction,
+  favorableFrom: 7,
+  neutralFrom: 5,
 );
 
 void main() {
@@ -43,13 +47,30 @@ void main() {
       ]);
     });
 
-    test('las fronteras están donde la nota cruza 7 y 4', () {
+    test('las fronteras están donde la nota cruza los cortes del motor', () {
       final bands = bandsFor(_per);
 
       // Entre 15 (nota 8) y 25 (nota 5): 7 se cruza en 18,33.
       expect(bands[0].to, closeTo(18.333, 0.001));
-      // Entre 25 (nota 5) y 35 (nota 3): 4 se cruza en 30.
-      expect(bands[1].to, closeTo(30, 1e-9));
+      // La nota 5 es justo la del punto 25: ahí empieza lo desfavorable.
+      expect(bands[1].to, closeTo(25, 1e-9));
+    });
+
+    test('otros cortes dan otras fronteras: no hay umbrales fijos', () {
+      final strict = ReadingScale(
+        points: _per.points,
+        unit: ScaleUnit.multiple,
+        favorableFrom: 8.5,
+        neutralFrom: 4,
+      );
+
+      final bands = bandsFor(strict);
+
+      // 8,5 se cruza entre 8 (nota 9) y 15 (nota 8)... ya no llega a 8,5.
+      expect(bands.first.tone, Tone.positive);
+      expect(bands.first.to, lessThan(15));
+      // 4 se cruza en 30, entre 25 (nota 5) y 35 (nota 3).
+      expect(bands[bands.length - 2].to, closeTo(30, 1e-9));
     });
 
     test('los tramos cubren de principio a fin sin huecos', () {
@@ -74,6 +95,8 @@ void main() {
       final flat = ReadingScale(
         points: const [ScalePoint(0, 9), ScalePoint(5, 8), ScalePoint(10, 8)],
         unit: ScaleUnit.decimal,
+        favorableFrom: 7,
+        neutralFrom: 5,
       );
 
       final bands = bandsFor(flat);
@@ -92,9 +115,9 @@ void main() {
     });
 
     test('la nota justo en la frontera cuenta como el tramo mejor', () {
-      expect(toneOfScore(7), Tone.positive);
-      expect(toneOfScore(4), Tone.neutral);
-      expect(toneOfScore(3.99), Tone.negative);
+      expect(toneOfScore(_per, 7), Tone.positive);
+      expect(toneOfScore(_per, 5), Tone.neutral);
+      expect(toneOfScore(_per, 4.99), Tone.negative);
     });
   });
 }

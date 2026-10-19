@@ -36,7 +36,14 @@ class FormulaPiece {
   /// Salto del deslizador (1 para años enteros); `null` si es continuo.
   final double? step;
 
-  bool get isAdjustable => min != null && max != null;
+  /// Límites del deslizador, o `null` si la pieza no se puede mover.
+  ({double min, double max})? get range {
+    final min = this.min;
+    final max = this.max;
+    return min == null || max == null ? null : (min: min, max: max);
+  }
+
+  bool get isAdjustable => range != null;
 }
 
 /// El resultado de una fórmula: qué es y cuánto vale en el ejemplo.

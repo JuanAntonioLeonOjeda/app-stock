@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 /// Indicador de en qué paso del recorrido estás (criterio 72). Cada punto se
 /// puede pulsar para saltar a ese paso sin pasar por los anteriores
 /// (criterio 73).
+/// Lado mínimo del área pulsable de cada punto.
+const _tapSize = 48.0;
+
 class LessonProgress extends StatelessWidget {
   const LessonProgress({
     super.key,
@@ -31,21 +34,23 @@ class LessonProgress extends StatelessWidget {
                 child: InkWell(
                   onTap: () => onSelect(i),
                   customBorder: const CircleBorder(),
-                  child: Padding(
-                    // Área de pulsación de 48 dp alrededor del punto.
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 18,
+                  // Área de pulsación de al menos 48 dp alrededor del punto.
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: _tapSize,
+                      minHeight: _tapSize,
                     ),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: i == current ? 24 : 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5),
-                        color: i == current
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.outlineVariant,
+                    child: Center(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: i == current ? 24 : 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5),
+                          color: i == current
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outlineVariant,
+                        ),
                       ),
                     ),
                   ),

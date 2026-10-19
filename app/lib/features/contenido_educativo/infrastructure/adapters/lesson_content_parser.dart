@@ -9,16 +9,16 @@ import 'package:stock_app/features/contenido_educativo/domain/entities/reading_s
 import 'package:stock_app/features/contenido_educativo/infrastructure/adapters/content_reader.dart';
 
 /// Mínimo y máximo de filas de una tabla para comparar.
-const minCompareRows = 4;
-const maxCompareRows = 5;
+const _minCompareRows = 4;
+const _maxCompareRows = 5;
 
 /// Rango de datos de una empresa de "detectar la trampa".
-const minTrapItems = 4;
-const maxTrapItems = 6;
+const _minTrapItems = 4;
+const _maxTrapItems = 6;
 
 /// Rango de elementos de "ordenar".
-const minOrderItems = 3;
-const maxOrderItems = 5;
+const _minOrderItems = 3;
+const _maxOrderItems = 5;
 
 const _sources = {
   'mercado': DataSource.market,
@@ -78,8 +78,11 @@ FormulaPiece _piece(ContentReader reader) {
     throw reader.fail('ejemplo', 'debe estar entre min y max (sin tocarlos)');
   }
   final step = reader.optionalNumber('paso');
-  if (step != null && (min == null || step <= 0 || step > max! - min)) {
-    throw reader.fail('paso', 'debe ser positivo y caber entre min y max');
+  if (step != null) {
+    final fits = min != null && max != null && step > 0 && step <= max - min;
+    if (!fits) {
+      throw reader.fail('paso', 'debe ser positivo y caber entre min y max');
+    }
   }
   return FormulaPiece(
     key: reader.text('clave'),
@@ -171,10 +174,10 @@ SimulatorActivity _simulator(ContentReader reader, FormulaDiagram? diagram) {
 
 SpotTrapActivity _spotTrap(ContentReader reader) {
   final items = reader.list('datos');
-  if (items.length < minTrapItems || items.length > maxTrapItems) {
+  if (items.length < _minTrapItems || items.length > _maxTrapItems) {
     throw reader.fail(
       'datos',
-      'se esperaban $minTrapItems-$maxTrapItems, hay ${items.length}',
+      'se esperaban $_minTrapItems-$_maxTrapItems, hay ${items.length}',
     );
   }
   final parsed = [
@@ -202,10 +205,10 @@ CompareActivity _compare(ContentReader reader) {
     throw reader.fail('empresas', 'se esperaban 2, hay ${companies.length}');
   }
   final rows = reader.list('filas');
-  if (rows.length < minCompareRows || rows.length > maxCompareRows) {
+  if (rows.length < _minCompareRows || rows.length > _maxCompareRows) {
     throw reader.fail(
       'filas',
-      'se esperaban $minCompareRows-$maxCompareRows, hay ${rows.length}',
+      'se esperaban $_minCompareRows-$_maxCompareRows, hay ${rows.length}',
     );
   }
   final question = reader.object('pregunta');
@@ -251,10 +254,10 @@ PredictActivity _predict(ContentReader reader) {
 
 OrderActivity _order(ContentReader reader) {
   final items = reader.list('elementos');
-  if (items.length < minOrderItems || items.length > maxOrderItems) {
+  if (items.length < _minOrderItems || items.length > _maxOrderItems) {
     throw reader.fail(
       'elementos',
-      'se esperaban $minOrderItems-$maxOrderItems, hay ${items.length}',
+      'se esperaban $_minOrderItems-$_maxOrderItems, hay ${items.length}',
     );
   }
   final parsed = [

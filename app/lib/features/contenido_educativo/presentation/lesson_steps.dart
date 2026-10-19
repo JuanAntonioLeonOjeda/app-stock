@@ -36,12 +36,19 @@ class ReadingStep extends LessonStep {
 
 /// Una trampa típica; hay una tarjeta por cada una.
 class PitfallStep extends LessonStep {
-  const PitfallStep({required this.text, required this.number});
+  const PitfallStep({
+    required this.text,
+    required this.number,
+    required this.total,
+  });
 
   final String text;
 
   /// Posición entre las trampas de la ficha, empezando en 1.
   final int number;
+
+  /// Cuántas trampas tiene la ficha.
+  final int total;
 
   @override
   String get label => 'Cuándo engaña';
@@ -74,7 +81,11 @@ List<LessonStep> lessonStepsFor(MetricContent metric) => [
   const CalculationStep(),
   const ReadingStep(),
   for (var i = 0; i < metric.whenItMisleads.length; i++)
-    PitfallStep(text: metric.whenItMisleads[i], number: i + 1),
+    PitfallStep(
+      text: metric.whenItMisleads[i],
+      number: i + 1,
+      total: metric.whenItMisleads.length,
+    ),
   for (final activity in metric.activities) ActivityStep(activity: activity),
   QuestionStep(question: metric.question),
 ];

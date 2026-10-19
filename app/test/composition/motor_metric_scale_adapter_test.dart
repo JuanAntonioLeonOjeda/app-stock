@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/composition/motor_metric_scale_adapter.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/rules/metric_rule.dart';
 import 'package:stock_app/features/analisis_accion/domain/motor/rules/metric_rules.dart';
+import 'package:stock_app/features/analisis_accion/domain/motor/rules/verdict_thresholds.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 
 void main() {
@@ -19,6 +20,16 @@ void main() {
         for (final p in motorPoints) (p.value, p.score),
       ]);
     });
+
+    test(
+      'los cortes de color son los mismos que usa el semáforo del motor',
+      () {
+        final scale = adapter.scaleFor('per')!;
+
+        expect(scale.favorableFrom, favorableMinScore);
+        expect(scale.neutralFrom, neutralMinScore);
+      },
+    );
 
     test('una métrica en porcentaje se expresa como fracción', () {
       expect(adapter.scaleFor('margen_operativo')!.unit, ScaleUnit.fraction);

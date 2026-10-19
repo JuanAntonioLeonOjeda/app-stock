@@ -30,43 +30,46 @@ class ActivityView extends StatelessWidget {
   final ReadingScale? scale;
 
   @override
-  Widget build(BuildContext context) => switch (activity) {
-    final SimulatorActivity simulator when diagram != null =>
-      SimulatorActivityView(
-        activity: simulator,
-        diagram: diagram!,
-        scale: scale,
-        values: controller.simulatorValues(step),
-        onChanged: (key, value) =>
-            controller.setSimulatorValue(step, key, value),
-        onReset: () => controller.resetSimulator(step),
+  Widget build(BuildContext context) {
+    final diagram = this.diagram;
+    return switch (activity) {
+      final SimulatorActivity simulator when diagram != null =>
+        SimulatorActivityView(
+          activity: simulator,
+          diagram: diagram,
+          scale: scale,
+          values: controller.simulatorValues(step),
+          onChanged: (key, value) =>
+              controller.setSimulatorValue(step, key, value),
+          onReset: () => controller.resetSimulator(step),
+        ),
+      // El parser no deja un simulador sin fórmula; esto solo cubre el tipo.
+      SimulatorActivity() => const SizedBox.shrink(),
+      final SpotTrapActivity trap => SpotTrapActivityView(
+        activity: trap,
+        tapped: controller.trapsTapped(step),
+        onTap: (index) => controller.tapTrapItem(step, index),
       ),
-    // El parser no deja un simulador sin fórmula; esto solo cubre el tipo.
-    SimulatorActivity() => const SizedBox.shrink(),
-    final SpotTrapActivity trap => SpotTrapActivityView(
-      activity: trap,
-      tapped: controller.trapsTapped(step),
-      onTap: (index) => controller.tapTrapItem(step, index),
-    ),
-    final CompareActivity compare => CompareActivityView(
-      activity: compare,
-      answerIsA: controller.compareAnswer(step),
-      onAnswer: (isA) => controller.answerCompare(step, isA: isA),
-    ),
-    final PredictActivity predict => PredictActivityView(
-      activity: predict,
-      selected: controller.predictAnswer(step),
-      onSelect: (option) => controller.answerPredict(step, option),
-    ),
-    final OrderActivity order => OrderActivityView(
-      activity: order,
-      order: controller.orderOf(step, order),
-      isChecked: controller.isOrderChecked(step),
-      isCorrect: controller.isOrderCorrect(step, order),
-      onReorder: (oldIndex, newIndex) =>
-          controller.reorder(step, order, oldIndex, newIndex),
-      onCheck: () => controller.checkOrder(step),
-      onRetry: () => controller.retryOrder(step),
-    ),
-  };
+      final CompareActivity compare => CompareActivityView(
+        activity: compare,
+        answerIsA: controller.compareAnswer(step),
+        onAnswer: (isA) => controller.answerCompare(step, isA: isA),
+      ),
+      final PredictActivity predict => PredictActivityView(
+        activity: predict,
+        selected: controller.predictAnswer(step),
+        onSelect: (option) => controller.answerPredict(step, option),
+      ),
+      final OrderActivity order => OrderActivityView(
+        activity: order,
+        order: controller.orderOf(step, order),
+        isChecked: controller.isOrderChecked(step),
+        isCorrect: controller.isOrderCorrect(step, order),
+        onReorder: (oldIndex, newIndex) =>
+            controller.reorder(step, order, oldIndex, newIndex),
+        onCheck: () => controller.checkOrder(step),
+        onRetry: () => controller.retryOrder(step),
+      ),
+    };
+  }
 }

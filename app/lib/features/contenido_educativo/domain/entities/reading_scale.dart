@@ -20,13 +20,28 @@ class ScalePoint {
 
 /// Escala por tramos con la que el motor puntúa una métrica, copiada tal cual
 /// para dibujarla (criterios 77-78). [points] va ordenada por valor ascendente.
+///
+/// Trae también las notas que el motor usa para colorear una métrica
+/// ([favorableFrom] y [neutralFrom]): así la barra pinta cada tramo igual que
+/// el semáforo de la fila del resultado, sin copiar los cortes aquí.
 class ReadingScale {
-  ReadingScale({required List<ScalePoint> points, required this.unit})
-    : assert(points.length >= 2, 'La escala necesita al menos dos puntos'),
-      points = List.unmodifiable(points);
+  ReadingScale({
+    required List<ScalePoint> points,
+    required this.unit,
+    required this.favorableFrom,
+    required this.neutralFrom,
+  }) : assert(points.length >= 2, 'La escala necesita al menos dos puntos'),
+       assert(neutralFrom < favorableFrom, 'Los cortes deben ir en orden'),
+       points = List.unmodifiable(points);
 
   final List<ScalePoint> points;
   final ScaleUnit unit;
+
+  /// Nota a partir de la cual el motor da una métrica por favorable.
+  final double favorableFrom;
+
+  /// Nota a partir de la cual el motor la da por intermedia.
+  final double neutralFrom;
 }
 
 /// Si un tramo de la escala se lee como favorable, intermedio o desfavorable.

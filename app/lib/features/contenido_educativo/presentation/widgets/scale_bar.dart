@@ -68,7 +68,10 @@ class ScaleBar extends StatelessWidget {
               width: xOf(band.to) - xOf(band.from),
               top: 0,
               bottom: 0,
-              child: ColoredBox(color: toneColor(context, band.tone)),
+              child: _BandSwatch(
+                tone: band.tone,
+                width: xOf(band.to) - xOf(band.from),
+              ),
             ),
         ],
       ),
@@ -81,13 +84,17 @@ class ScaleBar extends StatelessWidget {
     double Function(double) xOf,
     double width,
   ) {
-    final values = [bands.first.from, for (final band in bands) band.to];
+    final values = _visibleBoundaries(
+      [bands.first.from, for (final band in bands) band.to],
+      xOf,
+      width,
+    );
     final style = Theme.of(context).textTheme.labelSmall;
     return [
       for (final value in values)
         Positioned(
           top: _markerHeight + _barHeight + 4,
-          left: (xOf(value) - _labelWidth / 2).clamp(0, width - _labelWidth),
+          left: _labelLeft(value, xOf, width),
           width: _labelWidth,
           child: Text(
             formatScaleValue(value, scale.unit),
@@ -96,6 +103,35 @@ class ScaleBar extends StatelessWidget {
           ),
         ),
     ];
+  }
+
+  /// Posición izquierda de la etiqueta de [value], sin salirse de la barra.
+  double _labelLeft(double value, double Function(double) xOf, double width) =>
+      (xOf(value) - _labelWidth / 2).clamp(0, width - _labelWidth);
+
+  /// Fronteras cuyas etiquetas no se pisan: se mantiene siempre la primera y
+  /// la última, y se descartan las intermedias que chocarían con ellas.
+  List<double> _visibleBoundaries(
+    List<double> values,
+    double Function(double) xOf,
+    double width,
+  ) {
+    double left(double value) => _labelLeft(value, xOf, width);
+    bool fitsAfter(double previous, double value) =>
+        left(value) - left(previous) >= _labelWidth;
+    final kept = <double>[values.first];
+    for (final value in values.skip(1)) {
+      final isLast = identical(value, values.last);
+      if (isLast) {
+        while (kept.length > 1 && !fitsAfter(kept.last, value)) {
+          kept.removeLast();
+        }
+        kept.add(value);
+      } else if (fitsAfter(kept.last, value)) {
+        kept.add(value);
+      }
+    }
+    return kept;
   }
 
   Widget _marker(BuildContext context, double x) => Positioned(
@@ -116,6 +152,36 @@ class ScaleBar extends StatelessWidget {
             '${formatScaleValue(band.from, scale.unit)} a '
             '${formatScaleValue(band.to, scale.unit)}',
     ];
-    return 'Escala del motor: ${parts.join('; ')}';
+    final marker = markerValue;
+    final here = marker == null
+        ? ''
+        : '. Valor actual: ${formatScaleValue(marker, scale.unit)}, '
+              '${toneLabel(toneAt(scale, marker)).toLowerCase()}';
+    return 'Escala del motor: ${parts.join('; ')}$here';
   }
+}
+
+/// Un tramo coloreado con su icono, para que el color no sea la única pista.
+class _BandSwatch extends StatelessWidget {
+  const _BandSwatch({required this.tone, required this.width});
+
+  final Tone tone;
+  final double width;
+
+  /// Ancho mínimo para que quepa el icono sin tocar los bordes.
+  static const _minWidthForIcon = 28.0;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: toneColor(context, tone),
+    child: width < _minWidthForIcon
+        ? null
+        : Center(
+            child: Icon(
+              toneIcon(tone),
+              size: 14,
+              color: Theme.of(context).colorScheme.surface,
+            ),
+          ),
+  );
 }

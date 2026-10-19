@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stock_app/features/contenido_educativo/domain/content/formula_evaluation.dart';
 import 'package:stock_app/features/contenido_educativo/domain/entities/formula_diagram.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/scale_formatting.dart';
 
 /// La fórmula de una métrica dibujada por piezas (criterio 76): cada dato con
@@ -80,11 +81,7 @@ class FormulaDiagramView extends StatelessWidget {
       const SizedBox(height: 8),
       _PieceCard(piece: years, value: _valueOf(years)),
       const SizedBox(height: 8),
-      Text(
-        'Crecimiento anual = (valor final ÷ valor inicial) elevado a '
-        '1/años, menos 1',
-        style: Theme.of(context).textTheme.bodyMedium,
-      ),
+      Text(growthFormulaCaption, style: Theme.of(context).textTheme.bodyMedium),
     ],
   );
 
@@ -100,7 +97,7 @@ class FormulaDiagramView extends StatelessWidget {
       _PieceCard(piece: reference, value: _valueOf(reference)),
       const SizedBox(height: 8),
       Text(
-        'Variación = valor actual ÷ referencia, menos 1',
+        variationFormulaCaption,
         style: Theme.of(context).textTheme.bodyMedium,
       ),
     ],
@@ -125,8 +122,10 @@ class FormulaDiagramView extends StatelessWidget {
     final value = diagram is StepsFormula
         ? result.exampleValue
         : evaluateFormula(diagram, values);
-    final shown = value == null ? '—' : formatResultValue(value, result.unit);
-    return Container(
+    final shown = value == null
+        ? noResultText
+        : formatResultValue(value, result.unit);
+    final card = Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.primaryContainer,
@@ -152,6 +151,15 @@ class FormulaDiagramView extends StatelessWidget {
           ),
         ],
       ),
+    );
+    if (value != null) return card;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        card,
+        const SizedBox(height: 4),
+        Text(noResultNote, style: theme.textTheme.bodySmall),
+      ],
     );
   }
 

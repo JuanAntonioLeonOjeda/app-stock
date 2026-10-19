@@ -1,11 +1,5 @@
 import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 
-/// Nota a partir de la cual un valor se lee como favorable.
-const positiveScoreFrom = 7.0;
-
-/// Nota a partir de la cual un valor se lee como intermedio.
-const neutralScoreFrom = 4.0;
-
 /// Nota de [value] según [scale]: la misma interpolación lineal entre puntos,
 /// saturada en los extremos, que usa el motor.
 double scoreAt(ReadingScale scale, double value) {
@@ -19,20 +13,20 @@ double scoreAt(ReadingScale scale, double value) {
   return lower.score + fraction * (upper.score - lower.score);
 }
 
-Tone toneOfScore(double score) {
-  if (score >= positiveScoreFrom) return Tone.positive;
-  if (score >= neutralScoreFrom) return Tone.neutral;
+/// Tono de una nota según los cortes de [scale], que vienen del motor.
+Tone toneOfScore(ReadingScale scale, double score) {
+  if (score >= scale.favorableFrom) return Tone.positive;
+  if (score >= scale.neutralFrom) return Tone.neutral;
   return Tone.negative;
 }
 
 /// Tono del tramo en el que cae [value].
 Tone toneAt(ReadingScale scale, double value) =>
-    toneOfScore(scoreAt(scale, value));
+    toneOfScore(scale, scoreAt(scale, value));
 
 /// Tramos coloreados entre el primer y el último punto de [scale], en orden
-/// de valor. Las fronteras se calculan donde la nota cruza
-/// [positiveScoreFrom] y [neutralScoreFrom], así que dependen solo de la
-/// escala del motor y no de umbrales copiados.
+/// de valor. Las fronteras se calculan donde la nota cruza los cortes de la
+/// escala, así que dependen solo de lo que da el motor.
 List<ScaleBand> bandsFor(ReadingScale scale) {
   final cuts = _cutPoints(scale);
   final bands = <ScaleBand>[];
@@ -59,7 +53,7 @@ List<double> _cutPoints(ReadingScale scale) {
   final points = scale.points;
   final cuts = <double>{for (final p in points) p.value};
   for (var i = 0; i < points.length - 1; i++) {
-    for (final threshold in [positiveScoreFrom, neutralScoreFrom]) {
+    for (final threshold in [scale.favorableFrom, scale.neutralFrom]) {
       final crossing = _crossing(points[i], points[i + 1], threshold);
       if (crossing != null) cuts.add(crossing);
     }

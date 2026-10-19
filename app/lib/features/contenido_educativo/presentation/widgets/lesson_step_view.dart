@@ -60,7 +60,12 @@ class LessonStepView extends StatelessWidget {
     IdeaStep() => _idea(context),
     CalculationStep() => _calculation(context),
     ReadingStep() => _reading(context),
-    PitfallStep(:final text, :final number) => _pitfall(context, text, number),
+    PitfallStep(:final text, :final number, :final total) => _pitfall(
+      context,
+      text,
+      number,
+      total,
+    ),
     ActivityStep(:final activity) => [
       ActivityView(
         activity: activity,
@@ -102,9 +107,18 @@ class LessonStepView extends StatelessWidget {
     ];
   }
 
-  List<Widget> _pitfall(BuildContext context, String text, int number) {
+  List<Widget> _pitfall(
+    BuildContext context,
+    String text,
+    int number,
+    int total,
+  ) {
     final theme = Theme.of(context);
     return [
+      if (total > 1) ...[
+        Text('Trampa $number de $total', style: theme.textTheme.labelLarge),
+        const SizedBox(height: 8),
+      ],
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

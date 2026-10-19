@@ -99,8 +99,7 @@ class _PegPainter extends ThemedPainter {
     canvas
       ..drawLine(rel(size, 0.1, 0.82), rel(size, 0.92, 0.82), axis)
       ..drawLine(rel(size, 0.1, 0.82), rel(size, 0.1, 0.14), axis);
-    final slow = strokePaint(palette.unfavorable, size, width: 0.02)
-      ..strokeWidth = size.height * 0.02;
+    final slow = strokePaint(palette.unfavorable, size, width: 0.02);
     final fast = strokePaint(palette.favorable, size, width: 0.02);
     canvas
       ..drawLine(rel(size, 0.12, 0.7), rel(size, 0.9, 0.6), slow)
@@ -169,7 +168,7 @@ class _EvEbitdaPainter extends ThemedPainter {
     Color color,
     String caption,
   ) {
-    final bottom = 0.78;
+    const bottom = 0.78;
     final box = relRect(
       size,
       left,
