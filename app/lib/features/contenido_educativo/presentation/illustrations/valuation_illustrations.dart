@@ -5,57 +5,34 @@ import 'package:stock_app/features/contenido_educativo/presentation/illustration
 /// Ilustraciones del bloque de valoración (criterio 75): una analogía por
 /// métrica, dibujada con los colores del tema.
 final Map<String, IllustrationBuilder> valuationIllustrations = {
-  'per': () => const _Illustration(
+  'per': () => const PaintedIllustration(
     label: 'Una tienda de barrio que cuesta 15 veces lo que gana en un año',
     painter: _PerPainter.new,
   ),
-  'peg': () => const _Illustration(
+  'peg': () => const PaintedIllustration(
     label: 'Dos negocios con el mismo precio: uno crece poco y el otro mucho',
     painter: _PegPainter.new,
   ),
-  'ev_ebitda': () => const _Illustration(
+  'ev_ebitda': () => const PaintedIllustration(
     label: 'El precio de una casa entera: lo que pagas más la hipoteca, menos lo ahorrado',
     painter: _EvEbitdaPainter.new,
   ),
-  'p_fcf': () => const _Illustration(
+  'p_fcf': () => const PaintedIllustration(
     label: 'Un cajón con el dinero que queda después de pagar gastos e inversiones',
     painter: _PFcfPainter.new,
   ),
-  'p_ventas': () => const _Illustration(
+  'p_ventas': () => const PaintedIllustration(
     label: 'Un negocio recién abierto: su precio frente a lo que vende',
     painter: _PVentasPainter.new,
   ),
-  'p_vc': () => const _Illustration(
+  'p_vc': () => const PaintedIllustration(
     label: 'Una balanza que compara el precio de una casa con lo que valdría por partes',
     painter: _PVcPainter.new,
   ),
 };
 
-class _Illustration extends StatelessWidget {
-  const _Illustration({required this.label, required this.painter});
-
-  final String label;
-  final CustomPainter Function(IllustrationPalette palette) painter;
-
-  @override
-  Widget build(BuildContext context) =>
-      IllustrationCanvas(semanticLabel: label, paint: painter);
-}
-
-/// Base de los dibujos de este bloque: guarda la paleta.
-abstract class _ValuationPainter extends CustomPainter {
-  const _ValuationPainter(this.palette);
-
-  final IllustrationPalette palette;
-
-  @override
-  bool shouldRepaint(covariant _ValuationPainter oldDelegate) =>
-      oldDelegate.palette.line != palette.line ||
-      oldDelegate.palette.accent != palette.accent;
-}
-
 /// Tienda → años: «15 años para recuperar lo que pagas».
-class _PerPainter extends _ValuationPainter {
+class _PerPainter extends ThemedPainter {
   const _PerPainter(super.palette);
 
   @override
@@ -113,7 +90,7 @@ class _PerPainter extends _ValuationPainter {
 }
 
 /// Dos curvas de crecimiento con la misma base: una casi plana y otra empinada.
-class _PegPainter extends _ValuationPainter {
+class _PegPainter extends ThemedPainter {
   const _PegPainter(super.palette);
 
   @override
@@ -165,7 +142,7 @@ class _PegPainter extends _ValuationPainter {
 }
 
 /// Casa con tres barras: lo que vale, la hipoteca y lo ahorrado.
-class _EvEbitdaPainter extends _ValuationPainter {
+class _EvEbitdaPainter extends ThemedPainter {
   const _EvEbitdaPainter(super.palette);
 
   @override
@@ -214,7 +191,7 @@ class _EvEbitdaPainter extends _ValuationPainter {
 }
 
 /// Cajón de caja con monedas y una salida para las inversiones.
-class _PFcfPainter extends _ValuationPainter {
+class _PFcfPainter extends ThemedPainter {
   const _PFcfPainter(super.palette);
 
   @override
@@ -271,7 +248,7 @@ class _PFcfPainter extends _ValuationPainter {
 }
 
 /// Un negocio nuevo con su etiqueta de precio frente a una pila de ventas.
-class _PVentasPainter extends _ValuationPainter {
+class _PVentasPainter extends ThemedPainter {
   const _PVentasPainter(super.palette);
 
   @override
@@ -312,7 +289,7 @@ class _PVentasPainter extends _ValuationPainter {
 }
 
 /// Balanza: una casa en un platillo y su precio en el otro.
-class _PVcPainter extends _ValuationPainter {
+class _PVcPainter extends ThemedPainter {
   const _PVcPainter(super.palette);
 
   @override

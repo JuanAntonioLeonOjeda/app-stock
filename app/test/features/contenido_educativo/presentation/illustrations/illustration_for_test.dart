@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_canvas.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_for.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/valuation_illustrations.dart';
@@ -12,6 +13,8 @@ Future<void> _pump(WidgetTester tester, Widget child, Brightness brightness) =>
         home: Scaffold(body: Center(child: child)),
       ),
     );
+
+final _allIds = [...valuationIllustrations.keys, ...healthIllustrations.keys];
 
 void main() {
   group('illustrationFor', () {
@@ -33,11 +36,29 @@ void main() {
       }
     });
 
+    test('hay una ilustración por cada métrica de salud financiera', () {
+      expect(healthIllustrations.keys, [
+        'deuda_ebitda',
+        'deuda_patrimonio',
+        'liquidez',
+        'cobertura_intereses',
+        'fcf_positivo',
+        'payout_fcf',
+      ]);
+      for (final id in healthIllustrations.keys) {
+        expect(illustrationFor(id), isNotNull, reason: id);
+      }
+    });
+
+    test('ningún id está en dos bloques', () {
+      expect(_allIds.toSet(), hasLength(_allIds.length));
+    });
+
     for (final brightness in Brightness.values) {
       testWidgets('se dibujan sin errores en tema ${brightness.name}', (
         tester,
       ) async {
-        for (final id in valuationIllustrations.keys) {
+        for (final id in _allIds) {
           await _pump(tester, illustrationFor(id)!, brightness);
 
           expect(tester.takeException(), isNull, reason: id);
@@ -49,7 +70,7 @@ void main() {
       'cada ilustración tiene una descripción para lectores de pantalla',
       (tester) async {
         final handle = tester.ensureSemantics();
-        for (final id in valuationIllustrations.keys) {
+        for (final id in _allIds) {
           await _pump(tester, illustrationFor(id)!, Brightness.light);
 
           final label = tester

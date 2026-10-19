@@ -541,8 +541,12 @@
       "intuicion": "Si debes 20.000 € de hipoteca y ganas 10.000 € al año, tardarías 2 años en pagarla si dedicaras todo. Es la misma idea con la deuda de una empresa.",
       "formula": "Deuda total menos caja e inversiones a corto plazo (balance), dividida entre el EBITDA de los últimos 12 meses (cuenta de resultados). Solo se calcula con EBITDA positivo.",
       "ejemplo": "Una empresa debe 500 M€, tiene 100 M€ en caja y su EBITDA es 200 M€: (500 − 100) / 200 = 2 años.",
-      "comoLeerla": "El motor da buena nota por debajo de 2 (la máxima con caja neta, o sea, valores negativos), nota media hacia 3 y mala por encima de 4-6. Más de 4 genera además un aviso. Los sectores estables (energía, servicios públicos) soportan más deuda que los cíclicos. No se usa en bancos.",
-      "cuandoEngana": "Un EBITDA de un buen año hace parecer la deuda pequeña: si el negocio es cíclico y el beneficio cae, el ratio se dispara. Tampoco dice cuándo vence la deuda ni a qué interés. Un valor negativo no es raro: significa más caja que deuda.",
+      "comoLeerla": "Cuanto más bajo, menos años de beneficio operativo harían falta para saldar la deuda, y mejor lo puntúa el motor; un valor negativo significa más caja que deuda. Los sectores estables soportan más deuda que los cíclicos. Un valor muy alto genera además un aviso. No se usa en bancos.",
+      "cuandoEngana": [
+        "Un EBITDA de un buen año hace parecer la deuda pequeña: si el negocio es cíclico y el beneficio cae, el ratio se dispara.",
+        "Tampoco dice cuándo vence la deuda ni a qué interés.",
+        "Un valor negativo no es raro: significa más caja que deuda."
+      ],
       "combinaCon": [
         "cobertura_intereses",
         "deuda_patrimonio",
@@ -557,7 +561,70 @@
         ],
         "correcta": 1,
         "explicacion": "Deuda neta = deuda − caja. Si la caja supera a la deuda, la deuda neta es negativa y el ratio también. Es la situación más holgada."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "deuda_neta",
+          "nombre": "Deuda neta (deuda − caja)",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": -200,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ebitda",
+          "nombre": "EBITDA (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Deuda neta/EBITDA",
+          "unidad": "años",
+          "ejemplo": 2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la deuda neta y el EBITDA: ¿cuántos años de beneficio operativo harían falta para pagar la deuda? Prueba con una deuda neta negativa."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Acero Levante (empresa inventada)",
+          "enunciado": "Su deuda neta/EBITDA es de solo 1 y parece muy holgada. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Deuda neta",
+              "valor": "300 M€",
+              "esTrampa": false,
+              "explicacion": "Es el numerador del ratio. Por sí sola no dice si es mucha o poca: hay que compararla con lo que gana el negocio."
+            },
+            {
+              "etiqueta": "EBITDA de este año",
+              "valor": "300 M€ (año récord del sector)",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: en un sector cíclico, este año fue excepcional. Con el EBITDA de un año normal, 100 M€, el ratio sería 3 y no 1."
+            },
+            {
+              "etiqueta": "EBITDA medio de los últimos 5 años",
+              "valor": "100 M€",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a descubrir la trampa: muestra lo que gana la empresa en un año normal."
+            },
+            {
+              "etiqueta": "Deuda neta/EBITDA resultante",
+              "valor": "1",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de dividir 300 entre 300. El dato engañoso es el EBITDA de un año tan bueno."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "deuda_patrimonio",
@@ -566,8 +633,12 @@
       "intuicion": "En una casa pagada con 30.000 € tuyos y 70.000 € de hipoteca, la hipoteca pesa mucho más que tu aportación. Cuanto más pesa la deuda frente a lo propio, más frágil es la situación si algo sale mal.",
       "formula": "Deuda total dividida entre el patrimonio neto, ambas del balance. Solo se calcula con patrimonio positivo.",
       "ejemplo": "Deuda de 400 M€ y patrimonio de 500 M€: ratio 0,8.",
-      "comoLeerla": "El motor da buena nota por debajo de 1 (la máxima hacia 0,3), media hacia 2 y mala hacia 3. Como orientación, cuanto menor, menos dependencia de los prestamistas; pero hay sectores que necesitan mucho capital y funcionan con ratios altos. No se usa en bancos.",
-      "cuandoEngana": "Una empresa que recompra muchas acciones reduce su patrimonio y su ratio sube sin haber pedido más deuda. Un patrimonio negativo (por pérdidas o recompras) hace el ratio inutilizable. Y no distingue la deuda barata a largo plazo de la cara a corto.",
+      "comoLeerla": "Cuanto menor, menos dependencia de los prestamistas y mejor lo puntúa el motor. Pero hay sectores que necesitan mucho capital y funcionan con ratios altos, así que compáralo con empresas parecidas. No se usa en bancos.",
+      "cuandoEngana": [
+        "Una empresa que recompra muchas acciones reduce su patrimonio y su ratio sube sin haber pedido más deuda.",
+        "Un patrimonio negativo, por pérdidas o recompras, hace el ratio inutilizable.",
+        "No distingue la deuda barata a largo plazo de la cara a corto."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "liquidez",
@@ -582,7 +653,50 @@
         ],
         "correcta": 1,
         "explicacion": "El patrimonio es el denominador. Si baja y la deuda no cambia, el cociente sube. Es un ejemplo de por qué un ratio aislado puede dar una imagen distorsionada."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "deuda",
+          "nombre": "Deuda total",
+          "origen": "balance",
+          "ejemplo": 400,
+          "min": 50,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "patrimonio",
+          "nombre": "Patrimonio neto (activos − deudas)",
+          "origen": "balance",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 1500,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Deuda/Patrimonio",
+          "ejemplo": 0.8
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la deuda y el patrimonio: ¿cuántos euros de deuda hay por cada euro de los accionistas?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada debe 400 M€ y su patrimonio es de 500 M€. Recompra acciones por 300 M€ con su caja, sin pedir deuda nueva, y el patrimonio baja a 200 M€. ¿Qué pasa con su Deuda/Patrimonio?",
+          "opciones": [
+            "Sube",
+            "Baja",
+            "Se queda igual"
+          ],
+          "correcta": 0,
+          "explicacion": "La deuda no cambia, pero el patrimonio, que es el denominador, se reduce. Con la misma deuda y menos patrimonio, el cociente sube.",
+          "revelacion": "Antes: 400 / 500 = 0,8. Después: 400 / 200 = 2. La empresa no debe más, pero el ratio se ha disparado."
+        }
+      ]
     },
     {
       "id": "liquidez",
@@ -591,8 +705,11 @@
       "intuicion": "Es como mirar si lo que tienes en la cuenta y lo que vas a cobrar este año cubre lo que tienes que pagar este año. No va de ser rico, sino de no ahogarse por un desfase de pagos.",
       "formula": "Activo corriente (caja, clientes por cobrar y existencias) dividido entre pasivo corriente (deudas y pagos a menos de un año), ambos del balance.",
       "ejemplo": "Activo corriente de 300 M€ y pasivo corriente de 200 M€: ratio 1,5.",
-      "comoLeerla": "El motor da buena nota por encima de 1,5 (la máxima cerca de 2) y mala por debajo de 1, porque significaría que lo que debe a corto supera lo que tiene a corto. Pero ratios muy altos pueden indicar caja parada o existencias sin vender, y algunos negocios, como los supermercados, funcionan bien con ratios bajos porque cobran antes de pagar. No se usa en bancos.",
-      "cuandoEngana": "Cuenta como activos cosas difíciles de convertir en dinero, como existencias que no se venden. Es además una foto del balance en un momento concreto, que la estacionalidad puede alterar.",
+      "comoLeerla": "Por encima de 1, lo que tiene a corto plazo cubre lo que debe a corto, y el motor lo puntúa mejor cuanto más alto. Pero ratios muy altos pueden indicar caja parada o existencias sin vender, y negocios como los supermercados funcionan bien con ratios bajos porque cobran antes de pagar. No se usa en bancos.",
+      "cuandoEngana": [
+        "Cuenta como activos cosas difíciles de convertir en dinero, como existencias que no se venden.",
+        "Es una foto del balance en un momento concreto, que la estacionalidad puede alterar."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "fcf_positivo",
@@ -607,7 +724,73 @@
         ],
         "correcta": 2,
         "explicacion": "Cuando se cobra antes de pagar, el negocio se autofinancia y un ratio bajo no implica problema. Por eso el ratio se interpreta en el contexto del sector."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "activo",
+          "nombre": "Activo corriente (caja, clientes, existencias)",
+          "origen": "balance",
+          "ejemplo": 300,
+          "min": 50,
+          "max": 600,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "pasivo",
+          "nombre": "Pasivo corriente (pagos a menos de un año)",
+          "origen": "balance",
+          "ejemplo": 200,
+          "min": 50,
+          "max": 600,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Ratio de liquidez",
+          "ejemplo": 1.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el activo y el pasivo corrientes: ¿en qué punto lo que tiene a corto plazo deja de cubrir lo que debe?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Distribución y fabricación",
+          "empresas": [
+            "Mercado Sol",
+            "Taller Norte"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Ratio de liquidez",
+              "a": "0,8",
+              "b": "1,6"
+            },
+            {
+              "etiqueta": "Cobra a sus clientes",
+              "a": "al contado",
+              "b": "a 90 días"
+            },
+            {
+              "etiqueta": "Paga a sus proveedores",
+              "a": "a 60 días",
+              "b": "a 30 días"
+            },
+            {
+              "etiqueta": "Existencias",
+              "a": "rotan en días",
+              "b": "se acumulan meses"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál tiene más riesgo de ahogarse por un desfase entre cobros y pagos?",
+            "correcta": 1,
+            "explicacion": "Mercado Sol tiene el ratio más bajo, pero cobra antes de pagar: sus clientes financian sus pagos. Taller Norte tiene mejor ratio, pero paga a 30 días lo que cobra a 90 y acumula existencias, así que el desfase pesa más. El ratio solo cuenta la historia entera con el contexto."
+          }
+        }
+      ]
     },
     {
       "id": "cobertura_intereses",
@@ -616,8 +799,12 @@
       "intuicion": "Si ganas 3.000 € al mes y tu cuota de hipoteca es de 1.000 €, estás cubierto tres veces. Si cobras 1.100 €, un pequeño bache te deja sin margen.",
       "formula": "EBIT (resultado operativo) de los últimos 12 meses dividido entre los gastos financieros (intereses) del mismo periodo, ambos de la cuenta de resultados. Si el proveedor de datos no da el resultado operativo o los intereses, saldrá «sin dato».",
       "ejemplo": "EBIT de 150 M€ e intereses de 30 M€: cobertura = 5.",
-      "comoLeerla": "El motor da nota nula cerca de 1 (el beneficio apenas paga los intereses), mala por debajo de 2, buena a partir de 5 y máxima hacia 10-20. Si la empresa no paga intereses, no aplica.",
-      "cuandoEngana": "Mide solo los intereses, no la devolución del principal de la deuda. Un EBIT de un año bueno enmascara la fragilidad en un ciclo malo. Y con muy poca deuda el ratio sale enorme sin decir nada útil.",
+      "comoLeerla": "Cuanto más alta, con más holgura paga la empresa sus intereses con su beneficio operativo, y mejor la puntúa el motor; cerca de 1 apenas llega. Si la empresa no paga intereses, no aplica.",
+      "cuandoEngana": [
+        "Mide solo los intereses, no la devolución del principal de la deuda.",
+        "Un EBIT de un año bueno enmascara la fragilidad en un ciclo malo.",
+        "Con muy poca deuda el ratio sale enorme sin decir nada útil."
+      ],
       "combinaCon": [
         "deuda_ebitda",
         "margen_operativo",
@@ -632,7 +819,66 @@
         ],
         "correcta": 0,
         "explicacion": "Cobertura = EBIT / intereses. Con 1,2, el beneficio operativo casi se va entero en intereses, con muy poco margen si bajan las ventas."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "ebit",
+          "nombre": "EBIT (resultado operativo)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 150,
+          "min": 20,
+          "max": 400,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "intereses",
+          "nombre": "Gastos financieros (intereses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 30,
+          "min": 5,
+          "max": 100,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Cobertura de intereses",
+          "unidad": "x",
+          "ejemplo": 5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el beneficio operativo y los intereses: ¿cuántas veces cubre el EBIT lo que paga la empresa de intereses?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas empresas inventadas de menor a mayor cobertura de intereses.",
+          "elementos": [
+            {
+              "nombre": "Alfa: EBIT de 150 M€ e intereses de 30 M€",
+              "valor": 5,
+              "mostrar": "5x"
+            },
+            {
+              "nombre": "Beta: EBIT de 60 M€ e intereses de 50 M€",
+              "valor": 1.2,
+              "mostrar": "1,2x"
+            },
+            {
+              "nombre": "Gamma: EBIT de 200 M€ e intereses de 10 M€",
+              "valor": 20,
+              "mostrar": "20x"
+            },
+            {
+              "nombre": "Delta: EBIT de 90 M€ e intereses de 30 M€",
+              "valor": 3,
+              "mostrar": "3x"
+            }
+          ],
+          "explicacion": "Cobertura = EBIT / intereses. Se ordena por ese cociente, no por el tamaño del beneficio: Beta es la que tiene menos margen, porque casi todo su EBIT se va en intereses."
+        }
+      ]
     },
     {
       "id": "fcf_positivo",
@@ -641,8 +887,11 @@
       "intuicion": "Un trabajador que casi todos los años termina con ahorro es más fiable que uno que un año ahorra mucho y los demás se endeuda.",
       "formula": "Se mira el flujo de caja libre (flujo operativo menos CAPEX, del estado de flujos de caja) de cada uno de los últimos 5 años, con al menos 3 con dato, y se cuenta qué fracción fue positiva.",
       "ejemplo": "En 5 años, el FCF fue +50, +30, −10, +40 y +60 M€. Cuatro de cinco son positivos: 80 %.",
-      "comoLeerla": "El motor da la mejor nota a las empresas con caja positiva todos los años (100 %), buena a partir del 80 % y mala por debajo del 60 %. Una empresa en plena expansión puede tener FCF negativo a propósito; en una empresa madura es una señal de debilidad.",
-      "cuandoEngana": "Un FCF negativo por invertir mucho en crecer no es lo mismo que uno negativo por perder dinero. Y un año positivo puede deberse a frenar inversiones, no a que el negocio mejore.",
+      "comoLeerla": "Cuantos más años con caja positiva, más constante es la empresa, y mejor lo puntúa el motor. Una empresa en plena expansión puede tener FCF negativo a propósito; en una empresa madura es una señal de debilidad.",
+      "cuandoEngana": [
+        "Un FCF negativo por invertir mucho en crecer no es lo mismo que uno negativo por perder dinero.",
+        "Un año positivo puede deberse a frenar inversiones, no a que el negocio mejore."
+      ],
       "combinaCon": [
         "p_fcf",
         "payout_fcf",
@@ -657,7 +906,69 @@
         ],
         "correcta": 2,
         "explicacion": "El FCF negativo tiene dos causas muy distintas: invertir (con un retorno esperado) o perder dinero. El dato solo avisa de que hay que mirar el crecimiento, los márgenes y la deuda."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "positivos",
+          "nombre": "Años con FCF positivo",
+          "origen": "flujo_caja",
+          "ejemplo": 4,
+          "min": 0,
+          "max": 5,
+          "unidad": "años",
+          "paso": 1
+        },
+        "denominador": {
+          "clave": "analizados",
+          "nombre": "Años analizados",
+          "origen": "flujo_caja",
+          "ejemplo": 5,
+          "unidad": "años"
+        },
+        "resultado": {
+          "nombre": "Fracción de años con caja positiva",
+          "unidad": "%",
+          "ejemplo": 0.8
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve cuántos de los 5 años tuvieron caja libre positiva: ¿cómo cambia la fracción?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Fábricas Delta (empresa inventada)",
+          "enunciado": "Su FCF fue negativo en 4 de los últimos 5 años y parece una empresa en apuros. ¿Qué dato engaña?",
+          "datos": [
+            {
+              "etiqueta": "Años con FCF positivo",
+              "valor": "1 de 5",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: es la señal que alarma, pero no dice por qué el FCF es negativo. Aquí el negocio genera caja y lo que la hunde es construir fábricas nuevas."
+            },
+            {
+              "etiqueta": "Caja de las operaciones",
+              "valor": "+40 M€ al año",
+              "esTrampa": false,
+              "explicacion": "Es la clave para interpretar: el negocio en sí genera dinero cada año."
+            },
+            {
+              "etiqueta": "Inversiones (CAPEX)",
+              "valor": "70 M€ al año, el doble que antes",
+              "esTrampa": false,
+              "explicacion": "Explica el FCF negativo: se invierte más de lo que genera la caja. Es el motivo de fondo, no una pérdida."
+            },
+            {
+              "etiqueta": "Crecimiento de ingresos",
+              "valor": "35 % anual",
+              "esTrampa": false,
+              "explicacion": "Confirma que se invierte para crecer. Falta comprobar que ese crecimiento acabe convirtiéndose en caja."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "payout_fcf",
@@ -666,8 +977,11 @@
       "intuicion": "Si te sobran 2.000 € al año y prometes regalar 1.900 €, tu generosidad es frágil: cualquier imprevisto te obliga a recortar.",
       "formula": "Dividendos pagados en el último año (estado de flujos de caja) divididos entre el flujo de caja libre del mismo año.",
       "ejemplo": "FCF de 100 M€ y dividendos de 50 M€: 50 %.",
-      "comoLeerla": "El motor solo lo usa en empresas de dividendo. Da buena nota por debajo del 60 % (la máxima hacia el 30 %), baja cerca del 90 % y nula por encima del 120 %: pagar más de lo que entra en caja obliga a endeudarse o a recortar.",
-      "cuandoEngana": "Un solo año de FCF extraordinariamente alto hace que el pago parezca cómodo, y uno bajo por una inversión puntual lo hace parecer insostenible. Mira varios años. Además, un dividendo muy alto (por encima del 7 % del precio) ya es un aviso en sí mismo.",
+      "comoLeerla": "Cuanto menor, más holgado es el pago del dividendo, y mejor lo puntúa el motor. Cerca del 100 % la empresa reparte casi toda su caja; por encima paga más de lo que entra y tendrá que endeudarse o recortar. El motor solo lo usa en empresas de dividendo.",
+      "cuandoEngana": [
+        "Un solo año de FCF extraordinariamente alto hace que el pago parezca cómodo, y uno bajo por una inversión puntual lo hace parecer insostenible. Mira varios años.",
+        "Un dividendo muy alto frente al precio ya es un aviso en sí mismo."
+      ],
       "combinaCon": [
         "p_fcf",
         "fcf_positivo",
@@ -682,7 +996,51 @@
         ],
         "correcta": 0,
         "explicacion": "Si paga más de lo que entra, el dinero sale de la caja acumulada o de la deuda. Eso no se puede sostener indefinidamente."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "dividendos",
+          "nombre": "Dividendos pagados",
+          "origen": "flujo_caja",
+          "ejemplo": 50,
+          "min": 0,
+          "max": 200,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "fcf",
+          "nombre": "Flujo de caja libre",
+          "origen": "flujo_caja",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Dividendo/FCF",
+          "unidad": "%",
+          "ejemplo": 0.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve los dividendos y el flujo de caja libre: ¿qué parte de la caja se va en dividendos? ¿Qué pasa si supera el 100 %?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada genera 100 M€ de caja libre y paga 130 M€ de dividendos. Antes de calcularlo: ¿su Dividendo/FCF será mayor o menor que el 100 %?",
+          "opciones": [
+            "Mayor que el 100 %",
+            "Menor que el 100 %",
+            "Exactamente el 100 %"
+          ],
+          "correcta": 0,
+          "explicacion": "Paga más de lo que entra en caja, así que el cociente supera el 100 %. La diferencia tiene que salir de la caja acumulada o de deuda nueva.",
+          "revelacion": "130 / 100 = 130 %. Mantenerlo varios años obligaría a endeudarse, vender activos o recortar el dividendo."
+        }
+      ]
     },
     {
       "id": "ingresos_cagr3",

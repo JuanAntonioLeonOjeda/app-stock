@@ -67,6 +67,9 @@ class SimulatorActivityView extends StatelessWidget {
   }
 }
 
+/// Posiciones de un deslizador sin `paso`: suficientes para parecer continuo.
+const _continuousDivisions = 100;
+
 class _PieceSlider extends StatelessWidget {
   const _PieceSlider({
     required this.piece,
@@ -82,6 +85,11 @@ class _PieceSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final min = piece.min!;
     final max = piece.max!;
+    int divisions() {
+      final step = piece.step;
+      return step == null ? _continuousDivisions : ((max - min) / step).round();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,7 +101,7 @@ class _PieceSlider extends StatelessWidget {
           value: value.clamp(min, max),
           min: min,
           max: max,
-          divisions: 100,
+          divisions: divisions(),
           label: formatPieceValue(value, piece.unit),
           semanticFormatterCallback: (v) => formatPieceValue(v, piece.unit),
           onChanged: onChanged,

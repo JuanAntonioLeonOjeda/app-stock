@@ -19,6 +19,7 @@ class FormulaPiece {
     this.unit = '',
     this.min,
     this.max,
+    this.step,
   });
 
   /// Identifica la pieza dentro de su fórmula (`precio`, `beneficio`...).
@@ -31,6 +32,9 @@ class FormulaPiece {
   final String unit;
   final double? min;
   final double? max;
+
+  /// Salto del deslizador (1 para años enteros); `null` si es continuo.
+  final double? step;
 
   bool get isAdjustable => min != null && max != null;
 }

@@ -78,3 +78,32 @@ class IllustrationCanvas extends StatelessWidget {
     );
   }
 }
+
+/// Base de los dibujos: guarda la paleta del tema y se repinta si cambia.
+abstract class ThemedPainter extends CustomPainter {
+  const ThemedPainter(this.palette);
+
+  final IllustrationPalette palette;
+
+  @override
+  bool shouldRepaint(covariant ThemedPainter oldDelegate) =>
+      oldDelegate.palette.line != palette.line ||
+      oldDelegate.palette.accent != palette.accent ||
+      oldDelegate.palette.soft != palette.soft;
+}
+
+/// Una ilustración lista para usar: su descripción y el dibujo que la pinta.
+class PaintedIllustration extends StatelessWidget {
+  const PaintedIllustration({
+    super.key,
+    required this.label,
+    required this.painter,
+  });
+
+  final String label;
+  final CustomPainter Function(IllustrationPalette palette) painter;
+
+  @override
+  Widget build(BuildContext context) =>
+      IllustrationCanvas(semanticLabel: label, paint: painter);
+}

@@ -91,6 +91,33 @@ void main() {
       expect(() => _diagram(json), _failsWith('entre min y max'));
     });
 
+    test('el paso del deslizador se lee', () {
+      final json = ratioFormulaJson();
+      (json['numerador']! as Map<String, Object?>)['paso'] = 5;
+
+      final ratio = _diagram(json)! as RatioFormula;
+
+      expect(ratio.numerator.step, 5);
+      expect(ratio.denominator.step, isNull);
+    });
+
+    test('un paso que no cabe entre min y max falla', () {
+      final json = ratioFormulaJson();
+      (json['numerador']! as Map<String, Object?>)['paso'] = 500;
+
+      expect(() => _diagram(json), _failsWith('paso'));
+    });
+
+    test('un paso en una pieza no movible falla', () {
+      final json = ratioFormulaJson();
+      final piece = json['numerador']! as Map<String, Object?>
+        ..remove('min')
+        ..remove('max');
+      piece['paso'] = 1;
+
+      expect(() => _diagram(json), _failsWith('paso'));
+    });
+
     test('min sin max falla', () {
       final json = ratioFormulaJson();
       (json['numerador']! as Map<String, Object?>).remove('max');

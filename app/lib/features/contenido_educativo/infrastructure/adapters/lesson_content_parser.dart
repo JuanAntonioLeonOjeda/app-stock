@@ -72,6 +72,10 @@ FormulaPiece _piece(ContentReader reader) {
   if (min != null && max != null && !(min < example && example < max)) {
     throw reader.fail('ejemplo', 'debe estar entre min y max (sin tocarlos)');
   }
+  final step = reader.optionalNumber('paso');
+  if (step != null && (min == null || step <= 0 || step > max! - min)) {
+    throw reader.fail('paso', 'debe ser positivo y caber entre min y max');
+  }
   return FormulaPiece(
     key: reader.text('clave'),
     name: reader.text('nombre'),
@@ -80,6 +84,7 @@ FormulaPiece _piece(ContentReader reader) {
     unit: reader.has('unidad') ? reader.text('unidad') : '',
     min: min,
     max: max,
+    step: step,
   );
 }
 
