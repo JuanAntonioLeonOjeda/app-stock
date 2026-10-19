@@ -2357,8 +2357,12 @@
       "intuicion": "Si cada trimestre se espera que un alumno saque un 6 y saca 7, 7 y 8, rinde por encima de lo esperado de forma habitual.",
       "formula": "Se compara el beneficio por acción real con el estimado por los analistas en cada uno de los últimos 4 trimestres (informes de resultados) y se cuentan los que lo superan. Si el proveedor de datos no da las estimaciones, saldrá «sin dato».",
       "ejemplo": "Real frente a estimado en 4 trimestres: 1,2 frente a 1,0; 1,1 frente a 1,1; 1,3 frente a 1,2; 0,9 frente a 1,0. Bate en 2.",
-      "comoLeerla": "Más trimestres superados da mejor nota: 4 de 4 es la máxima y 0 de 4 la mínima. Refleja si la empresa suele ser prudente con sus previsiones y si el negocio resiste mejor de lo esperado.",
-      "cuandoEngana": "Las empresas gestionan las expectativas: si orientan a los analistas hacia cifras bajas, batirlas es fácil. Batir por muy poco no significa nada, y el mercado ya descuenta mucho de eso en el precio. No dice nada de la calidad del beneficio.",
+      "comoLeerla": "Cuantos más trimestres supera, mejor puntúa: batirlas todas es la nota máxima, y no batir ninguna, la mínima. Refleja si la empresa suele ser prudente con sus previsiones y si el negocio resiste mejor de lo esperado. Cuánto bate importa tanto como cuántas veces.",
+      "cuandoEngana": [
+        "Las empresas gestionan las expectativas: si orientan a los analistas hacia cifras bajas, batirlas es fácil.",
+        "Batir por muy poco no significa nada, y el mercado ya descuenta mucho de eso en el precio.",
+        "No dice nada de la calidad del beneficio."
+      ],
       "combinaCon": [
         "beneficio_cagr3",
         "potencial_analistas",
@@ -2373,7 +2377,74 @@
         ],
         "correcta": 0,
         "explicacion": "Batir por muy poco y de forma constante puede reflejar estimaciones ajustadas por la propia empresa. Conviene mirar cuánto se bate y qué ocurre con los ingresos."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Cada trimestre",
+            "descripcion": "Se compara el beneficio por acción real con la estimación media de los analistas."
+          },
+          {
+            "nombre": "Se cuentan los que la superan",
+            "descripcion": "Igualar la estimación no cuenta como batirla."
+          },
+          {
+            "nombre": "Se suman los de los últimos 4",
+            "descripcion": "El resultado es un número de 0 a 4."
+          }
+        ],
+        "resultado": {
+          "nombre": "Trimestres que baten la estimación",
+          "unidad": "de 4",
+          "ejemplo": 2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada tuvo, en 4 trimestres, estos beneficios por acción reales frente a los estimados: 1,2 frente a 1,0; 1,1 frente a 1,1; 1,3 frente a 1,2; 0,9 frente a 1,0. ¿En cuántos bate la estimación?",
+          "opciones": [
+            "En 4",
+            "En 3",
+            "En 2"
+          ],
+          "correcta": 2,
+          "explicacion": "Solo cuenta superar la estimación. Igualarla no es batirla, y quedarse por debajo tampoco.",
+          "revelacion": "Bate en el primer trimestre (1,2 frente a 1,0) y en el tercero (1,3 frente a 1,2). El segundo la iguala y el cuarto se queda por debajo: 2 de 4."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Tecnología Alba (empresa inventada)",
+          "enunciado": "Bate las estimaciones en los 4 trimestres y parece una empresa que siempre sorprende. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Trimestres que baten la estimación",
+              "valor": "4 de 4",
+              "esTrampa": false,
+              "explicacion": "Es el resultado. Por sí solo parece perfecto, pero depende de lo difícil que fuera batir la estimación."
+            },
+            {
+              "etiqueta": "Margen de cada sorpresa",
+              "valor": "0,01 € por acción",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a ver la trampa: batir por tan poco apenas significa nada."
+            },
+            {
+              "etiqueta": "Orientación de la empresa a los analistas",
+              "valor": "Rebajó sus previsiones antes de cada informe",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: si la empresa rebaja las expectativas antes de cada informe, batirlas es fácil. El 4 de 4 dice más de cómo gestiona las expectativas que de cómo va el negocio."
+            },
+            {
+              "etiqueta": "Beneficio por acción real",
+              "valor": "Baja trimestre a trimestre",
+              "esTrampa": false,
+              "explicacion": "Es un dato de contexto importante: se puede batir una estimación a la baja mientras el negocio empeora."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "potencial_analistas",
@@ -2382,8 +2453,12 @@
       "intuicion": "Es como preguntar a varios tasadores cuánto vale una casa. Su opinión orienta, pero se equivocan y tienen sus propios incentivos.",
       "formula": "Precio objetivo medio de los analistas dividido entre el precio actual, menos 1. El proveedor de datos da el precio objetivo; si no lo da, saldrá «sin dato».",
       "ejemplo": "Precio de 50 € y objetivo medio de 60 €: +20 %.",
-      "comoLeerla": "El motor da nota baja si el objetivo está por debajo del precio actual, media en torno al +10 % y mejor hacia el +25 %. Tiene poco peso en la nota global.",
-      "cuandoEngana": "Los precios objetivo suelen ser optimistas y se revisan tras cada movimiento del precio: siguen al mercado más que lo anticipan. Con pocos analistas, la media es poco fiable. Un potencial enorme suele indicar desacuerdo o una situación muy incierta.",
+      "comoLeerla": "Cuanto mayor es el precio objetivo frente al precio actual, mejor puntúa; si el objetivo está por debajo del precio, la nota es baja. Tiene poco peso en la nota global: es una opinión, no un dato del negocio.",
+      "cuandoEngana": [
+        "Los precios objetivo suelen ser optimistas y se revisan tras cada movimiento del precio: siguen al mercado más que lo anticipan.",
+        "Con pocos analistas, la media es poco fiable.",
+        "Un potencial enorme suele indicar desacuerdo o una situación muy incierta."
+      ],
       "combinaCon": [
         "sorpresas_bpa",
         "per",
@@ -2398,7 +2473,70 @@
         ],
         "correcta": 1,
         "explicacion": "Un potencial muy alto suele indicar que los analistas ven mucha incertidumbre o que sus previsiones son demasiado optimistas. Es un dato de contexto, no una instrucción."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "objetivo",
+          "nombre": "Precio objetivo medio de los analistas",
+          "origen": "mercado",
+          "ejemplo": 60,
+          "min": 20,
+          "max": 120,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 50,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Potencial según los analistas",
+          "unidad": "%",
+          "ejemplo": 0.2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio objetivo y el precio actual: ¿cuánto subiría el precio si llegase al objetivo? Prueba con un objetivo por debajo del precio."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Biotec Luz (empresa inventada)",
+          "enunciado": "El potencial según los analistas es de un +60 % y parece una gran oportunidad. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Precio objetivo medio",
+              "valor": "80 €",
+              "esTrampa": false,
+              "explicacion": "Es la media de las opiniones. Una media es tan fiable como los datos que la forman."
+            },
+            {
+              "etiqueta": "Precio actual",
+              "valor": "50 €",
+              "esTrampa": false,
+              "explicacion": "Es la referencia. Por sí solo no explica un potencial tan alto."
+            },
+            {
+              "etiqueta": "Número de analistas que la siguen",
+              "valor": "2",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con solo dos analistas, la media es poco fiable. Un solo objetivo muy optimista basta para disparar el potencial."
+            },
+            {
+              "etiqueta": "Potencial resultante",
+              "valor": "+60 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 80 con 50. El dato engañoso es cuántas opiniones hay detrás de ese 80."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "beta",
@@ -2407,8 +2545,12 @@
       "intuicion": "Si el mercado fuese una ola, la beta dice si esta acción es un barco que se balancea más que la ola (beta mayor que 1) o menos (beta menor que 1).",
       "formula": "Se compara, con datos históricos, cómo han variado los precios de la acción frente a los de un índice amplio de mercado. El proveedor de datos la da ya calculada.",
       "ejemplo": "Con una beta de 1,5, si el mercado sube un 10 %, la acción tendería a subir un 15 % (y a bajar un 15 % si el mercado baja un 10 %).",
-      "comoLeerla": "El motor da mejor nota a betas por debajo de 0,8, nota media hacia 1,2 y baja a partir de 1,8-2,5, porque una beta alta implica más oscilación. Una beta baja no significa que la empresa sea buena, solo que se mueve menos que el mercado.",
-      "cuandoEngana": "Se calcula con el pasado y cambia según el periodo elegido. Mide solo cuánto se mueve junto al mercado, no el riesgo propio de la empresa (una deuda excesiva o un problema legal). Una beta baja puede coincidir con una empresa en problemas.",
+      "comoLeerla": "Una beta mayor que 1 indica que la acción oscila más que el mercado; menor que 1, que oscila menos. El motor puntúa mejor las betas bajas porque implican menos oscilación. Una beta baja no significa que la empresa sea buena, solo que se mueve menos.",
+      "cuandoEngana": [
+        "Se calcula con el pasado y cambia según el periodo elegido.",
+        "Mide solo cuánto se mueve junto al mercado, no el riesgo propio de la empresa, como una deuda excesiva o un problema legal.",
+        "Una beta baja puede coincidir con una empresa en problemas."
+      ],
       "combinaCon": [
         "caida_maxima",
         "dist_maximo",
@@ -2423,7 +2565,50 @@
         ],
         "correcta": 1,
         "explicacion": "Una beta de 0,5 indica que, históricamente, se mueve aproximadamente la mitad que el mercado, en ambos sentidos. No garantiza que nunca baje."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "accion",
+          "nombre": "Cuánto tiende a moverse la acción",
+          "origen": "historico_precios",
+          "ejemplo": 15,
+          "min": 2,
+          "max": 40,
+          "unidad": "%"
+        },
+        "denominador": {
+          "clave": "mercado",
+          "nombre": "Cuánto se mueve el mercado",
+          "origen": "historico_precios",
+          "ejemplo": 10,
+          "min": 2,
+          "max": 30,
+          "unidad": "%"
+        },
+        "resultado": {
+          "nombre": "Beta (idea simplificada)",
+          "ejemplo": 1.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve cuánto se mueve la acción y cuánto el mercado: ¿cuándo la beta supera 1 y cuándo queda por debajo?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una acción inventada tiene una beta de 0,5. Si el mercado cae un 20 %, ¿qué cabría esperar de ella?",
+          "opciones": [
+            "Que caiga en torno a un 10 %",
+            "Que caiga un 20 %",
+            "Que no caiga"
+          ],
+          "correcta": 0,
+          "explicacion": "Con una beta de 0,5, la acción tiende a moverse la mitad que el mercado, tanto cuando sube como cuando baja.",
+          "revelacion": "0,5 × 20 % = 10 %. Es una tendencia histórica, no una garantía: y una beta baja no quita los problemas propios de la empresa."
+        }
+      ]
     },
     {
       "id": "caida_maxima",
@@ -2432,8 +2617,12 @@
       "intuicion": "Es el peor «bajón» que habrías sufrido si hubieras comprado en el momento más alto del último año: te dice cuánto dolería aguantar.",
       "formula": "Se recorren los cierres diarios del último año y se toma la mayor caída entre un máximo acumulado y un cierre posterior: mínimo de (cierre / máximo acumulado − 1). Requiere un año de histórico diario; si el proveedor de datos no lo da, saldrá «sin dato».",
       "ejemplo": "El precio sube hasta 100 €, cae a 70 € y luego se recupera: la caída máxima es −30 %.",
-      "comoLeerla": "El motor da buena nota si la caída máxima es pequeña (cerca del −10 %), nota media hacia el −25 % y baja desde el −40 %. Tiene poco peso: es una medida de lo que habría que estar dispuesto a aguantar, no un veredicto.",
-      "cuandoEngana": "Solo mira un año: puede ser un año excepcionalmente tranquilo o excepcionalmente malo. Una caída profunda con recuperación rápida no es lo mismo que una que no se recupera. No indica cuándo ocurrirá la próxima.",
+      "comoLeerla": "Cuanto menor sea la caída máxima, mejor puntúa. Tiene poco peso: mide cuánto habría que estar dispuesto a aguantar, no es un veredicto. Compárala con cuánto aguantarías tú ver caer una inversión sin necesitar ese dinero.",
+      "cuandoEngana": [
+        "Solo mira un año: puede ser un año excepcionalmente tranquilo o excepcionalmente malo.",
+        "Una caída profunda con recuperación rápida no es lo mismo que una que no se recupera.",
+        "No indica cuándo ocurrirá la próxima."
+      ],
       "combinaCon": [
         "beta",
         "dist_maximo",
@@ -2448,7 +2637,72 @@
         ],
         "correcta": 2,
         "explicacion": "La caída máxima muestra el «bajón» histórico. Invertir con sentido incluye saber si puedes tolerar ese vaivén y no necesitas el dinero a corto plazo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "minimo",
+          "nombre": "Cierre más bajo tras el máximo",
+          "origen": "historico_precios",
+          "ejemplo": 70,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "maximo",
+          "nombre": "Máximo previo",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Caída máxima",
+          "unidad": "%",
+          "ejemplo": -0.3
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el cierre más bajo: ¿cuánto cae el precio desde su máximo? Una caída del 50 % exige una subida del 100 % para volver al punto de partida."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Bebidas",
+          "empresas": [
+            "Fuente Norte",
+            "Río Sur"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Caída máxima en el año",
+              "a": "−35 %",
+              "b": "−35 %"
+            },
+            {
+              "etiqueta": "Dónde está hoy",
+              "a": "ha recuperado su máximo",
+              "b": "sigue un 30 % por debajo"
+            },
+            {
+              "etiqueta": "Tiempo en recuperarse",
+              "a": "3 meses",
+              "b": "aún sin recuperar"
+            },
+            {
+              "etiqueta": "Qué pasó con sus beneficios",
+              "a": "sin cambios",
+              "b": "a la baja"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿En cuál de las dos ha sido más pasajera la caída hasta hoy?",
+            "correcta": 0,
+            "explicacion": "Las dos tienen la misma caída máxima, pero Fuente Norte se recuperó en tres meses y Río Sur sigue lejos de su máximo con beneficios a la baja. La caída máxima mide cuánto dolió, no si se recuperó."
+          }
+        }
+      ]
     }
   ]
 }

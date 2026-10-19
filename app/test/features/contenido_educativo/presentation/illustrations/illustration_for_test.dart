@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/context_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/growth_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_canvas.dart';
@@ -21,6 +22,7 @@ final _allIds = [
   ...healthIllustrations.keys,
   ...growthIllustrations.keys,
   ...technicalIllustrations.keys,
+  ...contextIllustrations.keys,
 ];
 
 void main() {
@@ -86,6 +88,18 @@ void main() {
         'dist_maximo',
       ]);
       for (final id in technicalIllustrations.keys) {
+        expect(illustrationFor(id), isNotNull, reason: id);
+      }
+    });
+
+    test('hay una ilustración por cada métrica de contexto', () {
+      expect(contextIllustrations.keys, [
+        'sorpresas_bpa',
+        'potencial_analistas',
+        'beta',
+        'caida_maxima',
+      ]);
+      for (final id in contextIllustrations.keys) {
         expect(illustrationFor(id), isNotNull, reason: id);
       }
     });
