@@ -5,6 +5,7 @@ import 'package:stock_app/features/contenido_educativo/presentation/illustration
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_canvas.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/illustration_for.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/technical_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/valuation_illustrations.dart';
 
 Future<void> _pump(WidgetTester tester, Widget child, Brightness brightness) =>
@@ -19,6 +20,7 @@ final _allIds = [
   ...valuationIllustrations.keys,
   ...healthIllustrations.keys,
   ...growthIllustrations.keys,
+  ...technicalIllustrations.keys,
 ];
 
 void main() {
@@ -74,6 +76,19 @@ void main() {
         }
       },
     );
+
+    test('hay una ilustración por cada métrica técnica', () {
+      expect(technicalIllustrations.keys, [
+        'precio_sma200',
+        'pendiente_sma200',
+        'rsi',
+        'macd',
+        'dist_maximo',
+      ]);
+      for (final id in technicalIllustrations.keys) {
+        expect(illustrationFor(id), isNotNull, reason: id);
+      }
+    });
 
     test('ningún id está en dos bloques', () {
       expect(_allIds.toSet(), hasLength(_allIds.length));

@@ -32,6 +32,11 @@ class FormulaDiagramView extends StatelessWidget {
         finalValue,
         years,
       ),
+      VariationFormula(:final current, :final reference) => _variation(
+        context,
+        current,
+        reference,
+      ),
       StepsFormula(:final steps) => _steps(context, steps),
     };
     return Column(
@@ -78,6 +83,24 @@ class FormulaDiagramView extends StatelessWidget {
       Text(
         'Crecimiento anual = (valor final ÷ valor inicial) elevado a '
         '1/años, menos 1',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+    ],
+  );
+
+  Widget _variation(
+    BuildContext context,
+    FormulaPiece current,
+    FormulaPiece reference,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _PieceCard(piece: current, value: _valueOf(current)),
+      const SizedBox(height: 8),
+      _PieceCard(piece: reference, value: _valueOf(reference)),
+      const SizedBox(height: 8),
+      Text(
+        'Variación = valor actual ÷ referencia, menos 1',
         style: Theme.of(context).textTheme.bodyMedium,
       ),
     ],

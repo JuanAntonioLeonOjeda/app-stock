@@ -157,12 +157,12 @@ class _LiquidityPainter extends ThemedPainter {
       ..drawPath(water, fillPaint(palette.accent.withValues(alpha: 0.45)))
       ..drawPath(glass, strokePaint(palette.line, size, width: 0.016));
     final mark = strokePaint(palette.unfavorable, size, width: 0.012);
-    _dashedLine(canvas, rel(size, 0.22, 0.58), rel(size, 0.78, 0.58), mark);
+    paintDashedLine(canvas, rel(size, 0.22, 0.58), rel(size, 0.78, 0.58), mark);
     paintCaption(
       canvas,
       size,
       'pagos del año',
-      rel(size, 0.86, 0.5),
+      rel(size, 0.88, 0.5),
       palette.unfavorable,
       scale: 0.07,
     );
@@ -174,18 +174,6 @@ class _LiquidityPainter extends ThemedPainter {
       palette.line,
       scale: 0.07,
     );
-  }
-
-  void _dashedLine(Canvas canvas, Offset from, Offset to, Paint paint) {
-    const dashes = 14;
-    final step = (to - from) / dashes.toDouble();
-    for (var i = 0; i < dashes; i += 2) {
-      canvas.drawLine(
-        from + step * i.toDouble(),
-        from + step * (i + 1).toDouble(),
-        paint,
-      );
-    }
   }
 }
 

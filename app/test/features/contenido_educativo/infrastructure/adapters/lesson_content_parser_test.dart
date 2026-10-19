@@ -58,6 +58,19 @@ void main() {
       expect((diagram! as GrowthFormula).pieces, hasLength(3));
     });
 
+    test('convierte una variación con su pieza actual y de referencia', () {
+      final diagram = _diagram({
+        'tipo': 'variacion',
+        'actual': pieceJson('precio', 110),
+        'referencia': pieceJson('media', 100, source: 'historico_precios'),
+        'resultado': {'nombre': 'Distancia', 'unidad': '%', 'ejemplo': 0.1},
+      });
+
+      final variation = diagram! as VariationFormula;
+      expect(variation.reference.source, DataSource.priceHistory);
+      expect(variation.pieces, hasLength(2));
+    });
+
     test('convierte una fórmula por pasos', () {
       final diagram = _diagram({
         'tipo': 'pasos',

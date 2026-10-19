@@ -105,6 +105,22 @@ class GrowthFormula extends FormulaDiagram {
   List<FormulaPiece> get pieces => [initial, finalValue, years];
 }
 
+/// Cuánto se aleja un valor de otro de referencia: `actual / referencia − 1`
+/// (precio frente a su media, distancia al máximo...).
+class VariationFormula extends FormulaDiagram {
+  const VariationFormula({
+    required this.current,
+    required this.reference,
+    required super.result,
+  });
+
+  final FormulaPiece current;
+  final FormulaPiece reference;
+
+  @override
+  List<FormulaPiece> get pieces => [current, reference];
+}
+
 /// Secuencia de pasos sin simulador (RSI, MACD, medias...).
 class StepsFormula extends FormulaDiagram {
   StepsFormula({required List<FormulaStep> steps, required super.result})

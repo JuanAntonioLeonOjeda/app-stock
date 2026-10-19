@@ -291,7 +291,7 @@ no va en el JSON: se busca por `id` en presentación.
 
 | Campo | Cambio |
 |---|---|
-| `formulaVisual` | **Nuevo.** `tipo`: `cociente` (numerador ÷ denominador), `crecimiento` (valor inicial → final en N años) o `pasos` (2-4 pasos con flecha, para RSI, MACD o medias). Cada pieza: `nombre`, `origen` (`mercado`, `cuenta_resultados`, `balance`, `flujo_caja`, `historico_precios`), `ejemplo` y, si es movible, `min`/`max` y, si procede, `paso` (salto del deslizador, p. ej. 1 para años enteros). `resultado`: `nombre`, `unidad` y `ejemplo` |
+| `formulaVisual` | **Nuevo.** `tipo`: `cociente` (numerador ÷ denominador), `crecimiento` (valor inicial → final en N años), `variacion` (actual ÷ referencia − 1, para precio frente a su media o al máximo) o `pasos` (2-4 pasos con flecha, para RSI, MACD o medias). Cada pieza: `nombre`, `origen` (`mercado`, `cuenta_resultados`, `balance`, `flujo_caja`, `historico_precios`), `ejemplo` y, si es movible, `min`/`max` y, si procede, `paso` (salto del deslizador, p. ej. 1 para años enteros). `resultado`: `nombre`, `unidad` y `ejemplo` |
 | `ejemplo` | Pasa a ser una frase de contexto («Una tienda de muebles inventada…»); las cifras salen de `formulaVisual`, así el ejemplo y el simulador no pueden contradecirse (criterio 87) |
 | `comoLeerla` | ≤ 60 palabras (criterio 74) |
 | `cuandoEngana` | Pasa de texto a lista de 1-3 trampas, ≤ 60 palabras cada una: una tarjeta por trampa |

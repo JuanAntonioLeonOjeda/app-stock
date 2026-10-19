@@ -51,6 +51,11 @@ FormulaDiagram? parseFormulaDiagram(ContentReader item) {
       years: _piece(reader.object('anios')),
       result: result,
     ),
+    'variacion' => VariationFormula(
+      current: _piece(reader.object('actual')),
+      reference: _piece(reader.object('referencia')),
+      result: result,
+    ),
     'pasos' => StepsFormula(steps: _steps(reader), result: result),
     final other => throw reader.fail('tipo', 'desconocido: "$other"'),
   };

@@ -158,3 +158,16 @@ void paintBar(
   canvas.drawRect(bar, fillPaint(color.withValues(alpha: 0.3)));
   canvas.drawRect(bar, strokePaint(color, size, width: 0.014));
 }
+
+/// Línea discontinua de [from] a [to].
+void paintDashedLine(Canvas canvas, Offset from, Offset to, Paint paint) {
+  const dashes = 14;
+  final step = (to - from) / dashes.toDouble();
+  for (var i = 0; i < dashes; i += 2) {
+    canvas.drawLine(
+      from + step * i.toDouble(),
+      from + step * (i + 1).toDouble(),
+      paint,
+    );
+  }
+}

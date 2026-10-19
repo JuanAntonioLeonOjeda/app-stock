@@ -142,7 +142,8 @@
 - [x] T48. Salud financiera (6): JSON nuevo, ilustraciones y `paso` en las piezas movibles
       (para que un deslizador de años avance de 1 en 1). Pendiente de tu revisión (T31).
 - [x] T49. Crecimiento y rentabilidad (9). Pendiente de tu revisión (T31).
-- [ ] T50. Técnico (5), incluida la leyenda de MACD.
+- [x] T50. Técnico (5), incluida la leyenda de MACD y el tipo de fórmula `variacion`
+      (actual ÷ referencia − 1). Pendiente de tu revisión (T31).
 - [ ] T51. Contexto (4).
 - [ ] T52. Conceptos de la gráfica (3), con leyenda.
 - [ ] T53. Test de cobertura ampliado (criterios 74, 75, 79, 80, 86-88); borrar

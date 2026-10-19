@@ -98,6 +98,33 @@ void main() {
       expect(find.text('10 %'), findsOneWidget);
     });
 
+    testWidgets('una variación dibuja las dos piezas y el resultado en %', (
+      tester,
+    ) async {
+      final variation = VariationFormula(
+        current: _piece('precio', 'Precio actual', 110, unit: '€'),
+        reference: _piece(
+          'media',
+          'Media de 200 sesiones',
+          100,
+          source: DataSource.priceHistory,
+          unit: '€',
+        ),
+        result: const FormulaResult(
+          name: 'Distancia a la media',
+          unit: '%',
+          exampleValue: 0.1,
+        ),
+      );
+
+      await _pump(tester, variation);
+
+      expect(find.text('Precio actual'), findsOneWidget);
+      expect(find.text('Histórico de precios'), findsOneWidget);
+      expect(find.textContaining('menos 1'), findsOneWidget);
+      expect(find.text('10 %'), findsOneWidget);
+    });
+
     testWidgets('una fórmula por pasos numera los pasos y no calcula', (
       tester,
     ) async {

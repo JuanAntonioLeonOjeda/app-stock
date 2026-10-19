@@ -1869,8 +1869,12 @@
       "intuicion": "Imagina que sigues el precio de la gasolina de tu barrio. Si hoy está muy por encima de lo que pagaste de media el último año, sabes que ha subido bastante. La media de 200 sesiones es ese «precio normal» del último año, aproximadamente.",
       "formula": "Precio actual dividido entre la media de los últimos 200 cierres diarios, menos 1. Si el proveedor de datos no da el histórico, usa su media de 200 sesiones ya calculada.",
       "ejemplo": "Precio de 110 € y media de 200 sesiones de 100 €: +10 %.",
-      "comoLeerla": "El motor da nota media si el precio está justo en su media (0 %), buena desde un +5 % y máxima hacia el +15 % (tendencia sana). Si cae por debajo del −5 %, la nota es baja (tendencia debilitada). Si está más de un 25-40 % por encima, la nota baja de nuevo: puede haber subido demasiado deprisa. Es una foto de la tendencia, no una predicción.",
-      "cuandoEngana": "Que el precio esté sobre su media no garantiza que siga subiendo, y que esté debajo no garantiza un rebote. En mercados laterales cruza la media muchas veces y da señales falsas. Mide cómo se ha movido el precio, no cuánto vale la empresa.",
+      "comoLeerla": "Por encima de su media, el precio va en una tendencia sana, y el motor lo puntúa mejor; por debajo, la tendencia está debilitada. Pero si se aleja mucho por encima, la nota baja de nuevo: puede haber subido demasiado deprisa. Es una foto de la tendencia, no una predicción.",
+      "cuandoEngana": [
+        "Que el precio esté sobre su media no garantiza que siga subiendo, y que esté debajo no garantiza un rebote.",
+        "En mercados laterales cruza la media muchas veces y da señales falsas.",
+        "Mide cómo se ha movido el precio, no cuánto vale la empresa."
+      ],
       "combinaCon": [
         "pendiente_sma200",
         "rsi",
@@ -1885,7 +1889,70 @@
         ],
         "correcta": 0,
         "explicacion": "Una subida muy rápida respecto a su media puede corregirse. La mejor nota del motor está en subidas moderadas sobre la media, donde la tendencia es sana pero no extrema."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 110,
+          "min": 40,
+          "max": 200,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "media",
+          "nombre": "Media de los últimos 200 cierres",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "min": 50,
+          "max": 150,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Distancia a la media",
+          "unidad": "%",
+          "ejemplo": 0.1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio y su media: ¿a qué distancia queda el precio de su media? Prueba con un precio muy por encima y otro por debajo."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Papel Centro (empresa inventada)",
+          "enunciado": "Su precio acaba de pasar por encima de la media y parece el inicio de una tendencia al alza. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Precio hoy",
+              "valor": "103 €",
+              "esTrampa": false,
+              "explicacion": "Es un precio algo por encima de la media, pero un solo día no dice mucho: hay que ver cómo se ha comportado antes."
+            },
+            {
+              "etiqueta": "Media de 200 sesiones",
+              "valor": "100 €",
+              "esTrampa": false,
+              "explicacion": "Es la referencia. Por sí sola no engaña; lo que importa es cuántas veces el precio la ha cruzado."
+            },
+            {
+              "etiqueta": "Veces que el precio ha cruzado la media en 3 meses",
+              "valor": "9 veces",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: si el precio cruza la media 9 veces en 3 meses, se mueve de lado. En un mercado lateral cada cruce es ruido, no una tendencia: es la fuente típica de señales falsas."
+            },
+            {
+              "etiqueta": "Distancia a la media",
+              "valor": "+3 %",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de comparar 103 con 100. No dice nada sobre si el precio lleva días oscilando alrededor de la media."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "pendiente_sma200",
@@ -1894,8 +1961,11 @@
       "intuicion": "No solo importa dónde está la media, sino hacia dónde va. Un camino que sube suavemente (media creciente) es muy distinto de uno en pendiente descendente.",
       "formula": "Media de 200 sesiones de hoy dividida entre la media de 200 sesiones de hace 20 sesiones, menos 1. Requiere al menos 220 sesiones de histórico; si el proveedor de datos no lo da, saldrá «sin dato».",
       "ejemplo": "La media pasó de 100 € a 102 € en 20 sesiones: +2 %.",
-      "comoLeerla": "El motor da nota baja si la media cae (−5 %), baja-media si está plana y buena con subidas de un 2-5 %. Una media que sube es una señal de tendencia de fondo al alza.",
-      "cuandoEngana": "Es una medida muy lenta: cambia de dirección mucho después de que el precio lo haya hecho, y cuando por fin se gira, la mayor parte del movimiento ya ocurrió. Con precios laterales, la pendiente oscila cerca de cero.",
+      "comoLeerla": "Una media que sube indica una tendencia de fondo al alza, y el motor la puntúa mejor; si está plana, la nota queda en un punto intermedio-bajo, y si cae, la nota es baja.",
+      "cuandoEngana": [
+        "Es una medida muy lenta: cambia de dirección mucho después de que el precio lo haya hecho, y cuando por fin se gira, la mayor parte del movimiento ya ocurrió.",
+        "Con precios laterales, la pendiente oscila cerca de cero."
+      ],
       "combinaCon": [
         "precio_sma200",
         "macd",
@@ -1910,7 +1980,51 @@
         ],
         "correcta": 1,
         "explicacion": "Cada día nuevo entra 1 de 200 datos. Un cambio reciente se diluye en el promedio, por eso la media reacciona despacio y confirma los cambios de tendencia tarde."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "hoy",
+          "nombre": "Media de 200 sesiones hoy",
+          "origen": "historico_precios",
+          "ejemplo": 102,
+          "min": 80,
+          "max": 120,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "antes",
+          "nombre": "Media de 200 sesiones hace 20 sesiones",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "min": 80,
+          "max": 120,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Pendiente de la media",
+          "unidad": "%",
+          "ejemplo": 0.02
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la media de hoy y la de hace 20 sesiones: ¿sube, está plana o baja? ¿Cuánto hay que mover una para notar el cambio?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "La media de 200 sesiones de una empresa inventada vale 100 €. El precio se desploma a 60 € y se queda ahí durante 5 sesiones. ¿Cuánto baja la media?",
+          "opciones": [
+            "Baja a unos 80 €",
+            "Baja alrededor de 1 €, a unos 99 €",
+            "No se mueve nada"
+          ],
+          "correcta": 1,
+          "explicacion": "Cada sesión nueva entra en una media de 200 y sale una antigua. Un solo día cambia muy poco el total, y por eso la media tarda tanto en girar.",
+          "revelacion": "Cada sesión a 60 € sustituye a una de unos 100 €: la media baja 40 / 200 = 0,2 € al día. En 5 sesiones, 1 €."
+        }
+      ]
     },
     {
       "id": "rsi",
@@ -1919,8 +2033,11 @@
       "intuicion": "Piensa en un corredor: tras un esprint se queda sin aire. El RSI mide si el precio ha ido en «esprint» al alza (cerca de 100) o a la baja (cerca de 0) durante las últimas 14 sesiones.",
       "formula": "Se compara la media de las subidas diarias con la de las bajadas de los últimos 14 días de bolsa (método de Wilder): RSI = 100 − 100 / (1 + subidas / bajadas). Si el proveedor de datos no da el histórico, el motor usa el RSI ya calculado por el proveedor.",
       "ejemplo": "Si en 14 días las subidas medias son el doble de las bajadas medias, RSI = 100 − 100 / 3 ≈ 67.",
-      "comoLeerla": "Por convención, por encima de 70 se habla de «sobrecompra» y por debajo de 30 de «sobreventa». El motor da la mejor nota entre 45 y 60 (movimiento sano, sin excesos) y baja la nota en los extremos. Son umbrales orientativos, no leyes.",
-      "cuandoEngana": "En tendencias fuertes, el RSI puede quedarse por encima de 70 durante semanas mientras el precio sigue subiendo, y por debajo de 30 mientras sigue cayendo. Que esté «sobrecomprado» no significa que vaya a bajar mañana.",
+      "comoLeerla": "Por convención, un RSI muy alto se llama «sobrecompra» y uno muy bajo, «sobreventa». El motor puntúa mejor la zona intermedia (movimiento sano, sin excesos) y baja la nota en los extremos. Son referencias orientativas, no leyes.",
+      "cuandoEngana": [
+        "En tendencias fuertes, el RSI puede quedarse en sobrecompra durante semanas mientras el precio sigue subiendo, y en sobreventa mientras sigue cayendo.",
+        "Que esté «sobrecomprado» no significa que vaya a bajar mañana."
+      ],
       "combinaCon": [
         "precio_sma200",
         "macd",
@@ -1935,17 +2052,106 @@
         ],
         "correcta": 0,
         "explicacion": "El RSI describe la intensidad reciente del movimiento, no el futuro. En tendencias fuertes puede mantenerse en extremos mucho tiempo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Subidas medias",
+            "descripcion": "Media de lo que ha subido el precio en los días de subida de las últimas 14 sesiones."
+          },
+          {
+            "nombre": "Bajadas medias",
+            "descripcion": "Lo mismo con los días de bajada."
+          },
+          {
+            "nombre": "Se comparan",
+            "descripcion": "Si las subidas medias son el doble de las bajadas, la relación es 2."
+          },
+          {
+            "nombre": "Se pasa a una escala de 0 a 100",
+            "descripcion": "RSI = 100 − 100 / (1 + 2) ≈ 67."
+          }
+        ],
+        "resultado": {
+          "nombre": "RSI (14)",
+          "ejemplo": 66.67
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "trampa",
+          "empresa": "Aceros Norte (empresa inventada)",
+          "enunciado": "Su RSI marca 78 y parece que «tiene que bajar». ¿Qué dato hace que esa lectura engañe?",
+          "datos": [
+            {
+              "etiqueta": "RSI (14)",
+              "valor": "78, «sobrecompra»",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: «sobrecompra» es una etiqueta, no una predicción. En una tendencia fuerte, el RSI puede quedarse por encima de 70 durante semanas mientras el precio sigue subiendo."
+            },
+            {
+              "etiqueta": "Tiempo con el RSI por encima de 70",
+              "valor": "5 semanas seguidas",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a ver la trampa: si lleva semanas así, no es un aviso de giro inmediato, sino una tendencia muy intensa."
+            },
+            {
+              "etiqueta": "Precio en esas 5 semanas",
+              "valor": "Ha subido un 25 %",
+              "esTrampa": false,
+              "explicacion": "Confirma que el RSI refleja una subida rápida. Que suba rápido no implica que vaya a corregir en un momento concreto."
+            },
+            {
+              "etiqueta": "Media de 200 sesiones",
+              "valor": "Subiendo",
+              "esTrampa": false,
+              "explicacion": "Indica que la tendencia de fondo es al alza. Es un dato de contexto, que el RSI por sí solo no da."
+            }
+          ]
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas acciones inventadas de menor a mayor RSI, según lo que han subido y bajado en las últimas 14 sesiones.",
+          "elementos": [
+            {
+              "nombre": "Alfa: sube 1,5 € al día de media en los días de subida y baja 0,5 € en los de bajada",
+              "valor": 75,
+              "mostrar": "75"
+            },
+            {
+              "nombre": "Beta: sube y baja lo mismo, 1 €",
+              "valor": 50,
+              "mostrar": "50"
+            },
+            {
+              "nombre": "Gamma: sube 0,5 € y baja 1,5 €",
+              "valor": 25,
+              "mostrar": "25"
+            },
+            {
+              "nombre": "Delta: sube 1 € y baja 0,5 €",
+              "valor": 66.67,
+              "mostrar": "67"
+            }
+          ],
+          "explicacion": "El RSI es mayor cuanto más pesan las subidas frente a las bajadas. Con subidas iguales a las bajadas da 50; el triple de subidas, 75; un tercio, 25."
+        }
+      ]
     },
     {
       "id": "macd",
       "titulo": "MACD: cambio de impulso del precio",
       "resumen": "Si el impulso del precio se está acelerando o frenando.",
       "intuicion": "Es como mirar el acelerador de un coche: no solo si va rápido, sino si está pisando más o menos que hace unos días.",
-      "formula": "Se resta la media móvil exponencial de 26 días a la de 12 (la línea MACD), se le quita su propia media de 9 días (la señal) y el resultado es el histograma. El motor mira si el histograma es positivo o negativo y si sube o baja. Necesita histórico diario; si el proveedor de datos no lo da, saldrá «sin dato».",
+      "formula": "Se resta la media móvil exponencial de 26 días a la de 12 (línea MACD), se le quita su propia media de 9 días (señal) y el resultado es el histograma. El motor mira su signo y si sube o baja. Necesita histórico diario; si no lo hay, saldrá «sin dato».",
       "ejemplo": "Un histograma de +0,5 que el día anterior era +0,2: el impulso positivo se está acelerando.",
-      "comoLeerla": "El motor da la mejor nota si el histograma es positivo y creciente, nota media si es positivo pero decrece, baja si es negativo pero mejora y la peor si es negativo y empeora. Es un indicador de impulso a corto plazo.",
-      "cuandoEngana": "Da muchas señales falsas cuando el precio se mueve de lado. Llega tarde, porque se calcula con medias de precios pasados. Y, como los demás indicadores técnicos, no mira el valor de la empresa.",
+      "comoLeerla": "No hay una escala por tramos: se lee el signo del histograma y si crece o decrece. Positivo y creciente es la mejor lectura; negativo y empeorando, la peor. Es un indicador de impulso a corto plazo, no de valor.",
+      "cuandoEngana": [
+        "Da muchas señales falsas cuando el precio se mueve de lado.",
+        "Llega tarde, porque se calcula con medias de precios pasados.",
+        "Y, como los demás indicadores técnicos, no mira el valor de la empresa."
+      ],
       "combinaCon": [
         "rsi",
         "pendiente_sma200",
@@ -1960,7 +2166,95 @@
         ],
         "correcta": 0,
         "explicacion": "Positivo significa impulso al alza; que sea menor que ayer indica que ese impulso pierde fuerza. Es un matiz, no una predicción."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Línea MACD",
+            "descripcion": "La media exponencial de 12 días menos la de 26 días."
+          },
+          {
+            "nombre": "Línea de señal",
+            "descripcion": "La media de 9 días de la propia línea MACD."
+          },
+          {
+            "nombre": "Histograma",
+            "descripcion": "Línea MACD menos línea de señal: por ejemplo, +0,5 hoy frente a +0,2 ayer."
+          }
+        ],
+        "resultado": {
+          "nombre": "Histograma del MACD",
+          "ejemplo": 0.5
+        }
+      },
+      "leyenda": [
+        {
+          "condicion": "Positivo y creciente",
+          "significado": "El impulso al alza se está acelerando.",
+          "tono": "positivo"
+        },
+        {
+          "condicion": "Positivo y decreciente",
+          "significado": "El impulso al alza sigue, pero se está frenando.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Negativo y mejorando",
+          "significado": "El impulso a la baja se está frenando.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Negativo y empeorando",
+          "significado": "El impulso a la baja se está acelerando.",
+          "tono": "negativo"
+        }
+      ],
+      "actividades": [
+        {
+          "tipo": "predecir",
+          "texto": "El histograma del MACD de una acción inventada vale +0,8, luego +0,5 y luego +0,2 en tres días seguidos, mientras el precio sigue subiendo. ¿Qué dice sobre el impulso?",
+          "opciones": [
+            "Que el impulso al alza se está frenando, aunque el precio siga subiendo",
+            "Que el precio va a caer mañana",
+            "Que el impulso al alza se acelera"
+          ],
+          "correcta": 0,
+          "explicacion": "Un histograma positivo que se encoge indica que el precio sube cada vez con menos fuerza. El precio puede seguir subiendo: lo que cambia es la velocidad.",
+          "revelacion": "No dice que vaya a bajar: dice que el empuje se afloja. Por eso es un dato de impulso a corto plazo, no una predicción."
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Textil Valle (empresa inventada)",
+          "enunciado": "Su histograma acaba de pasar a positivo, lo que parece el inicio de un impulso al alza. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Histograma hoy",
+              "valor": "+0,3, acaba de pasar a positivo",
+              "esTrampa": false,
+              "explicacion": "Parece una señal de impulso, pero hay que ver cuántas veces ha cambiado de signo antes."
+            },
+            {
+              "etiqueta": "Precio en los últimos 2 meses",
+              "valor": "Entre 48 € y 52 €",
+              "esTrampa": false,
+              "explicacion": "Muestra que el precio apenas se ha movido de lado: es el contexto que explica lo demás."
+            },
+            {
+              "etiqueta": "Cambios de signo del histograma en 2 meses",
+              "valor": "8",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: con el precio moviéndose de lado, el histograma cambia de signo una y otra vez. Cada cambio parece una señal, pero es solo ruido."
+            },
+            {
+              "etiqueta": "Variación del precio en 2 meses",
+              "valor": "+1 %",
+              "esTrampa": false,
+              "explicacion": "Confirma que, pese a tanto cambio de signo, el precio apenas ha ido a ninguna parte."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "dist_maximo",
@@ -1969,8 +2263,12 @@
       "intuicion": "Es como saber a cuánto estás de la cima de una montaña que has escalado: cerca de la cima o ya en mitad de la bajada.",
       "formula": "Precio actual dividido entre el máximo de las últimas 52 semanas, menos 1 (siempre ≤ 0). Si el proveedor de datos no da el histórico, usa su máximo de 52 semanas.",
       "ejemplo": "Precio de 80 € y máximo de 52 semanas de 100 €: −20 %.",
-      "comoLeerla": "El motor da buena nota cerca del máximo y hasta un −10 %, nota media hacia el −30 % y baja si cae más del 30 %. Tiene poco peso: estar lejos de un máximo puede ser tanto una caída preocupante como un precio que ha bajado sin que el negocio haya cambiado.",
-      "cuandoEngana": "Un precio lejos del máximo no es «barato» por sí mismo: puede haber caído por buenas razones. Y uno cerca del máximo no es «caro». El máximo es un punto del pasado, no un valor justo.",
+      "comoLeerla": "Cuanto más cerca del máximo, mejor puntúa; cuanto más lejos, peor. Tiene poco peso: estar lejos de un máximo puede ser una caída preocupante o un precio que ha bajado sin que el negocio haya cambiado.",
+      "cuandoEngana": [
+        "Un precio lejos del máximo no es «barato» por sí mismo: puede haber caído por buenas razones.",
+        "Y uno cerca del máximo no es «caro».",
+        "El máximo es un punto del pasado, no un valor justo."
+      ],
       "combinaCon": [
         "caida_maxima",
         "precio_sma200",
@@ -1985,7 +2283,72 @@
         ],
         "correcta": 1,
         "explicacion": "Sabemos que ha caído, pero no por qué. Puede haber empeorado el negocio, y entonces el precio es el reflejo de ello. Para saber si está barata hay que mirar su valoración y sus resultados."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "variacion",
+        "actual": {
+          "clave": "precio",
+          "nombre": "Precio actual",
+          "origen": "mercado",
+          "ejemplo": 80,
+          "min": 20,
+          "max": 100,
+          "unidad": "€"
+        },
+        "referencia": {
+          "clave": "maximo",
+          "nombre": "Máximo de las últimas 52 semanas",
+          "origen": "historico_precios",
+          "ejemplo": 100,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "Distancia al máximo",
+          "unidad": "%",
+          "ejemplo": -0.2
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio actual: ¿a qué distancia queda del máximo del último año? El precio nunca puede estar por encima del máximo."
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Suministros",
+          "empresas": [
+            "Luz Norte",
+            "Agua Sur"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Distancia al máximo",
+              "a": "−40 %",
+              "b": "−40 %"
+            },
+            {
+              "etiqueta": "Beneficio por acción",
+              "a": "ha bajado un 50 %",
+              "b": "sin cambios"
+            },
+            {
+              "etiqueta": "Ingresos",
+              "a": "han caído un 20 %",
+              "b": "estables"
+            },
+            {
+              "etiqueta": "Mercado general",
+              "a": "estable",
+              "b": "ha caído un 35 %"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿En cuál de las dos ha cambiado el negocio?",
+            "correcta": 0,
+            "explicacion": "Las dos están igual de lejos de su máximo. En Luz Norte han bajado los beneficios y las ventas: el negocio ha empeorado. En Agua Sur no ha cambiado nada, y el precio ha caído con el mercado. Misma distancia, historias distintas: por eso este dato pesa poco."
+          }
+        }
+      ]
     },
     {
       "id": "sorpresas_bpa",
