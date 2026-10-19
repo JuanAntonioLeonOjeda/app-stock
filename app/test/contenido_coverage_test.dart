@@ -67,7 +67,7 @@ List<String> _allTexts(EducationalContent content) => [
     metric.formula,
     metric.example,
     metric.howToRead,
-    metric.whenItMisleads,
+    ...metric.whenItMisleads,
     metric.question.text,
     ...metric.question.options,
     metric.question.explanation,
@@ -185,7 +185,7 @@ void main() {
           metric.intuition,
           metric.formula,
           metric.howToRead,
-          metric.whenItMisleads,
+          ...metric.whenItMisleads,
         ]) {
           expect(text.length, inInclusiveRange(30, 700), reason: metric.id);
         }

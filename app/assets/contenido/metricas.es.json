@@ -7,8 +7,12 @@
       "intuicion": "Imagina que compras un negocio de barrio. Si te piden 150.000 € y gana 10.000 € al año, tardarías 15 años en recuperar lo que pagas, siempre que los beneficios no cambiasen. Ese 15 es el PER.",
       "formula": "Precio de la acción dividido entre el beneficio por acción de los últimos 12 meses. El precio sale del mercado; el beneficio, de la cuenta de resultados. Si la empresa pierde dinero, no se calcula.",
       "ejemplo": "Una acción cuesta 30 € y la empresa ganó 2 € por acción en el último año. PER = 30 / 2 = 15.",
-      "comoLeerla": "Como orientación, el motor da buena nota por debajo de 15 (la máxima hacia 8), nota media cerca de 25 y baja a partir de 35-50. Pero un PER «normal» depende del sector y de cuánto crezca la empresa: las que crecen rápido suelen tener un PER más alto, y por eso el motor le da menos peso en las empresas de crecimiento.",
-      "cuandoEngana": "Un PER bajo puede venir de un beneficio extraordinario de un solo año (vender un negocio, por ejemplo) y no de que la empresa sea barata. Un PER muy alto puede deberse a un beneficio hundido de forma temporal. Y con beneficios negativos no existe. Mira siempre varios años.",
+      "comoLeerla": "Cuanto más bajo, menos años de beneficio pagas, y el motor lo puntúa mejor. Pero no hay un PER «normal»: depende del sector y de cuánto crezca la empresa, y por eso en las de crecimiento el motor le da menos peso. Compáralo con empresas parecidas, no con una cifra fija.",
+      "cuandoEngana": [
+        "Un PER bajo puede venir de un beneficio extraordinario de un solo año, como vender un negocio, y no de que la empresa sea barata.",
+        "Un PER muy alto puede deberse a un beneficio hundido de forma temporal. Y con beneficios negativos no existe.",
+        "Mira siempre varios años, no solo los últimos 12 meses."
+      ],
       "combinaCon": [
         "peg",
         "p_fcf",
@@ -23,7 +27,70 @@
         ],
         "correcta": 1,
         "explicacion": "El PER usa el beneficio de los últimos 12 meses. Si incluye un ingreso puntual, el cociente sale artificialmente bajo. Conviene mirar cuánto ganaba la empresa otros años sin ese extra. No es que el PER no sirva: hay que saber qué beneficio hay dentro."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "precio",
+          "nombre": "Precio de la acción",
+          "origen": "mercado",
+          "ejemplo": 30,
+          "min": 5,
+          "max": 100,
+          "unidad": "€"
+        },
+        "denominador": {
+          "clave": "beneficio",
+          "nombre": "Beneficio por acción (12 meses)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 2,
+          "min": 0.5,
+          "max": 10,
+          "unidad": "€"
+        },
+        "resultado": {
+          "nombre": "PER",
+          "unidad": "x",
+          "ejemplo": 15
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el precio y el beneficio por acción: ¿cuántos años de beneficio pagas en cada caso?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Muebles Norte (empresa inventada)",
+          "enunciado": "Su PER sale muy bajo, de solo 5. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Precio de la acción",
+              "valor": "30 €",
+              "esTrampa": false,
+              "explicacion": "El precio es lo que paga el mercado. Por sí solo no dice si la empresa es cara o barata: hay que compararlo con lo que gana."
+            },
+            {
+              "etiqueta": "Beneficio por acción, últimos 12 meses",
+              "valor": "6 €",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: incluye 4 € extraordinarios por vender una fábrica. Sin esa venta, la empresa ganaría unos 2 € y el PER sería 15, no 5."
+            },
+            {
+              "etiqueta": "Beneficio por acción, un año antes",
+              "valor": "2 €",
+              "esTrampa": false,
+              "explicacion": "Este dato ayuda a descubrir la trampa: muestra lo que gana la empresa en un año normal."
+            },
+            {
+              "etiqueta": "PER resultante",
+              "valor": "5",
+              "esTrampa": false,
+              "explicacion": "El PER es solo el resultado de dividir 30 entre 6. El dato que engaña no es el cociente, sino el beneficio que usa."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "peg",
@@ -32,8 +99,12 @@
       "intuicion": "Pagar 20 años de beneficio por un negocio que se duplica cada pocos años no es lo mismo que pagarlos por uno que no crece. El PEG pone en la misma balanza el precio y el crecimiento.",
       "formula": "PER dividido entre el crecimiento esperado del beneficio por acción, en % anual. El proveedor de datos lo da ya calculado; el crecimiento es una estimación, no un hecho.",
       "ejemplo": "PER 20 y beneficio que se espera que crezca un 20 % al año: PEG = 20 / 20 = 1. Con el mismo PER y un crecimiento del 10 %, el PEG sería 2.",
-      "comoLeerla": "El motor puntúa mejor por debajo de 1 (nota 8 en 1 y 9 hacia 0,5), da nota media alrededor de 2 y mala por encima de 3. Cuanto más bajo, más barato respecto al crecimiento esperado, siempre que esa estimación sea realista.",
-      "cuandoEngana": "Depende de una previsión de crecimiento, y las previsiones suelen ser optimistas y cambian. Si el crecimiento esperado es muy bajo o negativo, el PEG no tiene sentido. Y un PEG muy bajo puede ser solo una previsión demasiado alegre.",
+      "comoLeerla": "Cuanto más bajo, más barato sale el precio en relación con el crecimiento esperado, y mejor lo puntúa el motor. Pero solo vale si esa estimación es realista: un PEG muy bajo puede ser una previsión demasiado optimista. Compáralo con empresas del mismo sector.",
+      "cuandoEngana": [
+        "Depende de una previsión de crecimiento, y las previsiones suelen ser optimistas y cambian con el tiempo.",
+        "Si el crecimiento esperado es muy bajo o negativo, el PEG no tiene sentido.",
+        "Un PEG muy bajo puede ser solo una previsión demasiado alegre, no una oportunidad."
+      ],
       "combinaCon": [
         "per",
         "beneficio_cagr3",
@@ -48,7 +119,73 @@
         ],
         "correcta": 2,
         "explicacion": "PEG = PER / crecimiento. La primera: 20 / 20 = 1. La segunda: 20 / 5 = 4. Para el mismo PER, la que más crece resulta más barata en relación con su crecimiento… siempre que ese crecimiento llegue a producirse."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "per",
+          "nombre": "PER",
+          "origen": "mercado",
+          "ejemplo": 20,
+          "min": 5,
+          "max": 60,
+          "unidad": "x"
+        },
+        "denominador": {
+          "clave": "crecimiento",
+          "nombre": "Crecimiento esperado del beneficio (anual)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 20,
+          "min": 2,
+          "max": 40,
+          "unidad": "%"
+        },
+        "resultado": {
+          "nombre": "PEG",
+          "ejemplo": 1
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el PER y el crecimiento esperado: ¿cómo cambia el PEG? ¿Qué pasa si el crecimiento se queda en casi nada?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Software",
+          "empresas": [
+            "Alfa",
+            "Beta"
+          ],
+          "filas": [
+            {
+              "etiqueta": "PER",
+              "a": "30x",
+              "b": "12x"
+            },
+            {
+              "etiqueta": "Crecimiento esperado del beneficio",
+              "a": "30 % anual",
+              "b": "4 % anual"
+            },
+            {
+              "etiqueta": "Ingresos",
+              "a": "200 M€",
+              "b": "200 M€"
+            },
+            {
+              "etiqueta": "Margen operativo",
+              "a": "18 %",
+              "b": "18 %"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál sale más barata en relación con su crecimiento esperado?",
+            "correcta": 0,
+            "explicacion": "Alfa: PEG = 30 / 30 = 1. Beta: PEG = 12 / 4 = 3. Alfa tiene el PER más alto, pero su beneficio crece mucho más. Eso sí: solo cuenta si el crecimiento se cumple."
+          }
+        }
+      ]
     },
     {
       "id": "ev_ebitda",
@@ -57,8 +194,12 @@
       "intuicion": "Si compras una casa con hipoteca, lo que de verdad pagas no es solo tu entrada, sino el precio entero. El EV suma al valor en bolsa la deuda y resta la caja: es el precio de comprar la empresa entera.",
       "formula": "Valor de empresa (capitalización + deuda − caja, del balance) dividido entre el EBITDA (beneficio antes de intereses, impuestos, depreciaciones y amortizaciones, de la cuenta de resultados). El proveedor lo da calculado.",
       "ejemplo": "Una empresa vale 800 M€ en bolsa, debe 300 M€ y tiene 100 M€ de caja: EV = 800 + 300 − 100 = 1.000 M€. Si su EBITDA es 100 M€, EV/EBITDA = 10.",
-      "comoLeerla": "El motor da buena nota por debajo de 10 (la máxima hacia 6), nota media cerca de 14 y mala por encima de 20-30. Como compara mejor empresas con distinta deuda, es más justa que el PER. Aun así, cada sector tiene sus niveles normales. No se usa en bancos y aseguradoras.",
-      "cuandoEngana": "El EBITDA ignora el desgaste y la inversión: una empresa que necesita renovar mucha maquinaria parece más barata de lo que es. Tampoco es comparable entre sectores muy distintos. Si el EBITDA es negativo, no se calcula.",
+      "comoLeerla": "Cuanto más bajo, menos cuesta comprar la empresa entera frente a lo que genera su negocio. Compara mejor empresas con distinta deuda que el PER, pero cada sector tiene sus niveles normales: compárala dentro del mismo sector. El motor no la usa en bancos ni aseguradoras.",
+      "cuandoEngana": [
+        "El EBITDA ignora el desgaste y la inversión: una empresa que necesita renovar mucha maquinaria parece más barata de lo que es.",
+        "Tampoco es comparable entre sectores muy distintos.",
+        "Si el EBITDA es negativo, no se calcula."
+      ],
       "combinaCon": [
         "per",
         "deuda_ebitda",
@@ -73,7 +214,74 @@
         ],
         "correcta": 2,
         "explicacion": "El EV suma la deuda. Con el mismo valor en bolsa y el mismo EBITDA, la empresa más endeudada es «más cara de comprar entera». Por eso el EV/EBITDA recoge algo que el PER no ve."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "ev",
+          "nombre": "Valor de empresa (en bolsa + deuda − caja)",
+          "origen": "balance",
+          "ejemplo": 1000,
+          "min": 200,
+          "max": 3000,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ebitda",
+          "nombre": "EBITDA (beneficio operativo)",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "EV/EBITDA",
+          "unidad": "x",
+          "ejemplo": 10
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el valor de la empresa y su EBITDA: ¿cuántos años de beneficio operativo cuesta comprarla entera?"
+        },
+        {
+          "tipo": "comparar",
+          "sector": "Alimentación",
+          "empresas": [
+            "Norte",
+            "Sur"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Valor en bolsa",
+              "a": "800 M€",
+              "b": "800 M€"
+            },
+            {
+              "etiqueta": "Deuda",
+              "a": "300 M€",
+              "b": "0 M€"
+            },
+            {
+              "etiqueta": "Caja",
+              "a": "100 M€",
+              "b": "100 M€"
+            },
+            {
+              "etiqueta": "EBITDA",
+              "a": "100 M€",
+              "b": "100 M€"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál tiene el EV/EBITDA más alto?",
+            "correcta": 0,
+            "explicacion": "Norte: EV = 800 + 300 − 100 = 1.000 M€, y 1.000 / 100 = 10. Sur: EV = 800 + 0 − 100 = 700 M€, y 700 / 100 = 7. Valen lo mismo en bolsa, pero comprar Norte entera incluye cargar con su deuda."
+          }
+        }
+      ]
     },
     {
       "id": "p_fcf",
@@ -82,8 +290,12 @@
       "intuicion": "El beneficio contable puede quedarse en papel. La caja libre es el dinero que de verdad queda en el cajón tras pagar los gastos y las inversiones necesarias para seguir funcionando.",
       "formula": "Capitalización bursátil dividida entre el flujo de caja libre (FCF) de los últimos 12 meses. FCF = flujo de caja de las operaciones menos las inversiones en maquinaria y equipos (CAPEX), ambos del estado de flujos de caja.",
       "ejemplo": "Una empresa vale 600 M€, genera 100 M€ de caja operativa y gasta 40 M€ en inversiones: FCF = 60 M€. Precio/FCF = 600 / 60 = 10.",
-      "comoLeerla": "El motor da buena nota por debajo de 15 (la máxima hacia 10), nota media en torno a 25 y mala cerca de 40. Un Precio/FCF parecido al PER indica que los beneficios se convierten en caja; si es mucho mayor, parte del beneficio no llega a ser dinero. No se usa en bancos.",
-      "cuandoEngana": "El FCF de un año puede ser muy irregular: un año de grandes inversiones lo hunde y uno con poca inversión lo infla. Una empresa que recorta inversión hoy luce bien pero puede perder futuro. Si el FCF es negativo, no se calcula.",
+      "comoLeerla": "Cuanto más bajo, menos años de caja libre pagas, y mejor lo puntúa el motor. Compáralo con el PER: si son parecidos, los beneficios se convierten en caja; si el Precio/FCF es mucho mayor, parte del beneficio no llega a ser dinero. El motor no lo usa en bancos.",
+      "cuandoEngana": [
+        "El FCF de un año puede ser muy irregular: un año de grandes inversiones lo hunde y uno con poca inversión lo infla.",
+        "Una empresa que recorta inversión hoy luce bien, pero puede perder futuro.",
+        "Si el FCF es negativo, no se calcula."
+      ],
       "combinaCon": [
         "per",
         "fcf_positivo",
@@ -98,7 +310,70 @@
         ],
         "correcta": 1,
         "explicacion": "Un FCF menor que el beneficio suele indicar que la empresa invierte mucho o que cobra tarde a sus clientes. No significa que esté mal, pero invita a preguntar por qué la caja no acompaña al beneficio."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "capitalizacion",
+          "nombre": "Valor en bolsa (capitalización)",
+          "origen": "mercado",
+          "ejemplo": 600,
+          "min": 100,
+          "max": 2000,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "fcf",
+          "nombre": "Flujo de caja libre (operaciones − inversiones)",
+          "origen": "flujo_caja",
+          "ejemplo": 60,
+          "min": 10,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Precio/FCF",
+          "unidad": "x",
+          "ejemplo": 10
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el valor en bolsa y el flujo de caja libre: ¿cuántos años de caja libre pagas?"
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Industrias Sur (empresa inventada)",
+          "enunciado": "Su Precio/FCF sale bajísimo, de solo 7. ¿Qué dato lo explica?",
+          "datos": [
+            {
+              "etiqueta": "Valor en bolsa",
+              "valor": "600 M€",
+              "esTrampa": false,
+              "explicacion": "Es el precio que paga el mercado. Por sí solo no explica un múltiplo bajo: falta ver cuánta caja libre genera."
+            },
+            {
+              "etiqueta": "Caja de las operaciones",
+              "valor": "90 M€",
+              "esTrampa": false,
+              "explicacion": "Es el dinero que genera el negocio. Es un dato normal; lo que cambia el FCF es lo que se resta después."
+            },
+            {
+              "etiqueta": "Inversiones (CAPEX) este año",
+              "valor": "5 M€ (lo habitual: 60 M€)",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: este año casi no ha invertido. Con las inversiones habituales de 60 M€, el FCF sería 30 M€ y el Precio/FCF, 20 en vez de 7."
+            },
+            {
+              "etiqueta": "Precio/FCF resultante",
+              "valor": "7",
+              "esTrampa": false,
+              "explicacion": "Es solo el resultado de dividir 600 entre 85 M€ de FCF. El dato engañoso está en las inversiones que se restan."
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "p_ventas",
@@ -107,8 +382,11 @@
       "intuicion": "Cuando un negocio acaba de abrir y aún no tiene beneficios, lo único que puedes mirar es cuánto vende. El Precio/Ventas dice cuántos euros pagas por cada euro de ventas anuales.",
       "formula": "Capitalización bursátil dividida entre los ingresos de los últimos 12 meses (cuenta de resultados). El proveedor de datos lo da calculado.",
       "ejemplo": "Una empresa vale 500 M€ y vende 100 M€ al año: Precio/Ventas = 5.",
-      "comoLeerla": "El motor solo lo usa en empresas de crecimiento. Da buena nota por debajo de 5 (la máxima hacia 2) y mala por encima de 10-20. Un múltiplo alto exige que la empresa crezca mucho y que, más adelante, consiga márgenes altos.",
-      "cuandoEngana": "Ignora los costes: una empresa puede vender mucho y perder dinero con cada venta. Dos empresas con las mismas ventas valen muy distinto si una gana un 30 % y la otra un 2 %. Úsalo siempre junto a los márgenes.",
+      "comoLeerla": "Cuanto más bajo, menos pagas por cada euro que vende la empresa. El motor solo lo usa en empresas de crecimiento. Un múltiplo alto exige que la empresa crezca mucho y que más adelante consiga márgenes altos, así que interprétalo siempre junto a los márgenes.",
+      "cuandoEngana": [
+        "Ignora los costes: una empresa puede vender mucho y perder dinero con cada venta.",
+        "Dos empresas con las mismas ventas valen muy distinto si una gana un 30 % y la otra un 2 %. Úsalo siempre junto a los márgenes."
+      ],
       "combinaCon": [
         "margen_bruto",
         "ingresos_cagr3",
@@ -123,7 +401,66 @@
         ],
         "correcta": 1,
         "explicacion": "Las ventas no son beneficio. Si el margen es muy bajo o negativo, vender mucho no basta. El Precio/Ventas se interpreta siempre junto a los márgenes."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "capitalizacion",
+          "nombre": "Valor en bolsa (capitalización)",
+          "origen": "mercado",
+          "ejemplo": 500,
+          "min": 100,
+          "max": 2000,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "ventas",
+          "nombre": "Ingresos de los últimos 12 meses",
+          "origen": "cuenta_resultados",
+          "ejemplo": 100,
+          "min": 20,
+          "max": 300,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Precio/Ventas",
+          "unidad": "x",
+          "ejemplo": 5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el valor en bolsa y las ventas: ¿cuántos euros pagas por cada euro que vende la empresa?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas empresas inventadas de menor a mayor Precio/Ventas.",
+          "elementos": [
+            {
+              "nombre": "Alfa: vale 300 M€ y vende 150 M€",
+              "valor": 2,
+              "mostrar": "2x"
+            },
+            {
+              "nombre": "Beta: vale 500 M€ y vende 100 M€",
+              "valor": 5,
+              "mostrar": "5x"
+            },
+            {
+              "nombre": "Gamma: vale 800 M€ y vende 80 M€",
+              "valor": 10,
+              "mostrar": "10x"
+            },
+            {
+              "nombre": "Delta: vale 400 M€ y vende 20 M€",
+              "valor": 20,
+              "mostrar": "20x"
+            }
+          ],
+          "explicacion": "Precio/Ventas = valor en bolsa / ventas. Se ordena por ese cociente, no por el tamaño de la empresa: Delta es de las más pequeñas, pero paga 20 € por cada euro que vende."
+        }
+      ]
     },
     {
       "id": "p_vc",
@@ -132,8 +469,11 @@
       "intuicion": "Es como comparar el precio de una casa con lo que valdría si la vendieras por partes y pagaras las deudas. Si el mercado paga la mitad, o el doble, está opinando algo sobre el futuro.",
       "formula": "Capitalización bursátil dividida entre el patrimonio neto (activos menos deudas) del balance. El proveedor de datos lo da ya calculado.",
       "ejemplo": "Una empresa vale 900 M€ en bolsa y su patrimonio neto es 600 M€: Precio/Valor contable = 1,5.",
-      "comoLeerla": "El motor solo lo usa en empresas financieras (bancos, seguros). Da buena nota hacia 0,8 (un 8, que es lo máximo que da), nota media hacia 1,5 y baja hacia 3. Por debajo de 1, el mercado paga menos que el patrimonio contable: puede indicar que está infravalorada o, al contrario, que los activos valen menos de lo anotado.",
-      "cuandoEngana": "El valor contable no recoge activos como marcas o software, ni refleja siempre el valor real de los activos: en empresas tecnológicas o de servicios casi no dice nada. En un banco depende de que sus préstamos se cobren.",
+      "comoLeerla": "Por debajo de 1, el mercado paga menos que el patrimonio contable: puede ser una oportunidad o reflejar dudas sobre el valor real de los activos. Por encima, el mercado espera que la empresa rente más que su patrimonio. El motor solo lo usa en empresas financieras.",
+      "cuandoEngana": [
+        "El valor contable no recoge activos como marcas o software, ni refleja siempre el valor real de los activos: en empresas tecnológicas o de servicios casi no dice nada.",
+        "En un banco depende de que sus préstamos se cobren."
+      ],
       "combinaCon": [
         "roe",
         "per",
@@ -148,7 +488,51 @@
         ],
         "correcta": 0,
         "explicacion": "Por debajo de 1, el mercado paga menos que el patrimonio contable. Puede ser una oportunidad, pero también refleja dudas (impagos, pérdidas ocultas). Es una pregunta que hay que resolver, no una conclusión."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "capitalizacion",
+          "nombre": "Valor en bolsa (capitalización)",
+          "origen": "mercado",
+          "ejemplo": 900,
+          "min": 200,
+          "max": 3000,
+          "unidad": "M€"
+        },
+        "denominador": {
+          "clave": "patrimonio",
+          "nombre": "Patrimonio neto (activos − deudas)",
+          "origen": "balance",
+          "ejemplo": 600,
+          "min": 200,
+          "max": 2000,
+          "unidad": "M€"
+        },
+        "resultado": {
+          "nombre": "Precio/Valor contable",
+          "unidad": "x",
+          "ejemplo": 1.5
+        }
+      },
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve el valor en bolsa y el patrimonio: ¿en qué punto el mercado paga justo el patrimonio contable?"
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una empresa inventada vale 600 M€ en bolsa y su patrimonio neto es de 900 M€. Antes de calcularlo: ¿su Precio/Valor contable será mayor o menor que 1?",
+          "opciones": [
+            "Mayor que 1",
+            "Menor que 1",
+            "Exactamente 1"
+          ],
+          "correcta": 1,
+          "explicacion": "El mercado paga menos (600) que el patrimonio contable (900), así que el cociente queda por debajo de 1.",
+          "revelacion": "600 / 900 = 0,67. Con menos de 1, el mercado paga menos de lo que dice el balance; conviene preguntar por qué."
+        }
+      ]
     },
     {
       "id": "deuda_ebitda",

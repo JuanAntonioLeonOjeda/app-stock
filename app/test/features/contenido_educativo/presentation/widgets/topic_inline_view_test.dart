@@ -2,13 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/get_metric_scale_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/domain/exceptions/educational_content_exception.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/content_texts.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/educational_notice.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/widgets/metric_quick_view.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/widgets/reading_legend_view.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/widgets/scale_bar.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/widgets/topic_inline_view.dart';
 
 import '../../application/fake_ports.dart';
+import '../../sample_content.dart';
 import '../tall_screen.dart';
 
 Future<List<String>> _pump(
@@ -17,7 +22,7 @@ Future<List<String>> _pump(
   String topic = 'per',
 }) async {
   useTallScreen(tester);
-  final related = <String>[];
+  final opened = <String>[];
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -26,20 +31,23 @@ Future<List<String>> _pump(
             loadContent: LoadEducationalContentUseCase(
               port ?? FakeEducationalContent(),
             ),
+            getMetricScale: GetMetricScaleUseCase(
+              FakeMetricScales({'per': sampleScale()}),
+            ),
             topicId: topic,
-            onOpenTopic: related.add,
+            onOpenTopic: opened.add,
           ),
         ),
       ),
     ),
   );
   await tester.pump();
-  return related;
+  return opened;
 }
 
 void main() {
   group('TopicInlineView', () {
-    testWidgets('lee el contenido al mostrarse y pinta la ficha', (
+    testWidgets('lee el contenido al mostrarse y pinta la versión corta', (
       tester,
     ) async {
       final port = FakeEducationalContent();
@@ -47,19 +55,55 @@ void main() {
       await _pump(tester, port: port);
 
       expect(port.loadCalls, 1);
+      expect(find.byType(MetricQuickView), findsOneWidget);
       expect(find.text('PER 12 meses'), findsOneWidget);
-      expect(find.text('Cómo leerla'), findsOneWidget);
-      expect(find.text('Comprueba lo que has aprendido'), findsOneWidget);
+      expect(find.text('Cuántos años de beneficio pagas.'), findsOneWidget);
     });
 
-    testWidgets('un concepto de la gráfica se ve como una ficha', (
+    testWidgets('una métrica con escala dibuja la barra de tramos', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      expect(find.byType(ScaleBar), findsOneWidget);
+      expect(find.byType(ReadingLegendView), findsNothing);
+    });
+
+    testWidgets('una métrica sin escala pero con leyenda la muestra', (
+      tester,
+    ) async {
+      await _pump(tester, topic: 'rsi');
+
+      expect(find.byType(ScaleBar), findsNothing);
+      expect(find.byType(ReadingLegendView), findsOneWidget);
+    });
+
+    testWidgets('un concepto de la gráfica se ve como versión corta', (
       tester,
     ) async {
       await _pump(tester, topic: 'media_50');
 
       expect(find.text('Media de 50 sesiones'), findsOneWidget);
-      expect(find.text('Cómo leerla'), findsOneWidget);
-      expect(find.text('Comprueba lo que has aprendido'), findsOneWidget);
+      expect(find.text('Aprender paso a paso'), findsOneWidget);
+    });
+
+    testWidgets('"Aprender paso a paso" abre el recorrido de esa métrica', (
+      tester,
+    ) async {
+      final opened = await _pump(tester);
+
+      await tester.tap(find.text('Aprender paso a paso'));
+
+      expect(opened, ['per']);
+    });
+
+    testWidgets('la versión corta no despliega la ficha entera', (
+      tester,
+    ) async {
+      await _pump(tester);
+
+      expect(find.text('Cómo se calcula'), findsNothing);
+      expect(find.text('Comprueba lo que has aprendido'), findsNothing);
     });
 
     testWidgets('mientras carga muestra un indicador', (tester) async {
@@ -74,27 +118,6 @@ void main() {
     });
 
     testWidgets(
-      'una métrica relacionada se abre aparte, sin cambiar la ficha',
-      (tester) async {
-        final related = await _pump(tester);
-
-        await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
-
-        expect(related, ['peg']);
-        expect(find.text('PER 12 meses'), findsOneWidget);
-      },
-    );
-
-    testWidgets('responder la pregunta muestra la explicación', (tester) async {
-      await _pump(tester);
-
-      await tester.tap(find.text('Otra cosa'));
-      await tester.pump();
-
-      expect(find.text('¡Correcto!'), findsOneWidget);
-    });
-
-    testWidgets(
       'un bloque muestra su ficha y el aviso educativo (criterio 7)',
       (tester) async {
         await _pump(tester, topic: 'bloque_valoracion');
@@ -105,12 +128,12 @@ void main() {
       },
     );
 
-    testWidgets('una ficha de métrica no repite el aviso grande', (
-      tester,
-    ) async {
-      await _pump(tester);
+    testWidgets('pulsar una métrica de un bloque pide abrirla', (tester) async {
+      final opened = await _pump(tester, topic: 'bloque_valoracion');
 
-      expect(find.text(educationalNoticeText), findsNothing);
+      await tester.tap(find.widgetWithText(ActionChip, 'PEG'));
+
+      expect(opened, ['peg']);
     });
 
     testWidgets('si el contenido falla, avisa y permite reintentar', (
