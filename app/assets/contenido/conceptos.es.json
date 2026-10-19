@@ -5,10 +5,14 @@
       "titulo": "Media de 50 sesiones",
       "resumen": "El precio medio de los últimos 50 días de bolsa: la tendencia de unos dos o tres meses.",
       "intuicion": "Un día de calor no te dice qué tiempo hace en la estación. La media de 50 días hace lo mismo con el precio: suaviza los saltos de cada día para ver hacia dónde va, más o menos, en los últimos meses.",
-      "formula": "Suma de los últimos 50 cierres diarios dividida entre 50. Cada día entra el cierre nuevo y sale el más antiguo, así que la línea se va moviendo. Hasta que no hay 50 sesiones de histórico no se puede calcular y, entonces, no se dibuja. En la gráfica solo aparece en los periodos diarios (de 1M en adelante), no en 1D ni en 1S.",
+      "formula": "Suma de los últimos 50 cierres diarios dividida entre 50. Cada día entra el cierre nuevo y sale el más antiguo. Hace falta histórico de 50 sesiones. En la gráfica solo aparece en los periodos diarios (de 1M en adelante), no en 1D ni en 1S.",
       "ejemplo": "Si los últimos 50 cierres suman 5.000 €, la media de 50 sesiones es 100 €. Si hoy la acción cierra a 108 €, está un 8 % por encima de su media.",
-      "comoLeerla": "Si el precio está por encima de la línea, en ese plazo el movimiento ha sido al alza; si está por debajo, a la baja. Reacciona antes que la media de 200 sesiones, así que cambia de dirección antes (y se equivoca más veces). Cuando el precio la cruza de abajo arriba se suele hablar de un posible giro al alza, y al revés: son lecturas orientativas, no reglas.",
-      "cuandoEngana": "Cuando el precio se mueve de lado, cruza la línea una y otra vez y da señales contradictorias. Llega siempre tarde, porque se calcula con precios pasados: cuando se gira, parte del movimiento ya ha ocurrido. Y no dice nada del valor de la empresa.",
+      "comoLeerla": "Precio por encima de la línea: en ese plazo el movimiento ha sido al alza; por debajo, a la baja. Reacciona antes que la media de 200 sesiones, así que cambia de dirección antes y se equivoca más veces. Cuando el precio la cruza se suele hablar de un posible giro: es una lectura orientativa, no una regla.",
+      "cuandoEngana": [
+        "Cuando el precio se mueve de lado, cruza la línea una y otra vez y da señales contradictorias.",
+        "Llega siempre tarde, porque se calcula con precios pasados: cuando se gira, parte del movimiento ya ha ocurrido.",
+        "Y no dice nada del valor de la empresa."
+      ],
       "combinaCon": [
         "media_200",
         "rsi",
@@ -23,17 +27,80 @@
         ],
         "correcta": 0,
         "explicacion": "La media de 50 mira unos meses y la de 200 casi un año. Un precio entre las dos indica un movimiento reciente al alza dentro de una tendencia de fondo que aún no lo confirma. Es una descripción del pasado, no una predicción."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "suma",
+          "nombre": "Suma de los últimos 50 cierres",
+          "origen": "historico_precios",
+          "ejemplo": 5000,
+          "min": 2000,
+          "max": 10000,
+          "unidad": "€"
+        },
+        "denominador": {
+          "clave": "sesiones",
+          "nombre": "Sesiones",
+          "origen": "historico_precios",
+          "ejemplo": 50,
+          "unidad": "sesiones"
+        },
+        "resultado": {
+          "nombre": "Media de 50 sesiones",
+          "unidad": "€",
+          "ejemplo": 100
+        }
+      },
+      "leyenda": [
+        {
+          "condicion": "Precio por encima de la línea",
+          "significado": "En ese plazo, el movimiento ha sido al alza.",
+          "tono": "positivo"
+        },
+        {
+          "condicion": "Precio por debajo de la línea",
+          "significado": "En ese plazo, el movimiento ha sido a la baja.",
+          "tono": "negativo"
+        },
+        {
+          "condicion": "Precio cruzando la línea una y otra vez",
+          "significado": "El precio se mueve de lado y las señales se contradicen.",
+          "tono": "neutro"
+        }
+      ],
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la suma de los últimos 50 cierres: ¿cómo cambia la media? Fíjate en que con 50 sesiones cada cierre pesa un 2 % del total."
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una acción inventada cierra hoy a 120 €, mientras sus dos medias valen 100 €. ¿Cuál de las dos medias se mueve más con este cierre?",
+          "opciones": [
+            "La de 50 sesiones",
+            "La de 200 sesiones",
+            "Las dos igual"
+          ],
+          "correcta": 0,
+          "explicacion": "Cada cierre nuevo pesa más cuantas menos sesiones tiene la media: en la de 50 entra 1 de cada 50 cierres, y en la de 200, 1 de cada 200.",
+          "revelacion": "Si sale un cierre antiguo de 100 €, la media de 50 sube 20 / 50 = 0,4 € y la de 200, 20 / 200 = 0,1 €. Por eso la de 50 reacciona antes."
+        }
+      ]
     },
     {
       "id": "media_200",
       "titulo": "Media de 200 sesiones",
       "resumen": "El precio medio del último año de bolsa: la tendencia de fondo.",
       "intuicion": "Es el «precio normal» del último año, más o menos. Si hoy estás muy por encima, la acción ha subido mucho frente a lo habitual; si estás por debajo, ha bajado.",
-      "formula": "Suma de los últimos 200 cierres diarios dividida entre 200. Es la que usa el motor en «Precio frente a la media de 200 sesiones» y en «Pendiente de la media de 200 sesiones». Hacen falta 200 sesiones de histórico; si no las hay, no se dibuja. Como la de 50, solo aparece en los periodos diarios (de 1M en adelante), no en 1D ni en 1S.",
+      "formula": "Suma de los últimos 200 cierres diarios dividida entre 200. Es la que usa el motor en «Precio frente a la media de 200 sesiones» y en «Pendiente de la media de 200 sesiones». Hacen falta 200 sesiones; como la de 50, solo aparece en los periodos diarios (de 1M en adelante).",
       "ejemplo": "Si los últimos 200 cierres suman 20.000 €, la media es 100 €. Con un precio de 115 € está un 15 % por encima; con 90 €, un 10 % por debajo.",
-      "comoLeerla": "Sirve para ver la tendencia de largo plazo: un precio sobre la línea y la línea subiendo describen una tendencia sana; un precio por debajo y la línea bajando, una tendencia débil. El motor da una nota media si el precio está justo sobre la línea, la sube hasta su máximo hacia un 15 % por encima y la baja si está mucho más lejos, o si está por debajo de la línea.",
-      "cuandoEngana": "Es muy lenta: cambia de dirección mucho después que el precio, y a veces cuando ya ha pasado casi todo el movimiento. En mercados laterales el precio la cruza muchas veces sin que signifique nada. Estar por encima de la media no garantiza que el precio siga subiendo.",
+      "comoLeerla": "Sirve para ver la tendencia de largo plazo: un precio sobre la línea y la línea subiendo describen una tendencia sana; por debajo y con la línea bajando, una débil. Si el precio está muy por encima, ha subido muy deprisa. Es una descripción del pasado, no una predicción.",
+      "cuandoEngana": [
+        "Es muy lenta: cambia de dirección mucho después que el precio, y a veces cuando ya ha pasado casi todo el movimiento.",
+        "En mercados laterales el precio la cruza muchas veces sin que signifique nada.",
+        "Estar por encima de la media no garantiza que el precio siga subiendo."
+      ],
       "combinaCon": [
         "media_50",
         "pendiente_sma200",
@@ -48,17 +115,95 @@
         ],
         "correcta": 1,
         "explicacion": "Estar muy lejos de la media habla de un movimiento rápido y extremo. No dice qué ocurrirá después, pero una subida tan intensa es más frágil que una moderada. Por eso el motor no da su nota máxima a ese caso."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "cociente",
+        "numerador": {
+          "clave": "suma",
+          "nombre": "Suma de los últimos 200 cierres",
+          "origen": "historico_precios",
+          "ejemplo": 20000,
+          "min": 8000,
+          "max": 40000,
+          "unidad": "€"
+        },
+        "denominador": {
+          "clave": "sesiones",
+          "nombre": "Sesiones",
+          "origen": "historico_precios",
+          "ejemplo": 200,
+          "unidad": "sesiones"
+        },
+        "resultado": {
+          "nombre": "Media de 200 sesiones",
+          "unidad": "€",
+          "ejemplo": 100
+        }
+      },
+      "leyenda": [
+        {
+          "condicion": "Precio sobre la línea y la línea subiendo",
+          "significado": "Describe una tendencia de fondo sana.",
+          "tono": "positivo"
+        },
+        {
+          "condicion": "Precio muy por encima de la línea",
+          "significado": "Ha subido muy deprisa frente a su nivel habitual: es más frágil.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Precio bajo la línea y la línea bajando",
+          "significado": "Describe una tendencia de fondo débil.",
+          "tono": "negativo"
+        }
+      ],
+      "actividades": [
+        {
+          "tipo": "simulador",
+          "enunciado": "Mueve la suma de los últimos 200 cierres: ¿cuánto cambia la media? Compárala con la de 50 sesiones: ¿cuál es más lenta?"
+        },
+        {
+          "tipo": "ordenar",
+          "enunciado": "Ordena estas acciones inventadas de menor a mayor distancia a su media de 200 sesiones.",
+          "elementos": [
+            {
+              "nombre": "Alfa: precio de 115 €, media de 100 €",
+              "valor": 0.15,
+              "mostrar": "+15 %"
+            },
+            {
+              "nombre": "Beta: precio de 90 €, media de 100 €",
+              "valor": -0.1,
+              "mostrar": "−10 %"
+            },
+            {
+              "nombre": "Gamma: precio de 100 €, media de 100 €",
+              "valor": 0,
+              "mostrar": "0 %"
+            },
+            {
+              "nombre": "Delta: precio de 140 €, media de 100 €",
+              "valor": 0.4,
+              "mostrar": "+40 %"
+            }
+          ],
+          "explicacion": "La distancia es precio / media − 1. Estar por debajo de la media da una distancia negativa, y por encima, positiva. Delta es la que más se ha alejado por arriba."
+        }
+      ]
     },
     {
       "id": "grafico_precio",
       "titulo": "Cómo leer la gráfica de precio",
       "resumen": "La evolución del precio de cierre, con el máximo y el mínimo del periodo marcados.",
       "intuicion": "Es como el electrocardiograma del precio: no dice si la empresa está sana, solo cómo se ha movido su precio. Verlo de un vistazo ayuda a poner en contexto los números.",
-      "formula": "Cada punto es el precio de cierre de una sesión (de 1M a Todo) o de un tramo de 5 minutos (1D) o de 30 minutos (1S). Los puntos marcados son el cierre más alto y el más bajo del periodo elegido. Los precios vienen ajustados por splits (cuando una empresa divide sus acciones, el histórico se reescala para que no haya saltos falsos), pero no por dividendos.",
+      "formula": "Cada punto es el precio de cierre de una sesión (de 1M a Todo) o de un tramo de 5 minutos (1D) o de 30 (1S). Se marcan el cierre más alto y el más bajo del periodo. Los precios vienen ajustados por splits, pero no por dividendos.",
       "ejemplo": "Una acción baja de 100 € a 50 € porque la empresa hace un split 2x1: cada acción pasa a ser dos. Sin ajuste, la gráfica mostraría una caída del 50 % que no existió. Con el ajuste, el histórico anterior se divide a la mitad y la línea sigue continua.",
-      "comoLeerla": "Cambia de periodo para ver el mismo precio a distintas escalas: 1D y 1S enseñan el movimiento reciente (con unos 15-20 minutos de retraso), de 1M a 1A la tendencia del último año, y 5A o Todo el comportamiento a largo plazo. Compara el precio actual con el máximo y el mínimo del periodo para saber en qué parte de su rango está. Un precio cerca del mínimo no es «barato» ni uno cerca del máximo «caro»: solo describe dónde está.",
-      "cuandoEngana": "Un periodo corto puede dar una impresión muy distinta de uno largo: una caída del último mes puede ser un pequeño bache dentro de cinco años de subida. Una escala vertical que no empieza en cero exagera los movimientos. Y el pasado del precio no predice su futuro.",
+      "comoLeerla": "Cambia de periodo para ver el mismo precio a distintas escalas: 1D y 1S, el movimiento reciente; de 1M a 1A, la tendencia del último año; 5A o Todo, el largo plazo. Compara el precio actual con el máximo y el mínimo del periodo. Cerca del mínimo no es «barato», ni cerca del máximo «caro»: solo describe dónde está.",
+      "cuandoEngana": [
+        "Un periodo corto puede dar una impresión muy distinta de uno largo: una caída del último mes puede ser un pequeño bache dentro de cinco años de subida.",
+        "Una escala vertical que no empieza en cero exagera los movimientos.",
+        "Y el pasado del precio no predice su futuro."
+      ],
       "combinaCon": [
         "media_50",
         "media_200",
@@ -74,7 +219,126 @@
         ],
         "correcta": 2,
         "explicacion": "Cada periodo responde a una pregunta distinta. El mes cuenta el pasado inmediato; los cinco años, la tendencia de fondo. Ver los dos evita confundir un bache con un cambio de rumbo."
-      }
+      },
+      "formulaVisual": {
+        "tipo": "pasos",
+        "pasos": [
+          {
+            "nombre": "Cada punto",
+            "descripcion": "Es el precio de cierre de una sesión, o de un tramo de 5 o 30 minutos en 1D y 1S."
+          },
+          {
+            "nombre": "Se ajusta por splits",
+            "descripcion": "Si la empresa divide sus acciones, el histórico anterior se reescala para que no haya saltos falsos."
+          },
+          {
+            "nombre": "Se marcan dos puntos",
+            "descripcion": "El cierre más alto y el más bajo del periodo elegido."
+          }
+        ],
+        "resultado": {
+          "nombre": "Puntos marcados en la gráfica",
+          "unidad": "puntos",
+          "ejemplo": 2
+        }
+      },
+      "leyenda": [
+        {
+          "condicion": "Periodos 1D y 1S",
+          "significado": "Enseñan el movimiento reciente, con unos 15-20 minutos de retraso.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Periodos de 1M a 1A",
+          "significado": "Enseñan la tendencia del último año.",
+          "tono": "neutro"
+        },
+        {
+          "condicion": "Periodos 5A y Todo",
+          "significado": "Enseñan el comportamiento a largo plazo.",
+          "tono": "neutro"
+        }
+      ],
+      "actividades": [
+        {
+          "tipo": "comparar",
+          "sector": "La misma acción inventada, en dos periodos",
+          "empresas": [
+            "Gráfica de 1M",
+            "Gráfica de 5A"
+          ],
+          "filas": [
+            {
+              "etiqueta": "Variación del precio",
+              "a": "−8 %",
+              "b": "+120 %"
+            },
+            {
+              "etiqueta": "Lo que cuenta",
+              "a": "el último mes",
+              "b": "cinco años"
+            },
+            {
+              "etiqueta": "Un bache puntual",
+              "a": "se ve enorme",
+              "b": "apenas se nota"
+            },
+            {
+              "etiqueta": "Sirve para ver",
+              "a": "el movimiento reciente",
+              "b": "la tendencia de fondo"
+            }
+          ],
+          "pregunta": {
+            "texto": "¿Cuál de las dos gráficas habla más de la tendencia de fondo?",
+            "correcta": 1,
+            "explicacion": "La de 5 años deja ver la tendencia de fondo, y un bache de un mes apenas se nota. La de 1 mes enseña el pasado inmediato. Ninguna es la buena: responden a preguntas distintas, y conviene mirar las dos."
+          }
+        },
+        {
+          "tipo": "trampa",
+          "empresa": "Gráfica de Cerámicas Este (empresa inventada)",
+          "enunciado": "La línea sube casi en vertical y parece un gran salto. ¿Qué dato hace que engañe?",
+          "datos": [
+            {
+              "etiqueta": "Aspecto de la línea",
+              "valor": "Sube casi en vertical",
+              "esTrampa": false,
+              "explicacion": "Es lo que se ve, pero el aspecto depende de cómo esté dibujada la escala."
+            },
+            {
+              "etiqueta": "Precio al inicio y al final",
+              "valor": "96 € → 99 €",
+              "esTrampa": false,
+              "explicacion": "Estos datos ayudan a ver la trampa: la subida real es muy pequeña."
+            },
+            {
+              "etiqueta": "Eje vertical",
+              "valor": "Empieza en 95 €, no en 0",
+              "esTrampa": true,
+              "explicacion": "Aquí está la trampa: una escala vertical que no empieza en cero exagera los movimientos. Con el eje desde cero, esa subida apenas se vería."
+            },
+            {
+              "etiqueta": "Variación real del precio",
+              "valor": "+3 %",
+              "esTrampa": false,
+              "explicacion": "Es el dato que pone en perspectiva el dibujo: la línea parece subir mucho, pero la variación es pequeña."
+            }
+          ]
+        },
+        {
+          "tipo": "predecir",
+          "texto": "Una acción inventada cotiza a 100 € y hoy hace un split 2x1: cada acción pasa a ser dos. En la gráfica ajustada, ¿qué precio aparece para el día anterior al split?",
+          "opciones": [
+            "100 €",
+            "50 €",
+            "200 €"
+          ],
+          "correcta": 1,
+          "explicacion": "Al hacer un split 2x1, el precio de cada acción se divide entre dos. El histórico anterior se reescala igual para que la línea sea continua.",
+          "revelacion": "100 / 2 = 50 €. Sin ese ajuste, la gráfica mostraría una caída del 50 % que en realidad no existió."
+        }
+      ]
     }
   ]
 }

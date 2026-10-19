@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/chart_concept_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/context_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/growth_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
@@ -23,6 +24,7 @@ final _allIds = [
   ...growthIllustrations.keys,
   ...technicalIllustrations.keys,
   ...contextIllustrations.keys,
+  ...chartConceptIllustrations.keys,
 ];
 
 void main() {
@@ -100,6 +102,17 @@ void main() {
         'caida_maxima',
       ]);
       for (final id in contextIllustrations.keys) {
+        expect(illustrationFor(id), isNotNull, reason: id);
+      }
+    });
+
+    test('hay una ilustración por cada concepto de la gráfica', () {
+      expect(chartConceptIllustrations.keys, [
+        'media_50',
+        'media_200',
+        'grafico_precio',
+      ]);
+      for (final id in chartConceptIllustrations.keys) {
         expect(illustrationFor(id), isNotNull, reason: id);
       }
     });

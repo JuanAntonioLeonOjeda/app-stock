@@ -145,7 +145,7 @@
 - [x] T50. Técnico (5), incluida la leyenda de MACD y el tipo de fórmula `variacion`
       (actual ÷ referencia − 1). Pendiente de tu revisión (T31).
 - [x] T51. Contexto (4). Pendiente de tu revisión (T31).
-- [ ] T52. Conceptos de la gráfica (3), con leyenda.
+- [x] T52. Conceptos de la gráfica (3), con leyenda. Pendiente de tu revisión (T31).
 - [ ] T53. Test de cobertura ampliado (criterios 74, 75, 79, 80, 86-88); borrar
       `MetricContentView`.
 

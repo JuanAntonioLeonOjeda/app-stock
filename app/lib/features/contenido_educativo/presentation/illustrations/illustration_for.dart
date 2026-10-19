@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:stock_app/features/contenido_educativo/presentation/illustrations/chart_concept_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/context_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/growth_illustrations.dart';
 import 'package:stock_app/features/contenido_educativo/presentation/illustrations/health_illustrations.dart';
@@ -14,6 +15,7 @@ final Map<String, IllustrationBuilder> _illustrations = {
   ...growthIllustrations,
   ...technicalIllustrations,
   ...contextIllustrations,
+  ...chartConceptIllustrations,
 };
 
 /// La ilustración de la analogía de [id] (criterio 75), o `null` si aún no
