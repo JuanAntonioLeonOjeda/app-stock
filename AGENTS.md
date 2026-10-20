@@ -31,4 +31,7 @@ Contexto del proyecto, arquitectura por features, comandos y despliegue viven en
 | `specs/contenido_educativo/spec.md` | Spec de la feature `contenido_educativo` |
 | `specs/contenido_educativo/plan.md` | Plan de la feature `contenido_educativo` |
 | `specs/contenido_educativo/tasks.md` | Tasks de la feature `contenido_educativo` |
+| `specs/ajustes/spec.md` | Spec de la feature `ajustes` |
+| `specs/ajustes/plan.md` | Plan de la feature `ajustes` |
+| `specs/ajustes/tasks.md` | Tasks de la feature `ajustes` |
 | `.gitignore` | Archivos excluidos del repositorio |

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:stock_app/features/analisis_accion/domain/ports/cache_port.dart';
-import 'package:stock_app/features/analisis_accion/infrastructure/adapters/json_file.dart';
+import 'package:stock_app/core/storage/json_file.dart';
 
 /// [CachePort] persistente: un archivo JSON por clave
 /// (`{"expiresAt": ..., "value": ...}`) dentro de [directory].
