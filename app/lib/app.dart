@@ -8,6 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:stock_app/composition/motor_metric_scale_adapter.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/ajustes/application/use_cases/load_theme_preference_use_case.dart';
+import 'package:stock_app/features/ajustes/application/use_cases/set_theme_preference_use_case.dart';
+import 'package:stock_app/features/ajustes/infrastructure/adapters/file_theme_preference_adapter.dart';
+import 'package:stock_app/features/ajustes/presentation/controllers/theme_controller.dart';
+import 'package:stock_app/features/ajustes/presentation/theme_mode_mapper.dart';
+import 'package:stock_app/features/ajustes/presentation/widgets/theme_mode_button.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/clear_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_exchange_rates_use_case.dart';
@@ -59,6 +65,7 @@ class _StockAppState extends State<StockApp> {
   final _httpClient = http.Client();
   late final AnalyzeStockUseCase _analyzeStock;
   late final HomeController _homeController;
+  late final ThemeController _themeController;
   late final GetPriceHistoryUseCase _getPriceHistory;
   late final GetIntradayHistoryUseCase _getIntradayHistory;
   late final GetExchangeRatesUseCase _getExchangeRates;
@@ -109,10 +116,18 @@ class _StockAppState extends State<StockApp> {
       loadFavorites: _loadFavorites,
       setFavorite: _setFavorite,
     );
+    final themePreference = FileThemePreferenceAdapter(
+      directory: widget.storageDirectory,
+    );
+    _themeController = ThemeController(
+      loadPreference: LoadThemePreferenceUseCase(themePreference),
+      setPreference: SetThemePreferenceUseCase(themePreference),
+    )..load();
   }
 
   @override
   void dispose() {
+    _themeController.dispose();
     _homeController.dispose();
     _httpClient.close();
     super.dispose();
@@ -180,14 +195,19 @@ class _StockAppState extends State<StockApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Análisis de acciones',
-    theme: buildAppTheme(Brightness.light),
-    darkTheme: buildAppTheme(Brightness.dark),
-    home: HomeScreen(
-      controller: _homeController,
-      buildAnalysisScreen: _buildAnalysisScreen,
-      onOpenLearn: _openGlossary,
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _themeController,
+    builder: (context, _) => MaterialApp(
+      title: 'Análisis de acciones',
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: themeModeFor(_themeController.preference),
+      home: HomeScreen(
+        controller: _homeController,
+        buildAnalysisScreen: _buildAnalysisScreen,
+        onOpenLearn: _openGlossary,
+        themeAction: ThemeModeButton(controller: _themeController),
+      ),
     ),
   );
 }
