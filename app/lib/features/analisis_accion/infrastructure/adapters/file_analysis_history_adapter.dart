@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:stock_app/features/analisis_accion/domain/entities/history_entry.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/analysis_history_port.dart';
 import 'package:stock_app/features/analisis_accion/infrastructure/adapters/analysis_result_json.dart';
-import 'package:stock_app/features/analisis_accion/infrastructure/adapters/json_file.dart';
+import 'package:stock_app/core/storage/json_file.dart';
 
 /// Versión del formato del archivo de historial. Un archivo con otra versión
 /// se descarta (se empieza con el historial vacío).

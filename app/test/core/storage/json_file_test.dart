@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stock_app/features/analisis_accion/infrastructure/adapters/json_file.dart';
+import 'package:stock_app/core/storage/json_file.dart';
 
 void main() {
   late Directory directory;
