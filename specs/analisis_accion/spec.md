@@ -613,9 +613,9 @@ decisión del usuario, por su coste.)
 ## Revisión 8: aspecto moderno, favoritas y últimas consultas (2026-10-15)
 
 **Qué se añade**
-- **Aspecto:** tema propio claro y oscuro (tinta verdosa sobre papel, petróleo como único color de
-  marca), IBM Plex Sans para la interfaz y los números (cifras de ancho fijo) e IBM Plex Serif
-  para el texto educativo. Fuentes empaquetadas en la app (sin red). Semáforo propio con contraste
+- **Aspecto:** tema propio claro y oscuro (superficies limpias, tarjetas sin borde y esquinas amplias, índigo como único color de
+  marca), Plus Jakarta Sans para la interfaz y los números (cifras de ancho fijo) y el texto
+  educativo con la misma fuente. Fuentes empaquetadas en la app (sin red). Semáforo propio con contraste
   de texto de al menos 4,5:1 en los dos modos. La cabecera destaca el precio y muestra la nota
   como escala de 10 tramos; el color nunca va sin texto.
 - **Favoritas:** una estrella en la pantalla de resultado marca o desmarca la acción. Las favoritas
