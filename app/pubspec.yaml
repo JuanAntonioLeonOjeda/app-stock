@@ -78,15 +78,12 @@ flutter:
   # https://flutter.dev/to/asset-from-package
 
   fonts:
-    - family: IBMPlexSans
+    - family: PlusJakartaSans
       fonts:
-        - asset: assets/fonts/IBMPlexSans-Regular.ttf
-        - asset: assets/fonts/IBMPlexSans-Medium.ttf
+        - asset: assets/fonts/PlusJakartaSans-400.ttf
+        - asset: assets/fonts/PlusJakartaSans-500.ttf
           weight: 500
-        - asset: assets/fonts/IBMPlexSans-SemiBold.ttf
+        - asset: assets/fonts/PlusJakartaSans-600.ttf
           weight: 600
-    - family: IBMPlexSerif
-      fonts:
-        - asset: assets/fonts/IBMPlexSerif-Regular.ttf
-        - asset: assets/fonts/IBMPlexSerif-Italic.ttf
-          style: italic
+        - asset: assets/fonts/PlusJakartaSans-700.ttf
+          weight: 700
