@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:stock_app/features/analisis_accion/domain/entities/favorite.dart';
 import 'package:stock_app/features/analisis_accion/domain/ports/favorites_port.dart';
-import 'package:stock_app/features/analisis_accion/infrastructure/adapters/json_file.dart';
+import 'package:stock_app/core/storage/json_file.dart';
 
 /// Versión del formato del archivo de favoritos. Otra versión se descarta.
 const favoritesJsonVersion = 1;

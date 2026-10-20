@@ -1,4 +1,7 @@
 import 'package:stock_app/features/contenido_educativo/domain/entities/check_question.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/formula_diagram.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/learning_activity.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 
 /// Ficha didáctica de una métrica del motor de análisis.
 ///
@@ -13,10 +16,15 @@ class MetricContent {
     required this.formula,
     required this.example,
     required this.howToRead,
-    required this.whenItMisleads,
+    required List<String> whenItMisleads,
     required List<String> combinesWith,
     required this.question,
-  }) : combinesWith = List.unmodifiable(combinesWith);
+    this.formulaDiagram,
+    this.legend = const [],
+    List<LearningActivity> activities = const [],
+  }) : whenItMisleads = List.unmodifiable(whenItMisleads),
+       combinesWith = List.unmodifiable(combinesWith),
+       activities = List.unmodifiable(activities);
 
   final String id;
   final String title;
@@ -36,10 +44,19 @@ class MetricContent {
   /// Qué valores se consideran altos o bajos, como orientación.
   final String howToRead;
 
-  /// Trampas típicas.
-  final String whenItMisleads;
+  /// Trampas típicas, una por tarjeta.
+  final List<String> whenItMisleads;
 
   /// Ids de métricas relacionadas.
   final List<String> combinesWith;
   final CheckQuestion question;
+
+  /// La fórmula por piezas (criterio 76); `null` mientras la ficha no se ha
+  /// migrado al formato visual.
+  final FormulaDiagram? formulaDiagram;
+
+  /// Cómo leer el valor cuando el motor no tiene una escala por tramos
+  /// (criterio 79); vacía en las demás.
+  final List<LegendRow> legend;
+  final List<LearningActivity> activities;
 }

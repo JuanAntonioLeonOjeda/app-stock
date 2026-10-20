@@ -6,7 +6,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:stock_app/composition/motor_metric_scale_adapter.dart';
 import 'package:stock_app/core/theme/app_theme.dart';
+import 'package:stock_app/features/ajustes/application/use_cases/load_theme_preference_use_case.dart';
+import 'package:stock_app/features/ajustes/application/use_cases/set_theme_preference_use_case.dart';
+import 'package:stock_app/features/ajustes/infrastructure/adapters/file_theme_preference_adapter.dart';
+import 'package:stock_app/features/ajustes/presentation/controllers/theme_controller.dart';
+import 'package:stock_app/features/ajustes/presentation/theme_mode_mapper.dart';
+import 'package:stock_app/features/ajustes/presentation/widgets/theme_mode_button.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/analyze_stock_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/clear_history_use_case.dart';
 import 'package:stock_app/features/analisis_accion/application/use_cases/get_exchange_rates_use_case.dart';
@@ -35,6 +42,7 @@ import 'package:stock_app/features/analisis_accion/presentation/controllers/home
 import 'package:stock_app/features/analisis_accion/presentation/controllers/price_chart_controller.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/analysis_screen.dart';
 import 'package:stock_app/features/analisis_accion/presentation/screens/home_screen.dart';
+import 'package:stock_app/features/contenido_educativo/application/use_cases/get_metric_scale_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/load_educational_content_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/application/use_cases/search_glossary_use_case.dart';
 import 'package:stock_app/features/contenido_educativo/infrastructure/adapters/asset_educational_content_adapter.dart';
@@ -57,12 +65,14 @@ class _StockAppState extends State<StockApp> {
   final _httpClient = http.Client();
   late final AnalyzeStockUseCase _analyzeStock;
   late final HomeController _homeController;
+  late final ThemeController _themeController;
   late final GetPriceHistoryUseCase _getPriceHistory;
   late final GetIntradayHistoryUseCase _getIntradayHistory;
   late final GetExchangeRatesUseCase _getExchangeRates;
   late final LoadFavoritesUseCase _loadFavorites;
   late final SetFavoriteUseCase _setFavorite;
   late final LoadEducationalContentUseCase _loadEducationalContent;
+  late final GetMetricScaleUseCase _getMetricScale;
 
   @override
   void initState() {
@@ -95,6 +105,7 @@ class _StockAppState extends State<StockApp> {
     _loadEducationalContent = LoadEducationalContentUseCase(
       AssetEducationalContentAdapter(bundle: rootBundle),
     );
+    _getMetricScale = const GetMetricScaleUseCase(MotorMetricScaleAdapter());
     final favorites = FileFavoritesAdapter(directory: widget.storageDirectory);
     _loadFavorites = LoadFavoritesUseCase(favorites);
     _setFavorite = SetFavoriteUseCase(favorites);
@@ -105,10 +116,18 @@ class _StockAppState extends State<StockApp> {
       loadFavorites: _loadFavorites,
       setFavorite: _setFavorite,
     );
+    final themePreference = FileThemePreferenceAdapter(
+      directory: widget.storageDirectory,
+    );
+    _themeController = ThemeController(
+      loadPreference: LoadThemePreferenceUseCase(themePreference),
+      setPreference: SetThemePreferenceUseCase(themePreference),
+    )..load();
   }
 
   @override
   void dispose() {
+    _themeController.dispose();
     _homeController.dispose();
     _httpClient.close();
     super.dispose();
@@ -119,13 +138,15 @@ class _StockAppState extends State<StockApp> {
   void _openTopic(BuildContext context, String topicId) => openEducationalTopic(
     context,
     loadContent: _loadEducationalContent,
+    getMetricScale: _getMetricScale,
     topicId: topicId,
   );
 
-  /// La explicación de una métrica o un bloque, en el sitio. Las métricas
-  /// relacionadas se abren aparte, en una hoja.
+  /// La explicación de una métrica o un bloque, en el sitio. El recorrido
+  /// paso a paso de una métrica se abre aparte, a pantalla completa.
   Widget _buildInfo(BuildContext context, String topicId) => TopicInlineView(
     loadContent: _loadEducationalContent,
+    getMetricScale: _getMetricScale,
     topicId: topicId,
     onOpenTopic: (relatedId) => _openTopic(context, relatedId),
   );
@@ -174,14 +195,19 @@ class _StockAppState extends State<StockApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Análisis de acciones',
-    theme: buildAppTheme(Brightness.light),
-    darkTheme: buildAppTheme(Brightness.dark),
-    home: HomeScreen(
-      controller: _homeController,
-      buildAnalysisScreen: _buildAnalysisScreen,
-      onOpenLearn: _openGlossary,
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _themeController,
+    builder: (context, _) => MaterialApp(
+      title: 'Análisis de acciones',
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: themeModeFor(_themeController.preference),
+      home: HomeScreen(
+        controller: _homeController,
+        buildAnalysisScreen: _buildAnalysisScreen,
+        onOpenLearn: _openGlossary,
+        themeAction: ThemeModeButton(controller: _themeController),
+      ),
     ),
   );
 }

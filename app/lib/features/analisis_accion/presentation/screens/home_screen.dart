@@ -26,6 +26,7 @@ class HomeScreen extends StatefulWidget {
     required this.controller,
     required this.buildAnalysisScreen,
     this.onOpenLearn,
+    this.themeAction,
   });
 
   final HomeController controller;
@@ -33,6 +34,9 @@ class HomeScreen extends StatefulWidget {
 
   /// Abre el glosario educativo; sin ella no hay acceso "Aprender".
   final void Function(BuildContext context)? onOpenLearn;
+
+  /// Control de tema que aporta el composition root; sin él no se muestra.
+  final Widget? themeAction;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -70,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: const Text('Aprender'),
             onPressed: () => onOpenLearn(context),
           ),
+        ?widget.themeAction,
       ],
     ),
     body: SafeArea(
@@ -86,8 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._searchResults(),
             const SizedBox(height: 24),
             Text('Favoritas', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
             FavoritesList(
               favorites: _controller.favorites,
+              history: _controller.history,
               onOpen: (Favorite favorite) => _openAnalysis(favorite.symbol),
               onRemove: _controller.removeFavorite,
             ),

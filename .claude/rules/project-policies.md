@@ -33,7 +33,8 @@ application, infrastructure y presentation). La regla de dependencia y el naming
 revés.
 
 **Regla de dependencia entre features:** una feature puede depender de `app/lib/core/`,
-nunca de otra feature directamente.
+nunca de otra feature directamente. Si una necesita algo de otra, lo pide con un port y
+el adapter va en `app/lib/composition/` (ver `.claude/rules/hexagonal-architecture.md`).
 
 ## Cuándo usar cada mecanismo de `.claude/` (para no crear ruido)
 

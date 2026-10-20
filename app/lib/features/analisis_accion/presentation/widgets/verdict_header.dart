@@ -66,7 +66,7 @@ class VerdictHeader extends StatelessWidget {
     final color = verdictColor(result.verdict, theme);
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

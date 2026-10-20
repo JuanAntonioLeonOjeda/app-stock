@@ -63,7 +63,7 @@ class TopicController extends ChangeNotifier {
   void openTopic(String topicId) {
     if (topicId == currentTopicId) return;
     _stack.add(topicId);
-    _selectedOption = null;
+    resetAnswers();
     _notify();
   }
 
@@ -71,7 +71,7 @@ class TopicController extends ChangeNotifier {
   void goBack() {
     if (!canGoBack) return;
     _stack.removeLast();
-    _selectedOption = null;
+    resetAnswers();
     _notify();
   }
 
@@ -81,6 +81,14 @@ class TopicController extends ChangeNotifier {
     _selectedOption = index;
     _notify();
   }
+
+  /// Descarta lo respondido al cambiar de tema; las subclases añaden lo suyo.
+  @protected
+  void resetAnswers() => _selectedOption = null;
+
+  /// Avisa a los oyentes salvo que el controller ya esté liberado.
+  @protected
+  void notifyIfAlive() => _notify();
 
   void _notify() {
     if (!_isDisposed) notifyListeners();

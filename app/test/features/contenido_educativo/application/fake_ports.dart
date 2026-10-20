@@ -4,8 +4,10 @@
 import 'dart:async';
 
 import 'package:stock_app/features/contenido_educativo/domain/entities/educational_content.dart';
+import 'package:stock_app/features/contenido_educativo/domain/entities/reading_scale.dart';
 import 'package:stock_app/features/contenido_educativo/domain/exceptions/educational_content_exception.dart';
 import 'package:stock_app/features/contenido_educativo/domain/ports/educational_content_port.dart';
+import 'package:stock_app/features/contenido_educativo/domain/ports/metric_scale_port.dart';
 
 import '../sample_content.dart';
 
@@ -28,4 +30,14 @@ class FakeEducationalContent implements EducationalContentPort {
     if (failure != null) throw failure;
     return content;
   }
+}
+
+/// Escalas en memoria por id de métrica.
+class FakeMetricScales implements MetricScalePort {
+  FakeMetricScales(this._scales);
+
+  final Map<String, ReadingScale> _scales;
+
+  @override
+  ReadingScale? scaleFor(String metricId) => _scales[metricId];
 }

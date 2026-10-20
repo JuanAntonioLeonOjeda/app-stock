@@ -18,7 +18,7 @@ Contexto del proyecto, arquitectura por features, comandos y despliegue viven en
 | `.claude/skills/motor-analisis/SKILL.md` | Motor de análisis: capas, puntuación, perfiles, veredicto |
 | `.claude/skills/motor-analisis/references/metricas.md` | Fórmulas y escalas de cada métrica |
 | `.claude/skills/datos-mercado/SKILL.md` | Obtención de datos bursátiles, proveedor, caché y backend |
-| `.claude/skills/contenido-educativo/SKILL.md` | Contenido didáctico de métricas y lecciones |
+| `.claude/skills/contenido-educativo/SKILL.md` | Contenido didáctico: formato de las fichas visuales, fórmulas por piezas, ilustraciones y actividades |
 | `.claude/agents/flutter-reviewer.md` | Subagente revisor de la app Flutter (`app/`) |
 | `.claude/agents/code-reviewer.md` | Subagente revisor genérico (seguridad, corrección, mantenibilidad) |
 | `.claude/commands/create-pr.md` | Comando para crear PR con conventional commits |
@@ -31,4 +31,7 @@ Contexto del proyecto, arquitectura por features, comandos y despliegue viven en
 | `specs/contenido_educativo/spec.md` | Spec de la feature `contenido_educativo` |
 | `specs/contenido_educativo/plan.md` | Plan de la feature `contenido_educativo` |
 | `specs/contenido_educativo/tasks.md` | Tasks de la feature `contenido_educativo` |
+| `specs/ajustes/spec.md` | Spec de la feature `ajustes` |
+| `specs/ajustes/plan.md` | Plan de la feature `ajustes` |
+| `specs/ajustes/tasks.md` | Tasks de la feature `ajustes` |
 | `.gitignore` | Archivos excluidos del repositorio |

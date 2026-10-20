@@ -37,12 +37,11 @@ class _SearchBarSectionState extends State<SearchBarSection> {
     textInputAction: TextInputAction.search,
     onSubmitted: (_) => _submit(),
     decoration: InputDecoration(
-      labelText: 'Nombre o ticker',
-      hintText: 'Apple, AAPL, Tesco...',
-      border: const OutlineInputBorder(),
+      hintText: 'Nombre o ticker: Apple, AAPL, Tesco...',
+      prefixIcon: const Icon(Icons.search),
       suffixIcon: IconButton(
         tooltip: 'Buscar',
-        icon: const Icon(Icons.search),
+        icon: const Icon(Icons.arrow_forward),
         onPressed: widget.enabled ? _submit : null,
       ),
     ),

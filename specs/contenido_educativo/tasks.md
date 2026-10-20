@@ -110,3 +110,50 @@
 - [x] T39. Test de cobertura en `app/test/`: los conceptos que referencia `analisis_accion` existen,
       sin frases de recomendación ni empresas reales.
 
+
+## Revisión 2: fichas visuales y actividades
+
+### Domain
+
+- [x] T40. Entidades: `FormulaDiagram`, `LearningActivity`, `ReadingScale`/`ScaleBand`,
+      `LegendRow`; `MetricContent` con los campos nuevos.
+- [x] T41. `formula_evaluation.dart`, `scale_bands.dart` y `activity_grading.dart` + tests.
+- [x] T42. `MetricScalePort` y `GetMetricScaleUseCase` + test con fake.
+
+### Infrastructure
+
+- [x] T43. Parser de los campos nuevos y sus validaciones + tests (las fichas actuales se
+      migran en T47-T52; hasta entonces los campos nuevos son opcionales en el parser y T53 los exige en el
+      contenido real).
+- [x] T44. `MotorMetricScaleAdapter` en `app/lib/composition/` + test.
+
+### Presentation
+
+- [x] T45. `ScaleBar`, `FormulaDiagramView`, `ReadingLegendView`, `MetricQuickView` e
+      `illustrationFor` (el enganche, con el registro vacío: cada bloque añade las suyas en
+      T47-T52) + tests.
+- [x] T46. `LessonController`, `lessonStepsFor`, `MetricLessonScreen` y los cinco widgets
+      de actividad; `openEducationalTopic` y `TopicInlineView` usan lo nuevo; cableado en
+      `app.dart` + tests.
+
+### Contenido (por bloques; revisión del usuario al final de cada uno)
+
+- [x] T47. Valoración (6): JSON nuevo e ilustraciones. Pendiente de tu revisión (T31).
+- [x] T48. Salud financiera (6): JSON nuevo, ilustraciones y `paso` en las piezas movibles
+      (para que un deslizador de años avance de 1 en 1). Pendiente de tu revisión (T31).
+- [x] T49. Crecimiento y rentabilidad (9). Pendiente de tu revisión (T31).
+- [x] T50. Técnico (5), incluida la leyenda de MACD y el tipo de fórmula `variacion`
+      (actual ÷ referencia − 1). Pendiente de tu revisión (T31).
+- [x] T51. Contexto (4). Pendiente de tu revisión (T31).
+- [x] T52. Conceptos de la gráfica (3), con leyenda. Pendiente de tu revisión (T31).
+- [x] T53. Test de cobertura ampliado (criterios 74, 75, 79, 80, 86-88). `MetricContentView`
+      ya se borró en T46.
+
+### Cierre
+
+- [x] T54. Skill `contenido-educativo` y `AGENTS.md` con el formato nuevo; además, `composition/`
+      documentada en `hexagonal-architecture.md` y `project-policies.md`.
+- [x] T55. `dart format`, `flutter analyze` y `flutter test` limpios.
+- [x] T56. `flutter-reviewer` (atención a `app/lib/composition/` y a que ninguna feature
+      importe de la otra).
+- [ ] T57. En dispositivo: recorrido, simulador, ordenar arrastrando y modo oscuro.
