@@ -86,8 +86,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._searchResults(),
             const SizedBox(height: 24),
             Text('Favoritas', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
             FavoritesList(
               favorites: _controller.favorites,
+              history: _controller.history,
               onOpen: (Favorite favorite) => _openAnalysis(favorite.symbol),
               onRemove: _controller.removeFavorite,
             ),
