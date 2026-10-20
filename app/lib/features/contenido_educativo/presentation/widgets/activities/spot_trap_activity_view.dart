@@ -68,7 +68,10 @@ class _ItemTile extends StatelessWidget {
     margin: const EdgeInsets.symmetric(vertical: 4),
     child: ListTile(
       title: Text(item.label),
-      trailing: Text(
+      // Debajo y no en `trailing`: hay valores de más de 40 caracteres y un
+      // `trailing` sin límite de ancho deja al título casi sin sitio, con el
+      // texto partido letra a letra.
+      subtitle: Text(
         item.value,
         style: Theme.of(context).textTheme.titleMedium,
       ),
